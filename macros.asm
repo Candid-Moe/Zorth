@@ -3,8 +3,10 @@
 ;          address in HL.
 ;
 macro fcall address
-    ld  hl, $+3
+local next_inst
+    ld  hl, next_inst
     jp  address
+next_inst:
 endm
 
 ;
@@ -24,4 +26,10 @@ macro fret
     jp return
 endm
     
-
+macro counted_string text
+local start
+local end
+        db end - start
+start:  db text
+end:
+endm
