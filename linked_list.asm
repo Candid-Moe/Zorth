@@ -11,6 +11,8 @@ linked_list_add:
     ;   Stack parameters:
     ;   - Address of new entry
     ;   - Address of pointer to list.
+    ;
+    ;   Returns nothing.
     ;    
     exx
     push IY
@@ -32,3 +34,11 @@ linked_list_add:
 
     ret
     
+linked_list_next:
+    ;   Return address next entry in linked list
+    ;
+    ;   Stack parameters:
+    ;   - Entry address
+    ;
+    ;   Returns:
+    ;   
