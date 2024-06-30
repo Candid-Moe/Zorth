@@ -7,16 +7,31 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
 
+    ld      de, ' '
+    push    de
+    fcall   code_word
+
+    ld      HL, _BOOT_MSG
+    push    HL
+    fcall   code_count
+    fcall   code_type
+
 repl:
+;
+;   Read a line and execute every word in it.
+;
     ld      HL, _PROMPT
     push    HL
 
     fcall   code_count
     fcall   code_type
 
+_repl_words:
+    
     fcall   code_refill
     jp      repl
     
+
 return:
 ;
 ;   Implement RET by jumping to address in return stack
@@ -27,6 +42,22 @@ return:
     ld      h, (ix)
     inc     ix
     jp      (hl)        ; return via jump
+
+code_pad:
+;
+;   Implements PAD
+;   ( -- c-addr )
+;
+;   c-addr is the address of a transient region that can be used
+;   to hold data for intermediate processing. 
+;
+    fenter
+
+    ld      hl, _PAD
+    push    hl
+
+    fret
+
 
 code_count:
 ;

@@ -4,5 +4,5 @@ include "macros.asm"
 lston
 
 include "main.asm"
-include "read_line.asm"
+include "word.asm"
 include "storage.asm"
