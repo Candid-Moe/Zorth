@@ -7,20 +7,6 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
 
-    ld      de, ' '
-    push    de
-    fcall   code_word
-
-    ld      HL, _PAD
-    call    print_line
-    
-    ld      de, ' '
-    push    de
-    fcall   code_word
-
-    ld      HL, _PAD
-    call    print_line
-
     ld      HL, _BOOT_MSG
     call    print_line
 
@@ -28,14 +14,37 @@ repl:
 ;
 ;   Read a line and execute every word in it.
 ;
-    ld      HL, _PROMPT
-    call    print_line
+    ld    hl, _PROMPT
+    call  print_line
+
+    fcall   code_refill
 
 _repl_words:
-    
-    fcall   code_refill
-    jp      repl
-    
+
+    ;   Extract next word from TIB
+    ld      de, ' '
+    push    de
+    fcall   code_word
+
+    pop hl          ; Word address
+    ld  a, (hl)     ; Count byte
+
+    ;   Do we have a word to process?    
+    ld  b, a
+    xor a
+    cp  b
+ 
+    jz repl ; No, read another line
+
+    ;   We read a word, process it.
+    call    print_line
+    ld      hl, new_line
+    call    print_line
+
+    jp      _repl_words
+
+new_line: db 1, '\n'
+
 print_line:
 ;
 ;   Print message on standard output
@@ -159,10 +168,32 @@ code_refill:
     jz  _refill_true
     ld  hl, FALSE
     jp  _refill_ret
+
 _refill_true:
+
+    ;   move count
+    ld  a, c
+    ld  (_gTIB), a
+
+    ;   replace ending '\n' with space
+    ld  hl, _TIB    
+
+    ld  b,  0       ; BC is the count
+    dec bc
+    add hl, bc
+    
+    ld  b, (hl)     ; B is the last char 
+    ld  a, '\n'
+    cp  b
+    jnz _refill_true_next
+    ld (hl), ' '  
+  
+_refill_true_next:     
+
     ld  hl, TRUE
 
 _refill_ret:
+
     push hl    
 
     fret

@@ -74,6 +74,8 @@ _code_word_found:
     jnz _code_word_found     
     
 _code_word_exit:
+    ld  hl, _PAD
+    push hl
 
     fret
 
