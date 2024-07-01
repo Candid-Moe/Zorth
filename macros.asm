@@ -34,4 +34,12 @@ start:  db text
 end:
 endm
 
+;   
+;   Add 1 to the byte at address
+;
+macro inc_byte  address
+    ld  a, (address)
+    inc a
+    ld (address), a
+endm
 

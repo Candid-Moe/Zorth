@@ -51,9 +51,7 @@ _code_word_cycle:
     inc hl                  ; Next char in entry buffer
     dec b                   ; Decrement count of remaining bytes
 
-    ld  a, (_gtIN)          ; Move input index
-    inc a
-    ld (_gtIN), a
+    inc_byte _gtIN          ; Move input index
 
     jp  _code_word_cycle
     
@@ -63,9 +61,8 @@ _code_word_found:
     inc hl                  ; Pointer to next char (entry)
     inc de                  ; Pointer to next free position (PAD)
 
-    ld  a, (_PAD)
-    inc a
-    ld (_PAD), a            ; Word length
+    inc_byte _gtIN          ; Increment index on _TIB
+    inc_byte _PAD           ; Increment word length
     
     xor a
     dec b                   ; 

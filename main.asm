@@ -11,26 +11,43 @@ init:
     push    de
     fcall   code_word
 
+    ld      HL, _PAD
+    call    print_line
+    
+    ld      de, ' '
+    push    de
+    fcall   code_word
+
+    ld      HL, _PAD
+    call    print_line
+
     ld      HL, _BOOT_MSG
-    push    HL
-    fcall   code_count
-    fcall   code_type
+    call    print_line
 
 repl:
 ;
 ;   Read a line and execute every word in it.
 ;
     ld      HL, _PROMPT
-    push    HL
-
-    fcall   code_count
-    fcall   code_type
+    call    print_line
 
 _repl_words:
     
     fcall   code_refill
     jp      repl
     
+print_line:
+;
+;   Print message on standard output
+;
+;   Parameters:
+;   HL      Address of counted-string.
+;
+    push    HL
+
+    fcall   code_count
+    fcall   code_type
+    ret
 
 return:
 ;
