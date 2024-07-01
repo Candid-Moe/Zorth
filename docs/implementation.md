@@ -11,7 +11,7 @@ This interpreter implements a Forth virtual machine with three stacks (data, ret
 
 Standard Forth names like TIB, PAD, etc. are prefixes with underscore, thus _TIB and _PAD.
 
-Routines that implements the Forth word `XXX` are called `code_XXX`.
+Routines that implements the Forth word `XXX` are named `code_XXX` by convention.
 
 Due to Z80 Assembler restrictions, Forth names like >IN or #TIB cannot be coded directly. Thus, the following conventions are used:
 * '>' is replaced with 'gt' (greather than), thus _gtIN
@@ -19,7 +19,9 @@ Due to Z80 Assembler restrictions, Forth names like >IN or #TIB cannot be coded 
 
 ## Routines
 
-Routines that implements the *XXX* Forth word must be called using the *fcall* macro. Those must start with `fenter` macro (copies return address to the return stack) and exit with `fret`.
+Parameters are passed in the data stack, always as a word.
+
+Routines that implements a Forth word must be called using the *fcall* macro. Those must start with `fenter` macro (copies return address to the return stack) and exit with `fret`.
 
 Example:
 
