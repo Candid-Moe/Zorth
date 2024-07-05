@@ -43,3 +43,8 @@ macro inc_byte  address
     ld (address), a
 endm
 
+macro set_carry_0
+    scf
+    ccf
+endm
+

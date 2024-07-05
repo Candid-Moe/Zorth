@@ -1,5 +1,8 @@
 TRUE:       dw -1
 FALSE:      dw  0
+new_line:   counted_string '\n'
+space:      counted_string ' '
+words:      counted_string "words:\n"
 _SOURCE_ID: db   DEV_STDIN     ; 1 = keyboard
 _gTIB:      db  0        ; #TIB, len of string in _TIB
 _TIB:       defs 80     ; Input line
@@ -21,6 +24,9 @@ _DATA_STACK:
 ; ---- HEAP -----
 ; Heap extend up to 0xFFFF
 ;
-_DP:         
+
+_DICT:  dw 0        ; Pointer to last entry in Forth dictionary
+    
+_DP:    dw $ + 2
 
 
