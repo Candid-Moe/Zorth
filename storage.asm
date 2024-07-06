@@ -1,3 +1,10 @@
+;   Word class
+defgroup    {
+    class_integer,
+    class_hexadecimal,
+    class_word
+    }
+
 TRUE:       dw -1
 FALSE:      dw  0
 new_line:   counted_string '\n'
@@ -10,6 +17,7 @@ _gtIN:      dw   0      ; >IN, Index into TIB
 _PAD:       defs 80     ; PAD is a counted string.
 _PROMPT:    counted_string   ">"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
+_test:      counted_string "0x1234 25 +"
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX
 ;
@@ -24,7 +32,6 @@ _DATA_STACK:
 ; ---- HEAP -----
 ; Heap extend up to 0xFFFF
 ;
-
 _DICT:  dw 0        ; Pointer to last entry in Forth dictionary
     
 _DP:    dw $ + 2

@@ -71,6 +71,8 @@ dict_init:
     mdict_add st_refill,    code_refill
     mdict_add st_plus,      code_plus
     mdict_add st_space,     code_space
+    mdict_add st_bl,        code_bl
+    mdict_add st_negate,    code_negate
 
     fret
 
@@ -78,8 +80,9 @@ st_pad:     counted_string "PAD"
 st_count:   counted_string "COUNT"
 st_type:    counted_string "TYPE"
 st_refill:  counted_string "REFILL"
-st_plus:    counted_string "+"
+st_plus:    counted_string "PLUS"
 st_words:   counted_string "WORDS"
 st_space:   counted_string "SPACE"
-
+st_bl:      counted_string "BL"
+st_negate:  counted_string "NEGATE"
 

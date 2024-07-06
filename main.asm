@@ -25,15 +25,20 @@ repl:
     push   hl
     fcall  print_line
     fcall  code_refill
+    ;   Check return code
+    pop     bc
+    xor     a
+    cp      c
+    jz      repl 
 
 _repl_words:
 
     ;   Extract next word from TIB
     ld      de, ' '
     push    de
-    fcall   code_word
+    fcall   code_word   
 
-    pop hl          ; Word address
+    ld  hl, _PAD    ; Word address
     ld  a, (hl)     ; Count byte
 
     ;   Do we have a word to process?    
@@ -43,6 +48,16 @@ _repl_words:
  
     jz repl ; No, read another line
 
+    ;   Classify the word
+    push hl
+    fcall classify
+    pop  hl
+
+    ld   a, class_word  ; It's a word
+    cp   l
+    jr   nz, _repl_next_int
+
+_repl_next_word:
     ;   We read a word, process it.
     push    hl
     fcall    print_line
@@ -50,7 +65,17 @@ _repl_words:
     push    hl
     fcall    print_line
 
-    jp      _repl_words
+_repl_next_int:    
+    ;   Convert ascii to binary and push it
+    ld  a, class_integer
+    cp  l
+    jr   nz, _repl_next_hex
+    fcall   ascii2bin_int
+    jr  _repl_words
+
+_repl_next_hex:
+    fcall   ascii2bin_hex    
+    jr  _repl_words
 
 return:
 ;
@@ -244,6 +269,44 @@ _code_words_end:
 
     fret
 
+code_bl:
+;
+;   Implements BL
+;   ( -- char )
+;
+;   char is the character value for a space. 
+
+    fenter
+
+    ld hl, ' '
+    push hl
+
+    fret    
+
+code_spaces:
+;
+;   Implements SPACES
+;   ( n -- )
+;
+;   If n is greater than zero, display n spaces. 
+
+    fenter
+    
+    pop bc
+    inc bc
+    djnz _code_spaces_end
+
+_code_spaces_cycle:
+
+    push bc
+    fcall code_space
+    pop bc
+    djnz _code_spaces_cycle
+
+_code_spaces_end:
+    
+    fret
+
 code_space:
 ;
 ;   Implement SPACE
@@ -253,9 +316,10 @@ code_space:
 ;
     fenter
 
-    ld   hl, space
-    push hl
-    fcall print_line
+    ld      hl, space
+    push    hl
+    fcall   code_count
+    fcall   code_type
 
     fret
 
@@ -273,4 +337,65 @@ print_line:
 
     fret
 
+classify:
+;
+;   Examine a word an classify it.
+;   ( c-addr -- flag)
+;
+;   - Integer
+;   - Hexadecimal
+;   - Other (probably a Forth Word)
+;
+    fenter
 
+    pop hl
+    ld  b, (hl)  ; word length
+    inc hl
+    
+    ld  a, (hl) ; First char
+    ld  c, '-'  ; If start with '-' and len > 2, it's an integer
+    cp  c    
+    jr  nz, _classify_next
+    
+    ; It start with '-'
+    ld  c, 1
+    cp  c       ; len = 1?
+    jr  z, _classify_word
+
+_classify_next:    
+    ;   It not start with '-'
+    ld  c, '0'
+    cp  c
+    jr  z, _classify_prefix
+    jr  c, _classify_word   ; A < '0'
+     
+    ;   A > '0'. It's a digit?
+    ld  c, 0x3A     
+    cp  c
+    jr  c, _classify_integer ; A < '9'
+    jr  _classify_word
+
+_classify_prefix:
+    ;   Word start with '0', maybe it's hex
+    inc hl
+    ld  a, (hl)
+    ld  c, 'x'
+    cp  c
+    jr  z, _classify_hex
+    ld  c, 'X'
+    cp  c
+    jr  z, _classify_hex
+
+    ;   It's not hex
+_classify_word:
+    ld  hl, class_word
+    jr _classify_end
+_classify_integer:
+    ld  hl, class_integer
+    jr _classify_end
+_classify_hex:
+    ld  hl, class_hexadecimal
+_classify_end:
+    push hl
+
+    fret

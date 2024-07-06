@@ -35,11 +35,20 @@ end:
 endm
 
 ;   
-;   Add 1 to the byte at address
+;   Add 1 to the byte at address.
 ;
 macro inc_byte  address
     ld  a, (address)
     inc a
+    ld (address), a
+endm
+
+;
+;   Decrement by 1 byte at address
+;
+macro dec_byte address
+    ld  a, (address)
+    dec a
     ld (address), a
 endm
 
