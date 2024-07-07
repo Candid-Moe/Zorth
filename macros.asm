@@ -57,3 +57,16 @@ macro set_carry_0
     ccf
 endm
 
+macro   jump_zero reg, dest
+    xor a
+    cp  reg
+    jr  z, dest
+endm
+
+macro   jump_non_zero reg, dest
+    xor a
+    cp  reg
+    jr  nz, dest
+endm
+    
+

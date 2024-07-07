@@ -6,13 +6,16 @@
 init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
-
+    
     fcall   dict_init
     ld      hl, words
     push    hl
     fcall   print_line
     fcall   code_words
 
+    ld      hl, st_pad
+    push    hl
+    fcall   dict_search
     ld      HL, _BOOT_MSG
     push    HL
     fcall    print_line
@@ -27,9 +30,7 @@ repl:
     fcall  code_refill
     ;   Check return code
     pop     bc
-    xor     a
-    cp      c
-    jz      repl 
+    jump_zero c, repl
 
 _repl_words:
 
@@ -39,42 +40,32 @@ _repl_words:
     fcall   code_word   
 
     ld  hl, _PAD    ; Word address
-    ld  a, (hl)     ; Count byte
-
+    ld  b, (hl)     ; Count byte
     ;   Do we have a word to process?    
-    ld  b, a
-    xor a
-    cp  b
- 
-    jz repl ; No, read another line
+    jump_zero b, repl ; No, read another line
 
-    ;   Classify the word
-    push hl
-    fcall classify
-    pop  hl
+    ;   Obtain the execution token for word
+    fcall    get_xt
+    pop hl
+    ld  a, h
+    or  a, l        
+    jr  nz, _repl_execute
 
-    ld   a, class_word  ; It's a word
-    cp   l
-    jr   nz, _repl_next_int
+    ;   Error, word not found
 
-_repl_next_word:
-    ;   We read a word, process it.
-    push    hl
-    fcall    print_line
-    ld      hl, new_line
-    push    hl
-    fcall    print_line
-
-_repl_next_int:    
-    ;   Convert ascii to binary and push it
-    ld  a, class_integer
-    cp  l
-    jr   nz, _repl_next_hex
-    fcall   ascii2bin_int
+    ld hl, err_word_not_found
+    fcall print_line
+    ld hl, _PAD
+    fcall print_line
     jr  _repl_words
 
-_repl_next_hex:
-    fcall   ascii2bin_hex    
+_repl_execute:
+    ;   Putting the dest. address in the jp inst.
+    ld (_repl_jp + 1), hl
+    ld hl, _repl_end
+_repl_jp:    
+    jp   0          ; dest. will be overwritten 
+_repl_end:
     jr  _repl_words
 
 return:
@@ -88,10 +79,129 @@ return:
     inc     ix
     jp      (hl)        ; return via jump
 
+get_xt:
+;
+;   Get the execution token for the word just readed.
+;   The word can be anything, including numeric values.
+;   
+;   ( -- xt )
+;
+;   The word is in _PAD
+
+    fenter 
+
+    ;   Classify the word
+
+    ld hl, _PAD
+    push hl
+    fcall classify
+    pop hl              ; result
+
+    ld   a, class_word  ; Is it a word?
+    cp   l
+    jr   nz, _get_xt_int
+
+_get_xt_word:
+    ;   Search the entry in the dictionary
+    ld hl, _PAD
+    fcall dict_search
+    pop hl
+    ;   Test error
+    ld a, h
+    or l
+    jr  z, _get_xt_end
+    ;   Extract xt
+    inc hl
+    inc hl      ; hl -> flags
+    inc hl      ; hl -> @name
+    inc hl
+    inc hl      ; hl -> @xt
+    ld  c, (hl)
+    inc hl
+    ld  b, (hl) ; bc = @xt
+    ld  hl, bc
+
+    jr  _get_xt_end
+
+_get_xt_int:    
+    ;   Convert ascii to binary and push it
+    ld  a, class_integer
+    cp  l
+    jr   nz, _get_xt_hex
+    ld  hl, ascii2bin_int
+    jr  _get_xt_end
+
+_get_xt_hex:
+    ld  hl, ascii2bin_hex    
+    
+_get_xt_end:
+    push hl
+    fret
+;
+
+code_tick:
+;
+;   ' tick
+;   ( "<spaces>name" -- xt )
+;
+;   Skip leading space delimiters. Parse name delimited by a space. 
+;   Find name and return xt, the execution token for name. 
+;   An ambiguous condition exists if name is not found. 
+;   When interpreting, 
+;       ' xyz EXECUTE 
+;   is equivalent to xyz. 
+;
+    fenter
+
+    ld  hl, (_DICT)     ; First dict entry
+    
+    fret
+
+code_str_equals:
+;   
+;   Implements STR=
+;   ( c-addr1 u1 c-addr2 u2 – flag ) gforth-0.6 “str-equals”
+;
+;   Compare string for equality (gforth extension)
+;
+;   Return TRUE if equals, FALSE in other case
+;
+    fenter
+
+    pop bc      ; u2
+    ld  a, c    ; A = u2
+    pop hl      ; c-addr2
+    pop bc      ;
+    ld  b, c    ; B = u1
+    pop de      ; c-addr1
+
+    cp b        ; u1 == u2 ?
+    jr nz, _code_str_equals_false
+
+_code_str_equals_cycle:    
+    ; Same length, compare contents
+    ; B = count
+    ld  a, (de)
+    cpi
+    jr  nz, _code_str_equals_false
+    jump_non_zero b, _code_str_equals_cycle
+    ;   Else, all chars are equals
+
+_code_str_equals_true:
+    ld  hl, TRUE
+    jr  _code_str_end
+        
+_code_str_equals_false:
+    ld  hl, FALSE
+
+_code_str_end:
+    push hl
+    fret
+
 
 code_type:
 ;
-;   Implement TYPE
+;   Implements TYPE
 ;   ( c-addr u -- )
 ;
 ;   If u is greater than zero, display the character string
@@ -240,6 +350,7 @@ _code_words_cycle:
 
     push hl         ; Keep entry address
 
+    inc hl          ; flags
     inc hl          ; Name address
     inc hl
 

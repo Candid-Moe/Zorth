@@ -18,6 +18,7 @@ _PAD:       defs 80     ; PAD is a counted string.
 _PROMPT:    counted_string   ">"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 _test:      counted_string "0x1234 25 +"
+err_word_not_found: counted_string "Error: word not found\n"
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX
 ;
