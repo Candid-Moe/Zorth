@@ -126,6 +126,7 @@ dict_init:
     mdict_add st_words,     code_words
     mdict_add st_pad,       code_pad
     mdict_add st_dup,       code_dup
+    mdict_add st_dot,       code_dot
 
     fret
 
@@ -141,3 +142,4 @@ st_negate:      counted_string "NEGATE"
 st_tick:        counted_string "'"
 st_str_equals:  counted_string "STR="
 st_dup:         counted_string "DUP"
+st_dot:         counted_string "."
