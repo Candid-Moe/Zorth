@@ -2,14 +2,14 @@
 
 ascii2bin_int:
 ;   
-;   Convert ASCII integer to binary
-;   ( c-addr -- n )
+;   Convert ASCII integer in PAD area to binary
+;   ( -- n )
 ;
     fenter 
 
     ;   Integer have at least 1 digit.
 
-    pop     de      ; de -> counted string
+    ld      de, _PAD; de -> counted string
     ld      a, (de) ; a = string len
     ld (_ascii2bin_count), a 
     inc     de      ; de -> first char
@@ -67,12 +67,12 @@ _ascii2bin_adjust:
 
 ascii2bin_hex:
 ;   
-;   Convert ASCII integer to binary
-;   ( c-addr -- n )
+;   Convert ASCII integer in PAD to binary
+;   ( -- n )
 ;
     fenter
 
-    pop de
+    ld  de, _PAD
     ld  a, (de)
     dec a
     ld (_ascii2bin_count), a

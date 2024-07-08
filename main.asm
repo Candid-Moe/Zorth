@@ -7,22 +7,16 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
     
-    ld      hl, 1234
-    push    hl
-    fcall   code_dot
+
+    ld      HL, _BOOT_MSG
+    push    HL
+    fcall   print_line
 
     fcall   dict_init
     ld      hl, words
     push    hl
     fcall   print_line
     fcall   code_words
-
-    ld      hl, st_pad
-    push    hl
-    fcall   dict_search
-    ld      HL, _BOOT_MSG
-    push    HL
-    fcall    print_line
 
 repl:
 ;
@@ -41,10 +35,10 @@ _repl_words:
     ;   Extract next word from TIB
     ld      de, ' '
     push    de
-    fcall   code_word   
-
-    ld  hl, _PAD    ; Word address
+    fcall   code_word
+    pop     hl      ; Word address
     ld  b, (hl)     ; Count byte
+
     ;   Do we have a word to process?    
     jump_zero b, repl ; No, read another line
 
@@ -58,10 +52,17 @@ _repl_words:
     ;   Error, word not found
 
     ld hl, err_word_not_found
+    push hl
     fcall print_line
     ld hl, _PAD
+    push hl
     fcall print_line
-    jr  _repl_words
+    ld hl, new_line
+    push hl
+    fcall print_line
+    
+    ;   Discard rest of line and start again
+    jr  repl
 
 _repl_execute:
     ;   Putting the dest. address in the jp inst.
@@ -108,6 +109,7 @@ get_xt:
 _get_xt_word:
     ;   Search the entry in the dictionary
     ld hl, _PAD
+    push hl
     fcall dict_search
     pop hl
     ;   Test error
@@ -140,6 +142,7 @@ _get_xt_hex:
     
 _get_xt_end:
     push hl
+
     fret
 ;
 
@@ -208,11 +211,10 @@ code_str_equals:
     pop bc      ; u2
     ld  a, c    ; A = u2
     pop hl      ; c-addr2
-    pop bc      ;
-    ld  b, c    ; B = u1
+    pop bc      ; BC = u1
     pop de      ; c-addr1
 
-    cp b        ; u1 == u2 ?
+    cp c        ; u1 == u2 ? Lenght < 256
     jr nz, _code_str_equals_false
 
 _code_str_equals_cycle:    
@@ -221,7 +223,8 @@ _code_str_equals_cycle:
     ld  a, (de)
     cpi
     jr  nz, _code_str_equals_false
-    jump_non_zero b, _code_str_equals_cycle
+    inc de
+    jump_non_zero c, _code_str_equals_cycle
     ;   Else, all chars are equals
 
 _code_str_equals_true:

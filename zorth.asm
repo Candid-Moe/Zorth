@@ -8,5 +8,7 @@ include "word.asm"
 include "convert.asm"
 include "dictionary.asm"
 include "alu.asm"
-include "storage.asm"
 include "itoa_16.asm"
+;   Storage must be the last include
+include "storage.asm"
+

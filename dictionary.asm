@@ -125,8 +125,8 @@ dict_init:
     mdict_add st_str_equals,code_str_equals
     mdict_add st_words,     code_words
     mdict_add st_pad,       code_pad
-    mdict_add st_dup,       code_dup
     mdict_add st_dot,       code_dot
+    mdict_add st_dup,       code_dup
 
     fret
 
