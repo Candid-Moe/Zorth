@@ -25,7 +25,26 @@ endm
 macro fret
     jp return
 endm
-    
+
+;   
+;   ctrl_push: push HL in the Control Stack    
+;
+macro ctrl_push:
+    dec yx              ; push address into return stack
+    ld  (yx), h
+    dec yx
+    ld  (yx), l    
+endm
+
+;
+;   ctrl_pop: pop Control Stack into HL
+;
+macro ctrl_pop:
+    ld  l, (yx)
+    inc yx
+    ld  h, (yx)
+    inc yx
+endm
 macro counted_string text
 local start
 local end

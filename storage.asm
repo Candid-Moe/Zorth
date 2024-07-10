@@ -1,10 +1,11 @@
-;   Word class
-defgroup    {
-    class_binary,
-    class_integer,
-    class_hexadecimal,
-    class_word
-    }
+;   Zorth - (c) Candid Moe 2024
+;   
+;   Storage: All the variables, stack and work areas
+;
+
+defgroup {
+    colon_sys
+}
 
 defc TRUE  = -1
 defc FALSE = 0
@@ -12,6 +13,7 @@ new_line:   counted_string '\n'
 space:      counted_string ' '
 words:      counted_string "words:\n"
 
+_MODE_EXECUTION: db TRUE
 _BASE:      db  10
 _SOURCE_ID: db  DEV_STDIN     ; 1 = keyboard
 _gTIB:      db  0        ; #TIB, len of string in _TIB
@@ -20,7 +22,7 @@ _gtIN:      dw   0      ; >IN, Index into TIB
 _PAD:       defs 80     ; PAD is a counted string.
 _PROMPT:    counted_string   "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
-_test:      counted_string "0x1234 25 +"
+
 err_word_not_found: counted_string "Error: word not found: "
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX

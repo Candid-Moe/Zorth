@@ -1,6 +1,8 @@
+;   Zorth - (c) Candid Moe 2024
 ;   
 ;   alu: arithmetic and logic words
 ;
+
 code_negate:
 ;
 ;   Implements NEGATE
@@ -29,8 +31,93 @@ code_plus:
 
     pop hl
     pop de
+
     add hl, de
+
     push hl
+
+    fret
+
+code_minus:
+;
+;   Implements -
+;
+;   ( n1 | u1 n2 | u2 -- n3 | u3 )
+;
+;   Subtract n2 | u2 from n1 | u1, giving the difference n3 | u3.
+;
+    fenter
+
+    pop de
+    pop hl
+    or  a       ; set carry = 0
+    sbc hl, de
+    push hl
+
+    fret
+
+code_star:
+;
+;   Implements *
+;   ( n1 | u1 n2 | u2 -- n3 | u3 )
+;
+;   Multiply n1 | u1 by n2 | u2 giving the product n3 | u3. 
+;
+    fenter
+    
+    pop bc
+    pop de
+
+    call multiply16
+
+    push de
+    push hl
+
+	fret
+
+code_slash:
+;
+;   Implements /
+;   ( n1 n2 -- n3 )
+;
+;   Divide n1 by n2, giving the single-cell quotient n3. 
+;   An ambiguous condition exists if n2 is zero. 
+;   If n1 and n2 differ in sign, the implementation-defined result 
+;   returned will be the same as that returned by either the phrase 
+;       >R S>D R> FM/MOD SWAP DROP 
+;   or the phrase 
+;       >R S>D R> SM/REM SWAP DROP. 
+;
+    fenter
+
+    pop de
+    pop bc
+
+    call divide16
+
+    push bc
+
+    fret
+
+code_f_m_slash_mod:
+;
+;   Implements FM/MOD
+;   ( d1 n1 -- n2 n3 )
+;
+;   Divide d1 by n1, giving the floored quotient n3 and the remainder n2. 
+;   Input and output stack arguments are signed. 
+;   An ambiguous condition exists if n1 is zero or if the quotient lies 
+;   outside the range of a single-cell signed integer. 
+;
+    fenter
+
+    pop de
+    pop bc
+
+    call divide16
+
+    push hl
+    push bc
 
     fret
 
@@ -109,7 +196,7 @@ is_hex_digit:
     ;   
     ;   Test if A is 0-9, a-f, A-F
     ;   Return 1 in A if true, 0 otherwise
-    ;
+    ;   (use call, not fcall)
 
 _is_hex_digit_A:
     cp 'A'
@@ -127,6 +214,7 @@ is_digit:
     ;
     ;   Test if A is an ascii digit 0-9
     ;   Return 1 in A if true, 0 otherwise
+    ;   (use call, not fcall)
     ;
     cp '0' 
     jr  c, _is_digit_fail

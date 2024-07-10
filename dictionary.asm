@@ -1,4 +1,4 @@
-
+;
 ;   ld (hl), de
 ;   Copy DE to (HL), HL = HL + 2 
 macro ld_hl_de
@@ -7,6 +7,35 @@ macro ld_hl_de
     ld  (hl), d
     inc hl
 endm
+
+dict_new:
+    ;
+    ;   Start a new Forth word 
+    ;   ( c-addr -- c-addr )
+    ;
+    ;   Return start address for new entry
+    ;   (where you put word's code address)
+    ;
+    fenter
+
+    ;   Copy (_DICT) to (_DP)
+    ld  de, (_DICT) ; de = last entry address
+    ld  hl, (_DP)   ; hl = next free byte address   
+    ld  bc, hl      ; bc = new value for _DICT
+    ;   Pointer to next entry
+    ld_hl_de
+    
+    ;   Flags
+    ld  (hl), 0
+    inc hl
+
+    ;   Copy name address
+    pop de          ; c-addr
+    ld_hl_de
+
+    push hl
+
+    fret
 
 dict_add:
     ;
@@ -17,18 +46,9 @@ dict_add:
     ;
     fenter
 
-    ;   Copy (_DICT) to (_DP)
-    ld  de, (_DICT) ; de = last entry address
-    ld  hl, (_DP)   ; hl = next free byte address   
-    ld  bc, hl      ; bc = new value for _DICT
-    ;   Pointer to next entry
-    ld_hl_de
-    ;   Flags
-    ld  (hl), 0
-    inc hl
-    ;   Copy name address
-    pop de          ; c-addr
-    ld_hl_de
+    fcall dict_new
+    pop hl
+
     ;   Copy code address
     pop de
     ld_hl_de
@@ -127,7 +147,10 @@ dict_init:
     mdict_add st_pad,       code_pad
     mdict_add st_dot,       code_dot
     mdict_add st_dup,       code_dup
-
+    mdict_add st_star,      code_star
+    mdict_add st_minus,     code_minus
+    mdict_add st_slash,     code_slash
+    mdict_add st_f_m_slash_mod, code_f_m_slash_mod
     fret
 
 st_pad:         counted_string "PAD"
@@ -143,3 +166,7 @@ st_tick:        counted_string "'"
 st_str_equals:  counted_string "STR="
 st_dup:         counted_string "DUP"
 st_dot:         counted_string "."
+st_star:        counted_string "*"
+st_minus:       counted_string "-"
+st_slash:       counted_string "/"
+st_f_m_slash_mod: counted_string "FM/MOD"
