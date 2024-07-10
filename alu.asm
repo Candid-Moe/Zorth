@@ -14,6 +14,7 @@ code_negate:
     ld  hl, 0
     pop de
     sbc hl, de
+    push hl
 
     fret
 
@@ -104,4 +105,37 @@ multiply_by_10:
 
     fret
 
+is_hex_digit:
+    ;   
+    ;   Test if A is 0-9, a-f, A-F
+    ;   Return 1 in A if true, 0 otherwise
+    ;
 
+_is_hex_digit_A:
+    cp 'A'
+    jr  c, _is_hex_digit_a
+    cp 'F' + 1
+    jr  c, _is_digit_success
+
+_is_hex_digit_a:
+    cp 'a'
+    jr  c, is_digit
+    cp 'f' + 1
+    jr  c, _is_digit_success
+
+is_digit:
+    ;
+    ;   Test if A is an ascii digit 0-9
+    ;   Return 1 in A if true, 0 otherwise
+    ;
+    cp '0' 
+    jr  c, _is_digit_fail
+    cp '9' + 1
+    jr  c, _is_digit_success
+
+_is_digit_fail:    
+    ld  a, 0
+    ret
+_is_digit_success:
+    ld a, 1
+    ret

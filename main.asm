@@ -7,7 +7,6 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
     
-
     ld      HL, _BOOT_MSG
     push    HL
     fcall   print_line
@@ -49,12 +48,24 @@ _repl_words:
     or  a, l        
     jr  nz, _repl_execute
 
-    ;   Error, word not found
-
-    ld hl, err_word_not_found
+    ;   Error, word not found, try convert to binary
+    ld  hl, _PAD
     push hl
-    fcall print_line
-    ld hl, _PAD
+    fcall ascii2bin
+
+    pop hl      ; Flag
+    ld  a, l
+    cp  0       ; Failed?
+
+    ; Success, value already in the stack
+    jr  nz, _repl_words
+        
+_repl_failed:
+    pop     hl  ; Discard value
+    ld      hl, err_word_not_found
+    push    hl
+    fcall   print_line
+    ld hl,  _PAD
     push hl
     fcall print_line
     ld hl, new_line
@@ -95,19 +106,13 @@ get_xt:
 
     fenter 
 
-    ;   Classify the word
-
-    ld hl, _PAD
-    push hl
-    fcall classify
-    pop hl              ; result
-
-    ld   a, class_word  ; Is it a word?
-    cp   l
-    jr   nz, _get_xt_int
-
 _get_xt_word:
+    ;
     ;   Search the entry in the dictionary
+    ;
+    ;   If word is not found, return FALSE
+    ;
+
     ld hl, _PAD
     push hl
     fcall dict_search
@@ -115,7 +120,7 @@ _get_xt_word:
     ;   Test error
     ld a, h
     or l
-    jr  z, _get_xt_end
+    jr  z, _get_xt_not_word
     ;   Extract xt
     inc hl
     inc hl      ; hl -> flags
@@ -129,20 +134,12 @@ _get_xt_word:
 
     jr  _get_xt_end
 
-_get_xt_int:    
-    ;   Convert ascii to binary and push it
-    ld  a, class_integer
-    cp  l
-    jr   nz, _get_xt_hex
-    ld  hl, ascii2bin_int
-    jr  _get_xt_end
+_get_xt_not_word:
+    ld  hl, 0
 
-_get_xt_hex:
-    ld  hl, ascii2bin_hex    
-    
 _get_xt_end:
-    push hl
 
+    push hl
     fret
 ;
 
@@ -488,65 +485,4 @@ print_line:
 
     fret
 
-classify:
-;
-;   Examine a word an classify it.
-;   ( c-addr -- flag)
-;
-;   - Integer
-;   - Hexadecimal
-;   - Other (probably a Forth Word)
-;
-    fenter
 
-    pop hl
-    ld  b, (hl)  ; word length
-    inc hl
-    
-    ld  a, (hl) ; First char
-    ld  c, '-'  ; If start with '-' and len > 2, it's an integer
-    cp  c    
-    jr  nz, _classify_next
-    
-    ; It start with '-'
-    ld  c, 1
-    cp  c       ; len = 1?
-    jr  z, _classify_word
-
-_classify_next:    
-    ;   It not start with '-'
-    ld  c, '0'
-    cp  c
-    jr  z, _classify_prefix
-    jr  c, _classify_word   ; A < '0'
-     
-    ;   A > '0'. It's a digit?
-    ld  c, 0x3A     
-    cp  c
-    jr  c, _classify_integer ; A < '9'
-    jr  _classify_word
-
-_classify_prefix:
-    ;   Word start with '0', maybe it's hex
-    inc hl
-    ld  a, (hl)
-    ld  c, 'x'
-    cp  c
-    jr  z, _classify_hex
-    ld  c, 'X'
-    cp  c
-    jr  z, _classify_hex
-
-    ;   It's not hex
-_classify_word:
-    ld  hl, class_word
-    jr _classify_end
-_classify_integer:
-    ld  hl, class_integer
-    jr _classify_end
-_classify_hex:
-    ld  hl, class_hexadecimal
-_classify_end:
-    push hl
-
-    fret
