@@ -74,7 +74,7 @@ _ascii2bin_prefix:
     jr  nz, _ascii2bin_base
 
     call _ascii2bin_advance
-    jr  z, _ascii2bin_int       ; It's only "0"
+    jr  z, _ascii2bin_int_0      ; It's only "0"
 
     ld  a, (de)    
     cp  'x'
@@ -106,7 +106,6 @@ _ascii2bin_int_pre:
 _ascii2bin_int:
 ;   
 ;   Convert ASCII integer area to binary
-;   HL = @counted_string
 ;
     ld      hl, 0   ; hl = result 
 
@@ -137,6 +136,11 @@ _ascii2bin_int_cycle:
     call _ascii2bin_advance
     jr   z, _ascii2bin_adjust ; Continue until end of string
     jr  _ascii2bin_int_cycle
+
+_ascii2bin_int_0:
+    ;   Special case: converting "0"
+    ld  hl, 0
+    jp  _ascii2bin_end
 
 _ascii2bin_hex_pre:
     ;   Number start with a prefix

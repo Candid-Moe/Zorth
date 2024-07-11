@@ -1,3 +1,5 @@
+;   Zorth - (c) Candid Moe 2024
+
 ;
 ;   fcall: implement CALL XXX with JP XXX, putting return
 ;          address in HL.
@@ -25,6 +27,18 @@ endm
 macro fret
     jp return
 endm
+
+;
+;   Copy DE to (HL), HL = HL + 2 
+;   Implements ld (hl), de
+;
+macro ld_hl_de
+    ld  (hl), e
+    inc hl
+    ld  (hl), d
+    inc hl
+endm
+
 
 ;   
 ;   ctrl_push: push HL in the Control Stack    

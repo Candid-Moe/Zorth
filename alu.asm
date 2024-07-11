@@ -10,7 +10,7 @@ code_negate:
 ;
 ;   Negate n1, giving its arithmetic inverse n2. 
 ;
-    fenter
+    ld  bc, hl
 
     set_carry_0    
     ld  hl, 0
@@ -18,7 +18,8 @@ code_negate:
     sbc hl, de
     push hl
 
-    fret
+    ld  hl, bc
+    jp  (hl)
 
 code_plus:
 ;
@@ -27,7 +28,7 @@ code_plus:
 ;
 ;   Add n2 | u2 to n1 | u1, giving the sum n3 | u3. 
 ;
-    fenter 
+    ld  bc, hl  ; Save return address
 
     pop hl
     pop de
@@ -36,7 +37,8 @@ code_plus:
 
     push hl
 
-    fret
+    ld  hl, bc  ; return 
+    jp  (hl)
 
 code_minus:
 ;
@@ -46,7 +48,7 @@ code_minus:
 ;
 ;   Subtract n2 | u2 from n1 | u1, giving the difference n3 | u3.
 ;
-    fenter
+    ld  bc, hl
 
     pop de
     pop hl
@@ -54,7 +56,8 @@ code_minus:
     sbc hl, de
     push hl
 
-    fret
+    ld  hl, bc
+    jp  (hl)
 
 code_star:
 ;
@@ -63,7 +66,7 @@ code_star:
 ;
 ;   Multiply n1 | u1 by n2 | u2 giving the product n3 | u3. 
 ;
-    fenter
+    fenter 
     
     pop bc
     pop de
@@ -128,13 +131,11 @@ code_dup:
 ;
 ;   Duplicate x.
 ;    
-    fenter
-    
-    pop  hl
-    push hl
-    push hl
+    pop  bc
+    push bc
+    push bc
 
-    fret
+    jp  (hl)
 
 code_lshift:
 ;
@@ -146,7 +147,7 @@ code_lshift:
 ;   An ambiguous condition exists if u is greater than or equal to 
 ;   the number of bits in a cell. 
  
-    fenter
+    ld  de, hl  ; save return address
    
     pop bc      
     ld  b, c    ; b = how many bits to shift
@@ -171,7 +172,8 @@ _code_lshift_cycle:
 _code_lshift_end:
 
     push hl
-    fret
+    ld   hl, de
+    jp  (hl)
 
 multiply_by_10:
 ;   ( n -- n * 10 )

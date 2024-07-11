@@ -1,12 +1,9 @@
+;   Zorth - (c) Candid Moe 2024
+
+;   dictionary: operations that affect the word list
 ;
-;   ld (hl), de
-;   Copy DE to (HL), HL = HL + 2 
-macro ld_hl_de
-    ld  (hl), e
-    inc hl
-    ld  (hl), d
-    inc hl
-endm
+;   Words are store in lower case always.
+;
 
 dict_new:
     ;
@@ -137,7 +134,6 @@ dict_init:
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
     mdict_add st_refill,    code_refill
-    mdict_add st_plus,      code_plus
     mdict_add st_space,     code_space
     mdict_add st_bl,        code_bl
     mdict_add st_negate,    code_negate
@@ -147,26 +143,33 @@ dict_init:
     mdict_add st_pad,       code_pad
     mdict_add st_dot,       code_dot
     mdict_add st_dup,       code_dup
-    mdict_add st_star,      code_star
+    mdict_add st_plus,      code_plus
     mdict_add st_minus,     code_minus
+    mdict_add st_star,      code_star
     mdict_add st_slash,     code_slash
     mdict_add st_f_m_slash_mod, code_f_m_slash_mod
+    mdict_add st_to_r,      code_to_r
+    mdict_add st_r_from,    code_r_from
+    mdict_add st_r_fetch,   code_r_fetch
     fret
 
-st_pad:         counted_string "PAD"
-st_count:       counted_string "COUNT"
-st_type:        counted_string "TYPE"
-st_refill:      counted_string "REFILL"
+st_pad:         counted_string "pad"
+st_count:       counted_string "count"
+st_type:        counted_string "type"
+st_refill:      counted_string "refill"
 st_plus:        counted_string "+"
-st_words:       counted_string "WORDS"
-st_space:       counted_string "SPACE"
-st_bl:          counted_string "BL"
-st_negate:      counted_string "NEGATE"
+st_words:       counted_string "words"
+st_space:       counted_string "space"
+st_bl:          counted_string "bl"
+st_negate:      counted_string "negate"
 st_tick:        counted_string "'"
-st_str_equals:  counted_string "STR="
-st_dup:         counted_string "DUP"
+st_str_equals:  counted_string "str="
+st_dup:         counted_string "dup"
 st_dot:         counted_string "."
 st_star:        counted_string "*"
 st_minus:       counted_string "-"
 st_slash:       counted_string "/"
-st_f_m_slash_mod: counted_string "FM/MOD"
+st_to_r:        counted_string ">r"
+st_r_from:      counted_string "r>"
+st_r_fetch:     counted_string "r@"
+st_f_m_slash_mod: counted_string "fm/mod"

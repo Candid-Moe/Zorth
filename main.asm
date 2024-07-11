@@ -6,6 +6,7 @@
 init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
+    ld      IY, _CONTROL_STACK
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -81,8 +82,25 @@ _repl_execute:
     ld hl, _repl_end
 _repl_jp:    
     jp   0          ; dest. will be overwritten 
+
 _repl_end:
-    jr  _repl_words
+    ;   Check data stack (only underflow for now)
+    ld  a, (_S_GUARD2)
+    cp  0x50
+    jr  z, _repl_words  ; Stack OK
+
+    ;   Restore stack
+    ld  SP, _DATA_STACK
+    ld  a, 0x50
+    ld  (_S_GUARD), a
+
+    ;   print error message and discard rest of the line
+
+    ld  hl, err_underflow
+    push hl
+    fcall print_line
+
+    jp  repl
 
 return:
 ;
@@ -163,14 +181,21 @@ code_tick:
 
 code_dot:
 ;
-;   Implements.
+;   Implements .
 ;   ( n -- )
 ;
 ;   Display n in free field format
 ;
     fenter
+
+    fcall itoa
+    fcall code_count
+    fcall code_type
+    
+    fret 
     
     pop de
+
     ld  hl, _PAD
     inc hl          ; Reserve a byte for the count
 
@@ -181,7 +206,9 @@ code_dot:
 
     ld  bc, 0
     ld  a, 0
+
 _code_dot_count:    
+
     cpir
     sub  a, c       ; Made count in c positive
     inc  a          ; Add 1 for the trailing space
@@ -189,6 +216,7 @@ _code_dot_count:
     ld   (hl), ' '  ; Add a strailing space
 
     push de        
+
     fcall code_count
     fcall code_type
 

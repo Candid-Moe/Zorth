@@ -24,17 +24,28 @@ _PROMPT:    counted_string   "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 
 err_word_not_found: counted_string "Error: word not found: "
+err_underflow:  counted_string "Error: stack underflow:"
+;------ Forth Control Stack -----
+;   This stack is indexed by YX
+;
+            defs 128
+_CONTROL_STACK:
+_C_GUARD:   dw   0x5050
+            defs 10 
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX
 ;
             defs    128
 _RETURN_STACK:
+_R_GUARD:   dw   0x5050
+            defs 10
 ;------ Forth Data Stack -----
 ;   This stack is indexed by SP
 ;
             defs    128
 _DATA_STACK:
-
+_S_GUARD:   dw   0x5050
+            defs 10
 ; ---- HEAP -----
 ; Heap extend up to 0xFFFF
 ;
