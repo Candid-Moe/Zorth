@@ -31,8 +31,9 @@ repl:
     jump_zero c, repl
 
 _repl_words:
-
-    ;   Extract next word from TIB
+;
+;   Extract next word from TIB
+;
     ld      de, ' '
     push    de
     fcall   code_word
@@ -62,7 +63,10 @@ _repl_words:
     jr  nz, _repl_words
         
 _repl_failed:
-    pop     hl  ; Discard value
+;
+;   Not a word, not a value
+;
+    pop     hl          ; Discard value
     ld      hl, err_word_not_found
     push    hl
     fcall   print_line
@@ -84,8 +88,10 @@ _repl_jp:
     jp   0          ; dest. will be overwritten 
 
 _repl_end:
-    ;   Check data stack (only underflow for now)
-    ld  a, (_S_GUARD2)
+;
+;   After each instruction, check data stack (only underflow for now)
+;
+    ld  a, (_S_GUARD)
     cp  0x50
     jr  z, _repl_words  ; Stack OK
 
@@ -221,48 +227,6 @@ _code_dot_count:
     fcall code_type
 
     fret
-
-code_str_equals:
-;   
-;   Implements STR=
-;   ( c-addr1 u1 c-addr2 u2 – flag ) gforth-0.6 “str-equals”
-;
-;   Compare string for equality (gforth extension)
-;
-;   Return TRUE if equals, FALSE in other case
-;
-    fenter
-
-    pop bc      ; u2
-    ld  a, c    ; A = u2
-    pop hl      ; c-addr2
-    pop bc      ; BC = u1
-    pop de      ; c-addr1
-
-    cp c        ; u1 == u2 ? Lenght < 256
-    jr nz, _code_str_equals_false
-
-_code_str_equals_cycle:    
-    ; Same length, compare contents
-    ; B = count
-    ld  a, (de)
-    cpi
-    jr  nz, _code_str_equals_false
-    inc de
-    jump_non_zero c, _code_str_equals_cycle
-    ;   Else, all chars are equals
-
-_code_str_equals_true:
-    ld  hl, TRUE
-    jr  _code_str_end
-        
-_code_str_equals_false:
-    ld  hl, FALSE
-
-_code_str_end:
-    push hl
-    fret
-
 
 code_type:
 ;

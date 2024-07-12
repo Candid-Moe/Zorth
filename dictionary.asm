@@ -4,6 +4,139 @@
 ;
 ;   Words are store in lower case always.
 ;
+;   Entry Format:
+;
+;   - address next entry (word)
+;   - flags (byte)
+;   - address of name
+;   - address of code
+;
+;   Flags:
+;   - bit 0: COLON (1) / CODE (0)
+;   - bit 1: IMMEDIATE (1) / normal (0)
+
+code_create:
+;
+;   Implements CREATE
+;   ( "<spaces>name" -- )
+;
+;   Skip leading space delimiters. Parse name delimited by a space. 
+;   Create a definition for name with the execution semantics defined below. 
+;   If the data-space pointer is not aligned, reserve enough data space to align it. 
+;   The new data-space pointer defines name's data field. 
+;   CREATE does not allocate data space in name's data field.
+;
+;   name Execution:
+;   ( -- a-addr )
+;
+;   a-addr is the address of name's data field. 
+;   The execution semantics of name may be extended by using DOES>. 
+;
+    fenter
+
+    ;   Parse the word
+    ld  hl, ' '
+    push hl
+    fcall code_word
+    pop hl
+            
+    ;   Check word len
+    ld  a, (hl)
+    cp  0
+    jz  _code_create_error
+
+    ;   Calculate total len and save it onto the stack
+    ld   d, 0
+    ld   e, a       ; de = len
+    inc  de         ; total len
+    push de
+
+    ;   Prepare move
+    push hl         ; origin
+    ld   hl, (_DP)  
+    push hl         ; destination
+    push de         ; length
+
+    fcall code_move ; copy name from input area to heap
+
+    ;   Prepare call to add    
+
+    ;   Update _DP
+
+    pop     bc          ; len
+    ld      hl, (_DP)   ; _DP
+
+    ;   Args for dict_add
+    ld      de, code_address
+    push    de          ; code address    
+    push    hl          ; name address
+
+    add     hl, bc      ; hl = (_DP) + len
+    ld      (_DP), hl   ; new _DP
+
+    ;   Add to dictionary
+
+    fcall dict_add
+    
+    ld      hl, (_DICT)
+    push    hl
+    fcall dict_make_colon
+    
+    fret
+
+_code_create_error:
+    ld  hl, err_missing_name
+    push hl
+    fcall   print_line
+    fret
+
+        
+code_address:
+;
+;   Push _IP (instruction pointer) into the stack
+;
+    ld   de, (_IP)
+    push de
+    jp  (hl)
+
+dict_make_colon:
+;
+;   Mark a word as COLON definition
+;   ( addr -- )
+;
+;   addr is the entry address for the word
+;
+    pop de
+    inc de
+    inc de
+    ld  a, (de)
+    or  1
+    ld  (de), a
+
+    jp (hl)
+
+dict_add:
+    ;
+    ;   Add new Forth word to dictionary
+    ;   ( addr c-addr -- )
+    ;
+    ;   Receive addr (code) and c-addr (name as a counted-string)
+    ;   Word is marked as CODE, not COLON definition
+    ;
+    fenter
+
+    fcall dict_new
+    pop hl
+
+    ;   Copy code address
+    pop de
+    ld_hl_de
+
+    ;   Update heap
+    ld  (_DP), hl   ; _DP -> next free
+    ld  (_DICT), bc ; _DICT -> new entry
+    
+    fret
 
 dict_new:
     ;
@@ -32,28 +165,6 @@ dict_new:
 
     push hl
 
-    fret
-
-dict_add:
-    ;
-    ;   Add new Forth word to dictionary
-    ;   ( addr c-addr -- )
-    ;
-    ;   Receive code addres and name (as a counted-string)
-    ;
-    fenter
-
-    fcall dict_new
-    pop hl
-
-    ;   Copy code address
-    pop de
-    ld_hl_de
-
-    ;   Update heap
-    ld  (_DP), hl   ; _DP -> next free
-    ld  (_DICT), bc ; _DICT -> new entry
-    
     fret
 
 dict_search:
@@ -151,6 +262,12 @@ dict_init:
     mdict_add st_to_r,      code_to_r
     mdict_add st_r_from,    code_r_from
     mdict_add st_r_fetch,   code_r_fetch
+    mdict_add st_cmove,     code_cmove
+    mdict_add st_align,     code_align
+    mdict_add st_aligned,   code_aligned
+    mdict_add st_here,      code_here
+    mdict_add st_allot,     code_allot
+    mdict_add st_create,    code_create
     fret
 
 st_pad:         counted_string "pad"
@@ -173,3 +290,9 @@ st_to_r:        counted_string ">r"
 st_r_from:      counted_string "r>"
 st_r_fetch:     counted_string "r@"
 st_f_m_slash_mod: counted_string "fm/mod"
+st_cmove:       counted_string "cmove"
+st_align:       counted_string "align"
+st_aligned:     counted_string "aligned"
+st_here:        counted_string "here"
+st_create:      counted_string "create"
+st_allot:       counted_string "allot"
