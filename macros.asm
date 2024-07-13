@@ -43,21 +43,21 @@ endm
 ;   
 ;   ctrl_push: push HL in the Control Stack    
 ;
-macro ctrl_push:
-    dec yx              ; push address into return stack
-    ld  (yx), h
-    dec yx
-    ld  (yx), l    
+macro ctrl_push
+    dec iy              ; push address into return stack
+    ld  (iy), h
+    dec iy
+    ld  (iy), l    
 endm
 
 ;
 ;   ctrl_pop: pop Control Stack into HL
 ;
-macro ctrl_pop:
-    ld  l, (yx)
-    inc yx
-    ld  h, (yx)
-    inc yx
+macro ctrl_pop
+    ld  l, (iy)
+    inc iy
+    ld  h, (iy)
+    inc iy
 endm
 macro counted_string text
 local start

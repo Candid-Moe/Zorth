@@ -51,7 +51,7 @@ code_create:
     inc  de         ; total len
     push de
 
-    ;   Prepare move
+    ;   Prepare moving the name
     push hl         ; origin
     ld   hl, (_DP)  
     push hl         ; destination
@@ -59,12 +59,7 @@ code_create:
 
     fcall code_move ; copy name from input area to heap
 
-    ;   Prepare call to add    
-
-    ;   Update _DP
-
-    pop     bc          ; len
-    ld      hl, (_DP)   ; _DP
+    pop     bc          ; total len
 
     ;   Args for dict_add
     ld      de, code_address
@@ -77,7 +72,9 @@ code_create:
     ;   Add to dictionary
 
     fcall dict_add
-    
+    call dict_make_colon
+    ;   Make it a colon word    
+
     fret
 
 _code_create_error:
@@ -87,28 +84,22 @@ _code_create_error:
     fret
 
         
-code_address:
-;
-;   Push _IP (instruction pointer) into the stack
-;
-    
-    ret
-
 dict_make_colon:
 ;
-;   Mark a word as COLON definition
-;   ( addr -- )
+;   Mark a last dictionary entry as COLON definition
+;   ( -- )
 ;
 ;   addr is the entry address for the word
 ;
-    pop de
-    inc de
-    inc de
-    ld  a, (de)
-    or  1
-    ld  (de), a
+    ld  hl, (_DICT)
+    inc hl
+    inc hl
 
-    jp (hl)
+    ld  a, (hl)
+    or  1
+    ld  (hl), a
+
+    ret
 
 dict_end:
     ;   
@@ -128,6 +119,23 @@ dict_end:
 
     fret
     
+add_cell:
+;
+;   Add TOS to _DP
+;   ( x -- )
+;
+    fenter
+    
+    pop de
+    ld  hl, (_DP)
+    ld  (hl), de
+    inc hl
+    ld  (hl), de
+    inc hl
+    ld  (_DP), hl
+
+    fret    
+
 dict_add:
     ;
     ;   Add a new Forth word 
@@ -265,6 +273,9 @@ dict_init:
     mdict_add st_here,      code_here
     mdict_add st_allot,     code_allot
     mdict_add st_create,    code_create
+    mdict_add st_colon,     code_colon
+    mdict_add st_semmicolon,code_semmicolon
+
     fret
 
 st_pad:         counted_string "pad"
@@ -293,4 +304,6 @@ st_aligned:     counted_string "aligned"
 st_here:        counted_string "here"
 st_create:      counted_string "create"
 st_allot:       counted_string "allot"
+st_colon:       counted_string "colon"
+st_semmicolon:  counted_string "semmicolon"
 

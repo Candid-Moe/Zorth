@@ -8,7 +8,7 @@ init:
     ld      IX, _RETURN_STACK
     ld      IY, _CONTROL_STACK
     ld      HL, _EX_STACK
-    ld      (_EX_STACK), HL
+    ld      (_EX_PTR), HL
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -54,6 +54,26 @@ _repl_words:
     jr  z, _repl_convert
 
     push hl
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jz  _repl_execute
+    
+    ;   check for immediate words
+    ld  de, hl  ; xt 
+    inc de      
+    inc de      ; flag
+    ld  a, (de) 
+    and 0x02    ; mode immediate
+    jz  _repl_execute
+
+    ;   Mode compilation, not immediate
+    ;   Add the xt to the last word in dictionary
+
+    fcall add_cell
+
+    jr  _repl_end
+
+_repl_execute:
     fcall code_execute    
     jr  _repl_end
 
@@ -87,7 +107,7 @@ _repl_failed:
     fcall print_line
     
     ;   Discard rest of line and start again
-    jr  repl
+    jp  repl
 
 _repl_end:
 ;

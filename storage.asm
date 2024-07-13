@@ -4,7 +4,7 @@
 ;
 
 defgroup {
-    colon_sys
+    colon_sys = 1
 }
 
 defc TRUE  = -1
@@ -13,8 +13,7 @@ new_line:   counted_string '\n'
 space:      counted_string ' '
 words:      counted_string "words:\n"
 
-_MODE_EXECUTION: db TRUE
-_IP:        dw  0           ; Instruction Pointer for colon definition
+_MODE_INTERPRETER: db TRUE
 _BASE:      db  10
 _SOURCE_ID: db  DEV_STDIN   ; 1 = keyboard
 _gTIB:      db  0           ; #TIB, len of string in _TIB
@@ -26,8 +25,11 @@ _PROMPT:    counted_string  "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 
 err_word_not_found: counted_string "Error: word not found: "
-err_underflow:      counted_string "Error: stack underflow."
-err_missing_name:   counted_string "Error: missing name."
+err_underflow:      counted_string "Error: stack underflow"
+err_missing_name:   counted_string "Error: Attempt to use zero-length string as a name"
+err_mode_comp:      counted_string "Error: alrededy in compilation mode"
+err_mode_not_comp:  counted_string "Error: not valid in interpretarion mode"
+
 ;------ Forth Control Stack -----
 ;   This stack is indexed by YX
 ;
