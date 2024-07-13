@@ -9,6 +9,7 @@ include "macros.asm"
 lston
 
 include "main.asm"
+include "execute.asm"
 include "word.asm"
 include "rstack.asm"
 include "ascii2bin.asm"

@@ -78,10 +78,6 @@ code_create:
 
     fcall dict_add
     
-    ld      hl, (_DICT)
-    push    hl
-    fcall dict_make_colon
-    
     fret
 
 _code_create_error:
@@ -95,9 +91,8 @@ code_address:
 ;
 ;   Push _IP (instruction pointer) into the stack
 ;
-    ld   de, (_IP)
-    push de
-    jp  (hl)
+    
+    ret
 
 dict_make_colon:
 ;
@@ -115,43 +110,40 @@ dict_make_colon:
 
     jp (hl)
 
-dict_add:
-    ;
-    ;   Add new Forth word to dictionary
-    ;   ( addr c-addr -- )
-    ;
-    ;   Receive addr (code) and c-addr (name as a counted-string)
-    ;   Word is marked as CODE, not COLON definition
-    ;
+dict_end:
+    ;   
+    ;   Add a fret to current word
+    ;   ( -- )
+
     fenter
 
-    fcall dict_new
-    pop hl
-
-    ;   Copy code address
-    pop de
-    ld_hl_de
-
-    ;   Update heap
-    ld  (_DP), hl   ; _DP -> next free
-    ld  (_DICT), bc ; _DICT -> new entry
+    ld  hl, (_DP)
     
-    fret
+    ld  (hl), $C3
+    inc hl
+    ld  de, return
+    ld_hl_de
+    ;
+    ld  (_DP), hl
 
-dict_new:
+    fret
+    
+dict_add:
     ;
-    ;   Start a new Forth word 
-    ;   ( c-addr -- c-addr )
+    ;   Add a new Forth word 
+    ;   ( c-addr addr -- )
     ;
-    ;   Return start address for new entry
-    ;   (where you put word's code address)
+    ;   Create new dictionary entry with name c-addr and code addr
+    ;   Update _DICT to point to new entry
+    ;   Update _DP
     ;
     fenter
 
     ;   Copy (_DICT) to (_DP)
     ld  de, (_DICT) ; de = last entry address
-    ld  hl, (_DP)   ; hl = next free byte address   
-    ld  bc, hl      ; bc = new value for _DICT
+    ld  hl, (_DP)   ; hl = next free byte address
+    ld  (_DICT), hl ; _DICT -> new entry   
+
     ;   Pointer to next entry
     ld_hl_de
     
@@ -163,7 +155,12 @@ dict_new:
     pop de          ; c-addr
     ld_hl_de
 
-    push hl
+    ;   Copy code adress
+    pop de          ; addr
+    ld_hl_de
+
+    ;   Update DP
+    ld (_DP), hl
 
     fret
 
@@ -296,3 +293,4 @@ st_aligned:     counted_string "aligned"
 st_here:        counted_string "here"
 st_create:      counted_string "create"
 st_allot:       counted_string "allot"
+

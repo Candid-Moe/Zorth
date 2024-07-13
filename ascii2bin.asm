@@ -14,6 +14,17 @@
 ;
 ;   For negative numbers, start it with '-'
 ;
+
+code_ascii2bin:
+
+    fenter
+    
+    ld  hl, _PAD
+    push hl
+    fcall ascii2bin
+
+    fret
+
 _ascii2bin_advance:
     ;
     ;   Advance DE, pointer to digit

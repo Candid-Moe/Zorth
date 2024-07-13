@@ -7,6 +7,8 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
     ld      IY, _CONTROL_STACK
+    ld      HL, _EX_STACK
+    ld      (_EX_STACK), HL
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -44,11 +46,18 @@ _repl_words:
     jump_zero b, repl ; No, read another line
 
     ;   Obtain the execution token for word
-    fcall    get_xt
-    pop hl
+    push    hl      ; word address
+    fcall   get_xt
+    pop hl      ;     
     ld  a, h
     or  a, l        
-    jr  nz, _repl_execute
+    jr  z, _repl_convert
+
+    push hl
+    fcall code_execute    
+    jr  _repl_end
+
+_repl_convert:
 
     ;   Error, word not found, try convert to binary
     ld  hl, _PAD
@@ -79,13 +88,6 @@ _repl_failed:
     
     ;   Discard rest of line and start again
     jr  repl
-
-_repl_execute:
-    ;   Putting the dest. address in the jp inst.
-    ld (_repl_jp + 1), hl
-    ld hl, _repl_end
-_repl_jp:    
-    jp   0          ; dest. will be overwritten 
 
 _repl_end:
 ;
@@ -124,9 +126,9 @@ get_xt:
 ;   Get the execution token for the word just readed.
 ;   The word can be anything, including numeric values.
 ;   
-;   ( -- xt )
+;   ( c-addr -- xt )
 ;
-;   The word is in _PAD
+;   c-addr is word as counted-string
 
     fenter 
 
@@ -137,35 +139,27 @@ _get_xt_word:
     ;   If word is not found, return FALSE
     ;
 
-    ld hl, _PAD
-    push hl
     fcall dict_search
     pop hl
     ;   Test error
     ld a, h
     or l
     jr  z, _get_xt_not_word
-    ;   Extract xt
-    inc hl
-    inc hl      ; hl -> flags
-    inc hl      ; hl -> @name
-    inc hl
-    inc hl      ; hl -> @xt
-    ld  c, (hl)
-    inc hl
-    ld  b, (hl) ; bc = @xt
-    ld  hl, bc
+
+    ; The xt is the dictionary entry 
+
+    push hl
 
     jr  _get_xt_end
 
 _get_xt_not_word:
+
     ld  hl, 0
 
 _get_xt_end:
 
     push hl
     fret
-;
 
 code_tick:
 ;
