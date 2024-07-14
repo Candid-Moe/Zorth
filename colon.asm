@@ -39,23 +39,13 @@ code_colon:
     cp  TRUE
     jr  nz, _colon_error
 
+    ;   Create dictionary entry
+
+    fcall   code_create
+    jr      z, _colon_end
+    
     ld  a, FALSE
     ld  (_MODE_INTERPRETER), a
-
-
-    ;   Extract word name from TIB and start new entry
-    ld      hl, ' '
-    push    hl
-    fcall   code_word
-    ;   Check for missing name
-    pop     hl
-    ld      a, (hl)
-    cp      0
-    jr      z, _colon_error_no_name
-
-    ;   Create dictionary entry
-    push    hl
-    fcall   code_create
 
     ;   Put a marker in the control stack   
     ld      hl, colon_sys
@@ -66,6 +56,8 @@ code_colon:
     dec hl
     dec hl
     ld (_DP), hl
+
+_colon_end:
 
     fret
 
@@ -109,26 +101,23 @@ code_semmicolon:
 ;
     fenter
 
-    ;   Check the control stack; must have a colon-sys
-    ld  a, (IY)
-    cp  0
-    jr  nz, _code_semmicolon_error
-    ld  a, (IY + 1)
-    cp  colon_sys
-    jr  nz, _code_semmicolon_error
+    ;   Back to execution mode
+    ld  a, TRUE
+    ld  (_MODE_INTERPRETER), a
 
-    inc iy
-    inc iy
+    ;   Check the control stack; must have a colon-sys
+    ctrl_pop
+    ld  de, colon_sys
+    set_carry_0   
+    sbc hl, de
+
+    jr  nz, _code_semmicolon_error
 
     ;   Mark the end of current definition
     ld  hl, 0
     push hl
     fcall add_cell    
     
-    ;   Back to execution mode
-    ld  a, TRUE
-    ld  (_MODE_INTERPRETER), a
-
     fret
 
 _code_semmicolon_error:

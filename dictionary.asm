@@ -32,61 +32,67 @@ code_create:
 ;   a-addr is the address of name's data field. 
 ;   The execution semantics of name may be extended by using DOES>. 
 ;
+;   Set Z flag to FALSE if word can't be created, TRUE otherwise
+;
+
     fenter
 
     ;   Parse the word
     ld  hl, ' '
     push hl
     fcall code_word
-    pop hl
+    pop hl                  ; origin
             
     ;   Check word len
-    ld  a, (hl)
+    ld  a, (hl)             ; len
     cp  0
     jz  _code_create_error
 
+    ld   de, (_DP)  
+    push de         ; destination   ( -- name_addr )
     ;   Calculate total len and save it onto the stack
     ld   d, 0
     ld   e, a       ; de = len
     inc  de         ; total len
-    push de
+    push de         ;               ( -- name_addr len )
 
     ;   Prepare moving the name
-    push hl         ; origin
+    push hl         ; origin        ( -- name_addr len origin)
     ld   hl, (_DP)  
-    push hl         ; destination
-    push de         ; length
+    push hl         ; destination   ( -- name_addr len origin dest )
+    push de         ; length        ( -- name_addr len origin dest len )
 
-    fcall code_move ; copy name from input area to heap
-
-    pop     bc          ; total len
-
-    ;   Args for dict_add
-    ld      de, code_address
-    push    de          ; code address    
-    push    hl          ; name address
-
-    add     hl, bc      ; hl = (_DP) + len
-    ld      (_DP), hl   ; new _DP
+    fcall   code_move   ; copy name from input area to heap ( -- name_addr len )
+    fcall   code_allot  ; total len already in stack        ( -- name_addr )
 
     ;   Add to dictionary
 
-    fcall dict_add
-    call dict_make_colon
-    ;   Make it a colon word    
+    ;   Args for dict_add
+    ld      de, code_address
+    push    de          ; code address    ( -- name_addr code_addr )
+    fcall   code_swap   ;                 ( -- code_addr name_addr )
 
+    fcall   dict_add
+    call    dict_make_colon  ;   Make it a colon word    
+
+    sub a
+    inc a   ; Set Z flag = 0
     fret
 
 _code_create_error:
+
     ld  hl, err_missing_name
     push hl
     fcall   print_line
+
+    sub a   ; Set Z flag = 1
+
     fret
 
         
 dict_make_colon:
 ;
-;   Mark a last dictionary entry as COLON definition
+;   Mark the last dictionary entry as COLON definition
 ;   ( -- )
 ;
 ;   addr is the entry address for the word
@@ -96,7 +102,7 @@ dict_make_colon:
     inc hl
 
     ld  a, (hl)
-    or  1
+    or  BIT_COLON
     ld  (hl), a
 
     ret
@@ -119,6 +125,22 @@ dict_end:
 
     fret
     
+dict_make_immediate:
+;
+;   Mark the last dictionary entry as immediate
+;
+    fenter
+
+    ld  hl, (_DICT)
+    inc hl
+    inc hl
+
+    ld  a, (hl)
+    or  BIT_IMMEDIATE
+    ld  (hl), a
+
+    fret
+
 add_cell:
 ;
 ;   Add TOS to _DP
@@ -128,9 +150,9 @@ add_cell:
     
     pop de
     ld  hl, (_DP)
-    ld  (hl), de
+    ld  (hl), e
     inc hl
-    ld  (hl), de
+    ld  (hl), d
     inc hl
     ld  (_DP), hl
 
@@ -263,6 +285,7 @@ dict_init:
     mdict_add st_minus,     code_minus
     mdict_add st_star,      code_star
     mdict_add st_slash,     code_slash
+    mdict_add st_swap,      code_swap
     mdict_add st_f_m_slash_mod, code_f_m_slash_mod
     mdict_add st_to_r,      code_to_r
     mdict_add st_r_from,    code_r_from
@@ -275,6 +298,7 @@ dict_init:
     mdict_add st_create,    code_create
     mdict_add st_colon,     code_colon
     mdict_add st_semmicolon,code_semmicolon
+    fcall dict_make_immediate
 
     fret
 
@@ -306,4 +330,4 @@ st_create:      counted_string "create"
 st_allot:       counted_string "allot"
 st_colon:       counted_string "colon"
 st_semmicolon:  counted_string "semmicolon"
-
+st_swap:        counted_string "swap"

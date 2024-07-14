@@ -9,6 +9,8 @@ defgroup {
 
 defc TRUE  = -1
 defc FALSE = 0
+defc BIT_COLON  = 1
+defc BIT_IMMEDIATE = 2
 new_line:   counted_string '\n'
 space:      counted_string ' '
 words:      counted_string "words:\n"

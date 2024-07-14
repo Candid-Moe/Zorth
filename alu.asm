@@ -137,6 +137,20 @@ code_dup:
 
     jp  (hl)
 
+code_swap:
+;
+;   Implements SWAP
+;   ( x1 x2 -- x2 x1 )
+;
+;   Exchange the top two stack items. 
+;
+    pop de
+    pop bc
+    push de
+    push bc
+    
+    jp  (hl)
+
 code_lshift:
 ;
 ;   Implements LSHIFT

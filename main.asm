@@ -58,13 +58,13 @@ _repl_words:
     cp  TRUE
     jz  _repl_execute
     
-    ;   check for immediate words
-    ld  de, hl  ; xt 
+    ;   check for immediate words (always be executed)
+    ld  de, hl          ; xt 
     inc de      
-    inc de      ; flag
+    inc de              ; flag
     ld  a, (de) 
-    and 0x02    ; mode immediate
-    jz  _repl_execute
+    and BIT_IMMEDIATE   ; mode immediate
+    jr  nz, _repl_execute
 
     ;   Mode compilation, not immediate
     ;   Add the xt to the last word in dictionary
