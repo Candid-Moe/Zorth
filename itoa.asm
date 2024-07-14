@@ -62,8 +62,7 @@ _itoa_positive:
 
 _itoa_len:
     ;   Convert ASCIIZ to counted string
-
-    dec     hl          ; hl -> count byte
+    ;   hl -> start asciiz
     push    hl          ; Push edited value star address (it's not same as _PAD)
 
     ;   Search the final 0
@@ -73,10 +72,14 @@ _itoa_len:
     cpir
 
     sub  a, c       ; Made count in c positive
-    inc  a          ; Add 1 for the trailing space
+    dec  a
+;    inc  a          ; Add 1 for the trailing space
 
-    ld   (de), a    ; Store count 
-    ld   (hl), ' '  ; Add a strailing space
+    pop  hl
+    dec  hl
+    ld   (hl), a     ; Store count 
+    
+    push    hl
 
 _itoa_end:
 
