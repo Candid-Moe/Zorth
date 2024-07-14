@@ -168,8 +168,6 @@ _get_xt_word:
 
     ; The xt is the dictionary entry 
 
-    push hl
-
     jr  _get_xt_end
 
 _get_xt_not_word:

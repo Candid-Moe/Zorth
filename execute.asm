@@ -31,7 +31,7 @@ code_execute:
 
     ;   Address next xt
 
-    push    hl      ; Remember address
+    push    hl      ; Remember xt address
     ld  de, hl
     inc de
     inc de          ; address next xt
@@ -42,7 +42,6 @@ code_execute:
     ;   Push address next instruction 
 
     pop af
-
     jr  nz, _ex_colon
     jr  _ex_code
 
@@ -76,13 +75,17 @@ _ex_colon:
     ;   ( -- )
     ;   HL is the address where the code address is stored
     
+    ld      bc, (hl)        ; extract xt
+    push    bc              ; Pass to EXECUTE
+
     fcall   code_execute
 
     fcall _ex_pop
-    pop hl
+    pop hl              ; address next xt
 
-    ld  a, l
-    or  h
+    ld      bc, (hl)    ; load xt
+    ld  a, c
+    or  b
     jr  nz, _ex_colon
     
     jr  _ex_end
@@ -104,6 +107,7 @@ _ex_push:
     dec bc
     ld  a, d
     ld  (bc), a
+
     ld  (_EX_PTR), bc
 
     fret
@@ -116,12 +120,15 @@ _ex_pop:
     fenter
 
     ld  hl, (_EX_PTR)
-    ld  bc, (hl)
+
+    ld  c, (hl)
     inc hl
+    ld  b, (hl)
     inc hl
+
     ld (_EX_PTR), hl
     
-    push hl
+    push bc
 
     fret
 
@@ -150,8 +157,7 @@ code_address:
 ;--- Return Stack for Execute ---
 _EX_PTR:    dw _EX_STACK
             defs 128
-_EX_STACK:  dw _EX_STACK
-            dw  0x5050
+_EX_STACK:  dw  0x5050
 
 
 

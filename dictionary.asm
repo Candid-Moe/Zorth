@@ -125,9 +125,14 @@ dict_end:
 
     fret
     
-dict_make_immediate:
+code_immediate:
 ;
-;   Mark the last dictionary entry as immediate
+;   Implements IMMEDIATE
+;   ( -- )
+;
+;   Make the most recent definition an immediate word. 
+;   An ambiguous condition exists if the most recent definition 
+;   does not have a name or if it was defined as a SYNONYM. 
 ;
     fenter
 
@@ -287,6 +292,7 @@ dict_init:
     mdict_add st_slash,     code_slash
     mdict_add st_swap,      code_swap
     mdict_add st_f_m_slash_mod, code_f_m_slash_mod
+    mdict_add st_immediate, code_immediate
     mdict_add st_to_r,      code_to_r
     mdict_add st_r_from,    code_r_from
     mdict_add st_r_fetch,   code_r_fetch
@@ -298,7 +304,7 @@ dict_init:
     mdict_add st_create,    code_create
     mdict_add st_colon,     code_colon
     mdict_add st_semmicolon,code_semmicolon
-    fcall dict_make_immediate
+    fcall code_immediate
 
     fret
 
@@ -331,3 +337,4 @@ st_allot:       counted_string "allot"
 st_colon:       counted_string "colon"
 st_semmicolon:  counted_string "semmicolon"
 st_swap:        counted_string "swap"
+st_immediate:   counted_string "immediate"
