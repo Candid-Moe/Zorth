@@ -73,7 +73,6 @@ _itoa_len:
 
     sub  a, c       ; Made count in c positive
     dec  a
-;    inc  a          ; Add 1 for the trailing space
 
     pop  hl
     dec  hl

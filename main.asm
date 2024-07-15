@@ -1,5 +1,6 @@
+;   Zorth - (c) Candid Moe 2024
 ;
-;   Main: Here start the kernel
+;   main: Here start the kernel
 ;
     org     0x4000
 
@@ -132,8 +133,8 @@ _repl_end:
 
 return:
 ;
-;   Implement RET by jumping to address in return stack
-;   (Every routine jump to this code in order to return)
+;   For routines called with fenter/fret, return is via
+;   jumping here. The return address is poped from return stack.
 ;
     ld      l, (ix)     ; pop return address from return stack
     inc     ix
