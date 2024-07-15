@@ -20,9 +20,9 @@ code_execute:
     inc hl
     inc hl      ; hl -> flags    
     
-    ld  a, (hl) ;
-    and 0x01    ; Test the CODE/COLON flag
-    push af     ; Keep it
+    ld  a, (hl)     ;
+    and BIT_COLON   ; Test the CODE/COLON flag
+    push af         ; Keep it
     
     inc hl      ; hl -> name
 

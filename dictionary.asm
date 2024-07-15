@@ -90,23 +90,6 @@ _code_create_error:
     fret
 
         
-dict_make_colon:
-;
-;   Mark the last dictionary entry as COLON definition
-;   ( -- )
-;
-;   addr is the entry address for the word
-;
-    ld  hl, (_DICT)
-    inc hl
-    inc hl
-
-    ld  a, (hl)
-    or  BIT_COLON
-    ld  (hl), a
-
-    ret
-
 dict_end:
     ;   
     ;   Add a fret to current word
@@ -248,18 +231,143 @@ _dict_search_cycle:
     jr  _dict_search_cycle
 
 _dict_search_not_found:   
+    ;
+    ;   Word not found; try to convert to value
+    ;   ( addr -- )
+    ;
+
+    fcall ascii2bin
+
+    pop hl      ; Flag
+    ld  a, l
+    or  h       ; Failed? 
+    jr  nz, _dict_search_xt_value
+
     ld  hl, FALSE
-    jr _dict_search_end
+    jr _dict_search_end2
+
+_dict_search_xt_value:
+    ;
+    ;   A value was converted. Now actions depend on
+    ;   which state we are.
+    ;
+    ld  a, (_MODE_INTERPRETER)
+    cp  a, TRUE
+    jr  nz, _dict_search_xt_compile:
+
+    ;   Mode interpreter
+    ;   Value alredady into the stack
+    ;   Return a NOP xt
+
+    ld   hl, (xt_nop)
+    jr  _dict_search_end2
+
+_dict_search_xt_compile:
+    :
+    ;   Mode compile
+    ;
+    fcall  code_literal
+
+;    ld  hl, (xt_literal)
+    ;
+    ;   The code has been written already, but
+    ;   the caller expect a XT, so we return an
+    ;   immediate NOP that not change anything.
+
+    ld  hl, (xt_nop)   
+    jr  _dict_search_end2
+
 _dict_search_found:
     ld  hl, (_dict_ptr)
 _dict_search_end:
     pop  bc     ; Discard word address
+_dict_search_end2:
     push hl     ; Push entry address | flag
     
     fret
 
 _dict_ptr:   dw 0
 
+xt_nop: dw 0
+code_nop:
+;
+;   Do nothing, return immediatly
+;
+    jp  (hl)
+
+
+code_literal:
+;
+;   Implements LITERAL
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( x -- )
+;
+;   Append the run-time semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- x )
+;
+;    Place x on the stack.   
+;
+    fenter
+
+    ld  a, (_MODE_INTERPRETER)
+    cp  FALSE
+    jr  nz, _code_literal_error
+
+    ;   Compilation mode
+    ;   Append the xt for literal to the last word
+
+    ld  hl, (_DP)
+    ld  de, (xt_literal)
+    ld  (hl), e
+    inc hl
+    ld  (hl), d
+    inc hl
+
+    ;   Now append the value 
+    pop de
+    ld  (hl), e
+    inc hl
+    ld  (hl), d
+    inc hl
+    
+    ;   Update DP
+    ld  (_DP), hl
+
+    fret
+
+
+xt_literal: dw   0          ; code_literal_runtime XT  
+code_literal_runtime:
+
+    ;   In interpreter mode, _EX_PTR give the value address
+    ld      hl, (_EX_PTR)
+    
+    ld      c, (hl)
+    inc     hl
+    ld      b, (hl)
+
+    push    bc
+
+    fret
+    
+_code_literal_error:
+    ;
+    ld  hl, err_mode_not_comp
+    push hl
+    fcall   print_line
+    ld  hl, _PAD
+    push hl
+    fcall   print_line
+    fcall   code_backslash       ; Forget the remaining words
+    fret
+
+    
 macro mdict_add st, code
     ld hl, code
     push hl
@@ -268,11 +376,21 @@ macro mdict_add st, code
     fcall dict_add
 endm
 
+
 dict_init:
     ;   
     ;   Initialize the dictionary with some Forth words
     ;
     fenter
+
+    mdict_add st_nop,       code_nop
+    fcall code_immediate    
+    ld  hl, (_DICT)
+    ld  (xt_nop), hl    
+
+    mdict_add st_nop,       code_literal_runtime
+    ld  hl, (_DICT)
+    ld  (xt_literal), hl
 
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -307,9 +425,13 @@ dict_init:
     fcall code_immediate
     mdict_add st_store,     code_store
     mdict_add st_fetch,     code_fetch
+    mdict_add st_literal,   code_literal
+    mdict_add st_backslash, code_backslash
+    fcall code_immediate
 
     fret
 
+st_nop:         counted_string ""
 st_pad:         counted_string "pad"
 st_count:       counted_string "count"
 st_type:        counted_string "type"
@@ -342,3 +464,5 @@ st_store:       counted_string "!"
 st_fetch:       counted_string "@"
 st_swap:        counted_string "swap"
 st_immediate:   counted_string "immediate"
+st_literal:     counted_string "literal"
+st_backslash:   counted_string "\\"

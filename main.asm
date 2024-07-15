@@ -52,7 +52,7 @@ _repl_words:
     pop hl      ;     
     ld  a, h
     or  a, l        
-    jr  z, _repl_convert
+    jr  z, _repl_failed
 
     push hl
     ld  a, (_MODE_INTERPRETER)
@@ -78,19 +78,6 @@ _repl_execute:
     fcall code_execute    
     jr  _repl_end
 
-_repl_convert:
-
-    ;   Error, word not found, try convert to binary
-    ld  hl, _PAD
-    push hl
-    fcall ascii2bin
-
-    pop hl      ; Flag
-    ld  a, l
-    cp  0       ; Failed?
-
-    ; Success, value already in the stack
-    jr  nz, _repl_words
         
 _repl_failed:
 ;
@@ -178,6 +165,25 @@ _get_xt_not_word:
 _get_xt_end:
 
     push hl
+    fret
+
+code_backslash:
+;
+;   Implements \
+;
+;   Compilation:
+;   Perform the execution semantics given below.
+;
+;   Execution:
+;   ( "ccc<eol>" -- )
+;
+;   Parse and discard the remainder of the parse area. \ is an immediate word. 
+;
+    fenter
+
+    ld a, (_gTIB)
+    ld (_gtIN), a
+    
     fret
 
 code_tick:

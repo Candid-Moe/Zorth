@@ -16,21 +16,21 @@ space:      counted_string ' '
 words:      counted_string "words:\n"
 
 _MODE_INTERPRETER: db TRUE
-_BASE:      db  10
-_SOURCE_ID: db  DEV_STDIN   ; 1 = keyboard
-_gTIB:      db  0           ; #TIB, len of string in _TIB
+_BASE:      db   10
+_SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
+_gTIB:      db   0          ; #TIB, len of string in _TIB
 _TIB:       defs 80         ; Input line
-_gtIN:      dw   0          ; >IN, Index into TIB
+_gtIN:      db   0          ; >IN, Index into TIB
 _PAD:       defs 80         ; PAD is a counted string.
 
 _PROMPT:    counted_string  "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 
-err_word_not_found: counted_string "Error: word not found: "
-err_underflow:      counted_string "Error: stack underflow"
-err_missing_name:   counted_string "Error: Attempt to use zero-length string as a name"
-err_mode_comp:      counted_string "Error: alrededy in compilation mode"
-err_mode_not_comp:  counted_string "Error: not valid in interpretarion mode"
+err_word_not_found: counted_string "Error. Word not found: "
+err_underflow:      counted_string "Error. Data Stack underflow"
+err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name"
+err_mode_comp:      counted_string "Error. Alrededy in compilation mode"
+err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
 
 ;------ Forth Control Stack -----
 ;   This stack is indexed by YX

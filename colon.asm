@@ -57,6 +57,17 @@ code_colon:
     dec hl
     ld (_DP), hl
 
+    ;
+    ;   Mark entry as COLON definition
+    ;
+    ld  hl, (_DICT)
+    inc hl
+    inc hl
+
+    ld  a, (hl)
+    or  BIT_COLON
+    ld  (hl), a
+
 _colon_end:
 
     fret
@@ -123,7 +134,10 @@ code_semmicolon:
 _code_semmicolon_error:
     ;
     ld  hl, err_mode_not_comp
+    push hl
     fcall   print_line
+    fcall   code_backslash
+
     fret
     
 
