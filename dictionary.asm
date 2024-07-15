@@ -73,7 +73,7 @@ code_create:
     fcall   code_swap   ;                 ( -- code_addr name_addr )
 
     fcall   dict_add
-    call    dict_make_colon  ;   Make it a colon word    
+;    call    dict_make_  ;   Make it a colon word    
 
     sub a
     inc a   ; Set Z flag = 0
@@ -305,6 +305,8 @@ dict_init:
     mdict_add st_colon,     code_colon
     mdict_add st_semmicolon,code_semmicolon
     fcall code_immediate
+    mdict_add st_store,     code_store
+    mdict_add st_fetch,     code_fetch
 
     fret
 
@@ -336,5 +338,7 @@ st_create:      counted_string "create"
 st_allot:       counted_string "allot"
 st_colon:       counted_string ":"
 st_semmicolon:  counted_string ";"
+st_store:       counted_string "!"
+st_fetch:       counted_string "@"
 st_swap:        counted_string "swap"
 st_immediate:   counted_string "immediate"

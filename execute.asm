@@ -102,10 +102,10 @@ _ex_push:
     ld  bc, (_EX_PTR)
 
     dec bc
-    ld  a, e
+    ld  a, d
     ld  (bc), a
     dec bc
-    ld  a, d
+    ld  a, e
     ld  (bc), a
 
     ld  (_EX_PTR), bc
@@ -138,7 +138,8 @@ code_address:
 ;
     fenter
 
-    ld de, (_EX_PTR)
+    ld hl, (_EX_PTR)    ; hl = *next 
+    ld de, (hl)         ; hl = next
     push de             ; copy into stack
 
     inc de
@@ -148,7 +149,6 @@ code_address:
     ld (hl), e
     inc hl
     ld (hl), d
-    inc hl
 
     fret
 

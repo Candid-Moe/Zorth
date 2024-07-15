@@ -105,3 +105,35 @@ code_allot:
     ld  (_DP), hl
 
     fret
+
+code_fetch:
+;
+;   Implements @
+;   ( a-addr -- x )
+;
+;   x is the value stored at a-addr. 
+;
+    fenter
+
+    pop hl
+    ld  de, (hl)
+    push de
+
+    fret    
+
+code_store:
+;
+;   Implements ! 
+;   ( x a-addr -- )
+;
+;   Store x at a-addr. 
+;
+    fenter
+
+    pop hl
+    pop bc
+    ld  (hl), c
+    inc hl
+    ld  (hl), b
+
+    fret
