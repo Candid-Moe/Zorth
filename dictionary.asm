@@ -345,14 +345,47 @@ code_literal:
 xt_literal: dw   0          ; code_literal_runtime XT  
 code_literal_runtime:
 
-    ;   In interpreter mode, _EX_PTR give the value address
+    fenter
+
+    ;   In interpreter mode, _EX_STACK give the next execution token address
+    ;   in the current word. It's used by code_execute to keep trace of what
+    ;   word is executing.
+    ;   
+    ;   The second to last address in EX_STACK give us the address of the
+    ;   value to load
+    ;
     ld      hl, (_EX_PTR)
     
+    ;   Move HL to second to last in EX_STACK
+    inc     hl          ; Skip the "next inst" for this inst.
+    inc     hl
+
+    ;   Get the value address
+    ld      c, (hl)     ; bc = @ cell
+    inc     hl
+    ld      b, (hl)
+
+    ld      de, bc      ; Remember the value address
+    
+    ;   Extract the value
+    ld      hl, bc      ; load value at cell
     ld      c, (hl)
     inc     hl
     ld      b, (hl)
 
     push    bc
+
+    ;   Now, change the "next inst" to skip over the value
+    inc     de
+    inc     de              ; DE point to next xt
+
+    ld      hl, (_EX_PTR)   ; Get second to last address in EX_STACK
+    inc     hl
+    inc     hl
+
+    ld      (hl), e         ; Change the xt token address
+    inc     hl
+    ld      (hl), d    
 
     fret
     
