@@ -20,34 +20,16 @@ code_execute:
     inc hl
     inc hl      ; hl -> flags    
     
-    ld  a, (hl)     ;
-    and BIT_COLON   ; Test the CODE/COLON flag
-    push af         ; Keep it
+    ld  a, (hl) ; A = flags
     
     inc hl      ; hl -> name
-
     inc hl  
     inc hl      ; hl -> code/colon
 
-    ;   Address next xt
+    and BIT_COLON   ; Test the CODE/COLON flag
 
-    push    hl      ; Remember xt address
-    ld  de, hl
-    inc de
-    inc de          ; address next xt
-    
-    push de
-    fcall _ex_push  ; Store in own stack
-    pop hl          ; Recover address
-    ;   Push address next instruction 
-
-    pop af
     jr  nz, _ex_colon
     jr  _ex_code
-
-_ex_end:
-    
-    fret
 
 _ex_code:
     ;
@@ -58,37 +40,48 @@ _ex_code:
 
     ld bc, (hl)
     ld (_ex_jp + 1), bc
-    ld hl, _ex_code_end
+    ld hl, _ex_end
 
 _ex_jp:    
     jp   0          ; dest. will be overwritten 
 
-_ex_code_end:
-
-    ;   Discard next xt
-    fcall _ex_pop
-    pop hl
-    
-    fret    
-
 _ex_colon:
+    ;   Execute a colon word
     ;   ( -- )
-    ;   HL is the address where the code address is stored
-    
-    ld      bc, (hl)        ; extract xt
-    push    bc              ; Pass to EXECUTE
+    ;
+    ;   Colon word is a list of xt addresses.
+    ;
+    ;   HL is the list address
+
+    push hl             ; Save it
+    ld   de, hl
+    ;   Store address next xt en EX_STACK
+    inc de
+    inc de              ; address next xt  
+    push de
+    fcall   _ex_push    ; Store in own stack
+
+    pop     hl
+    ld      bc, (hl)    ; extract xt
+    push    bc          ; Pass to EXECUTE
 
     fcall   code_execute
 
+    ;   Recover address next xt.
     fcall _ex_pop
-    pop hl              ; address next xt
+    pop hl            ; address next xt
 
-    ld      bc, (hl)    ; load xt
-    ld  a, c
-    or  b
+    ;   Check for 0x0000 at the end of code.
+    ld  de, (hl)      ; load xt
+    ld  a, e
+    or  d
     jr  nz, _ex_colon
     
     jr  _ex_end
+
+_ex_end:
+    
+    fret
 
 _ex_push:
 ;

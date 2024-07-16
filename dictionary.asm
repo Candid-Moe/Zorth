@@ -351,15 +351,8 @@ code_literal_runtime:
     ;   in the current word. It's used by code_execute to keep trace of what
     ;   word is executing.
     ;   
-    ;   The second to last address in EX_STACK give us the address of the
-    ;   value to load
-    ;
     ld      hl, (_EX_PTR)
     
-    ;   Move HL to second to last in EX_STACK
-    inc     hl          ; Skip the "next inst" for this inst.
-    inc     hl
-
     ;   Get the value address
     ld      c, (hl)     ; bc = @ cell
     inc     hl
@@ -379,10 +372,7 @@ code_literal_runtime:
     inc     de
     inc     de              ; DE point to next xt
 
-    ld      hl, (_EX_PTR)   ; Get second to last address in EX_STACK
-    inc     hl
-    inc     hl
-
+    ld      hl, (_EX_PTR)   ; Get second to last address in EX_STACK 
     ld      (hl), e         ; Change the xt token address
     inc     hl
     ld      (hl), d    
