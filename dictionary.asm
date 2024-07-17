@@ -451,8 +451,10 @@ dict_init:
     mdict_add st_literal,   code_literal
     mdict_add st_backslash, code_backslash
     fcall code_immediate
+    mdict_add st_bye,       code_bye
+    mdict_add st_evaluate,  code_evaluate
 
-    fret
+    jmp forth_init
 
 st_nop:         counted_string ""
 st_pad:         counted_string "pad"
@@ -489,3 +491,17 @@ st_swap:        counted_string "swap"
 st_immediate:   counted_string "immediate"
 st_literal:     counted_string "literal"
 st_backslash:   counted_string "\\"
+st_evaluate:    counted_string "evaluate"
+st_bye:         counted_string "bye"
+
+forth_init:
+
+    ld  hl, fs_1
+    push hl
+    fcall code_count
+    fcall code_evaluate
+
+    fret
+
+fs_1:    counted_string ": 1+ 1 + ;\n: 1- 1 - ;"
+

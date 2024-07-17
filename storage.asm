@@ -20,6 +20,8 @@ _BASE:      db   10
 _SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
 _gTIB:      db   0          ; #TIB, len of string in _TIB
 _TIB:       defs 80         ; Input line
+gTIB:       dw  _gTIB
+TIB:        dw  _TIB
 _gtIN:      db   0          ; >IN, Index into TIB
 _PAD:       defs 80         ; PAD is a counted string.
 

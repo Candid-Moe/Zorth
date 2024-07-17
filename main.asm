@@ -16,6 +16,7 @@ init:
     fcall   print_line
 
     fcall   dict_init
+
     ld      hl, words
     push    hl
     fcall   print_line
@@ -28,10 +29,19 @@ repl:
     ld     hl, _PROMPT
     push   hl
     fcall  print_line
+
     fcall  code_refill
     ;   Check return code
     pop     bc
     jump_zero c, repl
+
+    fcall    inner_interpreter
+
+    jr      repl
+
+inner_interpreter:
+
+    fenter
 
 _repl_words:
 ;
@@ -44,10 +54,10 @@ _repl_words:
     ld  b, (hl)     ; Count byte
 
     ;   Do we have a word to process?    
-    jump_zero b, repl ; No, read another line
+    jump_zero b, _repl_return  ; No, get out
 
     ;   Obtain the execution token for word
-    push    hl      ; word address
+    push    hl              ; word address
     fcall   get_xt
     pop hl      ;     
     ld  a, h
@@ -77,26 +87,7 @@ _repl_words:
 _repl_execute:
     fcall code_execute    
     jr  _repl_end
-
-        
-_repl_failed:
-;
-;   Not a word, not a value
-;
-    pop     hl          ; Discard value
-    ld      hl, err_word_not_found
-    push    hl
-    fcall   print_line
-    ld hl,  _PAD
-    push hl
-    fcall print_line
-    ld hl, new_line
-    push hl
-    fcall print_line
-    
-    ;   Discard rest of line and start again
-    jp  repl
-
+       
 _repl_end:
 ;
 ;   After each instruction, check data stack (only underflow for now)
@@ -116,7 +107,28 @@ _repl_end:
     push hl
     fcall print_line
 
-    jp  repl
+    fret
+
+_repl_failed:
+;
+;   Not a word, not a value
+;
+    pop     hl          ; Discard value
+    ld      hl, err_word_not_found
+    push    hl
+    fcall   print_line
+    ld hl,  _PAD
+    push hl
+    fcall print_line
+    ld hl, new_line
+    push hl
+    fcall print_line
+    
+    ;   Discard rest of line and start again
+    fret
+
+_repl_return:
+    fret
 
 return:
 ;
@@ -167,6 +179,12 @@ _get_xt_end:
     push hl
     fret
 
+code_bye:
+;
+;
+;
+    EXIT()
+
 code_backslash:
 ;
 ;   Implements \
@@ -181,7 +199,8 @@ code_backslash:
 ;
     fenter
 
-    ld a, (_gTIB)
+    ld bc, (gTIB)
+    ld a, (bc)
     ld (_gtIN), a
     
     fret
@@ -298,7 +317,7 @@ code_refill:
     ;   Read a line from device into TIB
     ;
     ld  h,   DEV_STDIN
-    ld  de, _TIB
+    ld  de,  (TIB)
     ld  bc,  80
     READ   
 
@@ -310,11 +329,12 @@ code_refill:
 _refill_true:
 
     ;   move count
+    ld  hl, (gTIB)
     ld  a, c
-    ld  (_gTIB), a
+    ld  (hl), a
 
     ;   replace ending '\n' with space
-    ld  hl, _TIB    
+    ld  hl, (TIB)
 
     ld  b,  0       ; BC is the count
     dec bc

@@ -1,3 +1,8 @@
+;   Zorth - (c) Candid Moe 2024
+;
+;   word: implementation
+;
+
 code_word:
 ;
 ;   Implements WORD
@@ -16,7 +21,8 @@ code_word:
 
     fenter
 
-    ld  hl, _TIB            ; entry buffer
+    ld  hl, (TIB)            ; entry buffer
+
     ld  b,  0
     ld  a,  (_gtIN)         ; current position in entry buffer
     ld  c,  a 
@@ -26,7 +32,8 @@ code_word:
 
     ld  a, (_gtIN)
     ld  b, a
-    ld  a, (_gTIB)          
+    ld  de, (gTIB)
+    ld  a, (de)          
     sub b                   
     ld  b, a                ; B contains length remaining in entry buffer
 
@@ -43,9 +50,9 @@ _code_word_cycle:
     jz  _code_word_exit
 
     ;   Look at the byte in entry buffer
-    ld  a, (HL)
+    call _read_translate  
     cp  c                   ; A == char?
-    jnz _code_word_found
+    jr  nz, _code_word_found
     
     ;   
     inc hl                  ; Next char in entry buffer
@@ -69,13 +76,44 @@ _code_word_found:
     cp  b                   ; End of entry buffer?
     jz  _code_word_exit
 
-    ld  a, (hl)             ;
+    call _read_translate
     cp  c
-    jnz _code_word_found     
+    jr  nz, _code_word_found     
     
 _code_word_exit:
     ld  hl, _PAD
     push hl
 
     fret
+
+_read_translate:
+    ;   Read next char from input area, replacing '\n' with ' '.
+    ;   Return char in A
+    ld  a, (hl)
+    cp  '\n'
+    jr  nz, _read_translate_end
+    ld  a, ' '
+_read_translate_end:
+    ret
+
+code_tib:
+;
+;   Implements TIB
+;   ( -- addr )
+;
+;   Put the address of the current Text Input Buffer in the stack
+;
+    ld      bc, (TIB)
+    push    bc
+    jp      (hl)
+
+code_gtib:
+;
+;   Implements #TIB
+;
+;   Put the address of the TIB length in the stack
+;
+    ld      bc, (gTIB)
+    push    bc
+    jp      (hl)
 
