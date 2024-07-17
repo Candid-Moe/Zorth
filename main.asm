@@ -197,12 +197,50 @@ code_backslash:
 ;
 ;   Parse and discard the remainder of the parse area. \ is an immediate word. 
 ;
+;   Note: this word search for a '\n' in the input area, so it process correctly
+;   things like ": 1+ 1 + ; \ sum : 1- 1 - ;", which have two logical lines.
+;
     fenter
 
-    ld bc, (gTIB)
-    ld a, (bc)
-    ld (_gtIN), a
-    
+    ld  hl, (TIB)            ; entry buffer
+
+    ld  b,  0
+    ld  a,  (_gtIN)         ; current position in entry buffer
+    ld  c,  a 
+    add hl, bc              ; HL -> next char in entry buffer
+
+    ld  a, (_gtIN)
+    ld  b, a
+    ld  de, (gTIB)
+    ld  a, (de)          
+    sub b                   
+    ld  b, a                ; B contains length remaining in entry buffer
+
+_code_backslash_cycle:
+
+    ;   Check how many bytes to examine 
+
+    xor a   
+    cp  b                   ; remaining == 0?
+    jz  _code_backslash_exit
+
+    ;   Look at the byte in entry buffer
+    ld  a, (hl)
+    cp  '\n'
+    jr  z, _code_backslash_exit
+   
+    inc hl                  ; Next char in entry buffer
+    dec b                   ; Decrement count of remaining bytes
+
+    inc_byte _gtIN          ; Move input index
+
+    jp  _code_backslash_cycle
+
+_code_backslash_found:
+    inc_byte _gtIN
+
+_code_backslash_exit:
+        
     fret
 
 code_tick:

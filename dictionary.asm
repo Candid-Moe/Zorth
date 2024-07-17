@@ -503,5 +503,5 @@ forth_init:
 
     fret
 
-fs_1:    counted_string ": 1+ 1 + ;\n: 1- 1 - ;"
+fs_1:    counted_string ": 1+ 1 + ; \\ uno mas\n: 1- 1 - ;"
 

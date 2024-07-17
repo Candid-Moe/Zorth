@@ -30,6 +30,13 @@ code_evaluate:
     ld      (_gtIN), a
 
     fcall   inner_interpreter
+
+    ; TODO: Save and retrieve old values
+    ld      hl, _TIB
+    ld      (TIB), hl
+
+    ld      hl, _gTIB
+    ld      (gTIB), hl
         
     fret
 
