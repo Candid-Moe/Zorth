@@ -486,20 +486,6 @@ _code_words_end:
 
     fret
 
-code_bl:
-;
-;   Implements BL
-;   ( -- char )
-;
-;   char is the character value for a space. 
-
-    fenter
-
-    ld hl, ' '
-    push hl
-
-    fret    
-
 code_spaces:
 ;
 ;   Implements SPACES
@@ -554,4 +540,33 @@ print_line:
 
     fret
 
+code_emit:
+;
+;   Implements EMIT
+;   ( x -- )
+;
+;   If x is a graphic character in the implementation-defined character set, display x. 
+;   The effect of EMIT for all other values of x is implementation-defined.
+;
+;   When passed a character whose character-defining bits have a value between 
+;   hex 20 and 7E inclusive, the corresponding standard character, specified 
+;   by 3.1.2.1 Graphic characters, is displayed. Because different output devices
+;   can respond differently to control characters, programs that use control 
+;   characters to perform specific functions have an environmental dependency. 
+;   Each EMIT deals with only one character. 
+    
+    fenter
+
+    ld  hl, _PAD
+
+    pop bc
+    ld  (hl), c
+    push hl
+    ld  bc, 1
+    push bc
+
+    fcall code_type
+
+    fret
+    
 

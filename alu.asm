@@ -3,6 +3,61 @@
 ;   alu: arithmetic and logic words
 ;
 
+code_false:
+;
+;   Implements FALSE 
+;   ( -- false )
+;
+;   Return a false flag. 
+
+    ld   bc, FALSE
+    push bc
+    jp   (hl)
+
+code_true:
+;
+;   Implements TRUE
+;   ( -- true )
+;
+;   Return a true flag, a single-cell value with all bits set. 
+
+    ld   bc, TRUE
+    push bc
+    jp   (hl)
+
+code_drop:
+;
+;   Implements DROP CORE
+;   ( x -- )
+;
+;   Remove x from the stack. 
+;
+    pop bc
+    jp  (hl)
+
+code_and:
+;
+;   Implements AND
+;
+;   ( x1 x2 -- x3 )
+;
+;   x3 is the bit-by-bit logical "and" of x1 with x2. 
+;
+    pop bc
+    pop de
+
+    ld  a, b
+    and d
+    ld  b, a
+
+    ld  a, c
+    and e
+    ld  c, a
+
+    push bc
+
+    jp  (hl)
+
 code_negate:
 ;
 ;   Implements NEGATE
@@ -150,6 +205,26 @@ code_swap:
     push bc
     
     jp  (hl)
+
+code_pick:
+;
+;   Implements PICK
+;   ( xu...x1 x0 u -- xu...x1 x0 xu )
+;
+;   Remove u. Copy the xu to the top of the stack. 
+;   An ambiguous condition exists if there are less than u+2 items 
+;   on the stack before PICK is executed. 
+;
+    fenter
+
+    pop bc  ; u
+    ld  hl, sp
+    add hl, bc
+    
+    ld  bc, (hl)
+    push bc
+
+    fret
 
 code_lshift:
 ;

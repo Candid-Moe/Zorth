@@ -419,7 +419,6 @@ dict_init:
     mdict_add st_type,      code_type
     mdict_add st_refill,    code_refill
     mdict_add st_space,     code_space
-    mdict_add st_bl,        code_bl
     mdict_add st_negate,    code_negate
     mdict_add st_tick,      code_tick
     mdict_add st_str_equals,code_str_equals
@@ -453,7 +452,14 @@ dict_init:
     fcall code_immediate
     mdict_add st_bye,       code_bye
     mdict_add st_evaluate,  code_evaluate
-
+    mdict_add st_base,      code_base
+    mdict_add st_and,       code_and
+    mdict_add st_false,     code_false
+    mdict_add st_true,      code_true
+    mdict_add st_drop,      code_drop
+    mdict_add st_emit,      code_emit
+    mdict_add st_pick,      code_pick
+    
     jmp forth_init
 
 st_nop:         counted_string ""
@@ -464,11 +470,11 @@ st_refill:      counted_string "refill"
 st_plus:        counted_string "+"
 st_words:       counted_string "words"
 st_space:       counted_string "space"
-st_bl:          counted_string "bl"
 st_negate:      counted_string "negate"
 st_tick:        counted_string "'"
 st_str_equals:  counted_string "str="
 st_dup:         counted_string "dup"
+st_and:         counted_string "and"
 st_dot:         counted_string "."
 st_star:        counted_string "*"
 st_minus:       counted_string "-"
@@ -493,15 +499,30 @@ st_literal:     counted_string "literal"
 st_backslash:   counted_string "\\"
 st_evaluate:    counted_string "evaluate"
 st_bye:         counted_string "bye"
+st_base:        counted_string "base"
+st_true:        counted_string "true"
+st_false:       counted_string "false"
+st_drop:        counted_string "drop"
+st_emit:        counted_string "emit"
+st_pick:        counted_string "pick"
 
 forth_init:
 
     ld  hl, fs_1
     push hl
-    fcall code_count
+    ld  hl, (fs_1_len)
+    push hl
     fcall code_evaluate
 
     fret
 
-fs_1:    counted_string ": 1+ 1 + ; \\ uno mas\n: 1- 1 - ;"
+fs_1: db  ": 1+ 1 + ; : 1- 1 - ; : decimal 10 base ! ; : hex 16 base ! ; "
+      db  ": over >r dup r> swap ; " ; ( x1 x2 -- x1 x2 x1 )
+      db  ": tuck swap over ; "      ; ( x1 x2 -- x2 x1 x2 )
+      db  ": char+ 1 + ; "           ; ( c-addr1 -- c-addr2 ) 
+      db  ": chars ; "               ; ( n1 -- n2 )
+      db  ": bl 32 ; "               ; ( -- 0x20 )
+      db  ": nip swap drop ; "       ; ( x1 x2 -- x2 )
+
+fs_1_len: dw $ - fs_1
 

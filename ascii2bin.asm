@@ -294,6 +294,19 @@ _ascii2bin_error:
     push hl
     
     fret    
+
+code_base:
+;
+;   Implements BASE
+;   ( -- a-addr )
+;
+;   a-addr is the address of a cell containing the current 
+;   number-conversion radix {{2...36}}. 
+;
+    ld bc, _BASE
+    push bc
+
+    jp  (hl)
     
 _ascii2bin_sign: db 0
 _ascii2bin_count: db 0
