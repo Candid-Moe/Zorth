@@ -122,7 +122,7 @@ code_semmicolon:
     set_carry_0   
     sbc hl, de
 
-    jr  nz, _code_semmicolon_error
+    jr  nz, _code_unstructed_error
 
     ;   Mark the end of current definition
     ld  hl, 0
@@ -131,17 +131,18 @@ code_semmicolon:
     
     fret
 
-_code_semmicolon_error:
-    ;
-    ld  hl, err_mode_not_comp
+_code_unstructed_error:
+        
+    fcall dict_delete_last
+
+    ld  hl, err_unstructed
     push hl
-    fcall   print_line
-    fcall   code_backslash
+    fcall print_line
 
-    fret
+    ld  hl, _PAD
+    push hl
+    fcall print_line
+    fcall code_backslash
     
-
-
-
-
+    fret
 

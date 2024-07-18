@@ -182,6 +182,176 @@ dict_add:
 
     fret
 
+dict_delete_last:
+    ;
+    ;   Delete the last word in dictionary
+    ;
+    ;   Used to recover from aborted word creation
+    ;
+    fenter
+
+    ld  hl, (_DICT)     ; Last word
+    ld  bc, (hl)        ; Next to last word
+    ld  (_DICT), bc
+
+    fret
+
+code_see:
+;
+;   Implements SEE
+;   ( "<spaces>name" -- )
+;
+;   Display a human-readable representation of the named word's definition. 
+;   The source of the representation (object-code decompilation, source block, etc.)
+;   and the particular form of the display is implementation defined.
+;
+;   SEE may be implemented using pictured numeric output words. Consequently, its 
+;   use may corrupt the transient region identified by #>. 
+;
+    fenter
+
+    ld hl, ' '
+    push hl
+    fcall code_word
+
+    fcall dict_search    
+    pop hl
+    ld  a, h
+    or  l
+    jp  z, _error_not_found
+
+    ld  a, 16
+    ld  (_BASE), a
+
+    push hl
+    push hl
+
+    fcall code_dot
+    fcall code_space    ; address
+
+    pop hl
+    inc hl
+    inc hl      ; flags
+    ld  a, (hl)
+    push af
+    inc hl      ; name
+
+    ld de, (hl)
+    inc hl
+    inc hl
+    push hl
+
+    push de
+    fcall print_line
+    fcall code_space
+    pop hl
+    pop af
+
+    push hl
+
+    and BIT_COLON
+    jz  _see_code_def
+    ld  a, FALSE
+    ld  (_see_type_code), a
+    ld  hl, _see_colon
+    jr  _see_imm
+
+_see_code_def:
+    ld  hl, _see_code
+    ld  a, TRUE
+    ld (_see_type_code), a
+
+_see_imm:
+    push hl
+    fcall print_line
+    fcall code_space
+
+    and BIT_IMMEDIATE
+    jz  _see_next
+    ld  hl, _see_immediate
+    push hl
+    fcall print_line
+    fcall code_space
+
+_see_next:
+    fcall code_cr
+    pop hl
+
+    
+_see_cycle:
+   
+    ;   Check if end of colon definition
+
+    ld  de, (hl)
+    ld  a, d
+    or  e
+    jr  z, _see_end
+
+    ;   Print the address
+    push hl
+    push hl
+    fcall code_dot
+    fcall code_space
+
+    ;   Print the XT 
+    pop  hl
+    push hl
+
+    ld   de, (hl)       ; xt address
+    push de
+    push de
+    fcall code_dot
+    fcall code_space
+
+    ld  a, (_see_type_code)
+    cp  TRUE
+    jr  z, _see_end
+
+    ;   Print the name
+    pop  hl             ; xt address
+    inc  hl
+    inc  hl ; flags
+    inc  hl ; name    
+
+    ld   de, (hl)       ; is it an address?
+    ld   a, d
+    cp   0x40
+    jr   c, _see_cycle_next
+    push de
+    fcall print_line
+
+_see_cycle_next:
+
+    fcall code_cr
+    ;   Next entry
+    pop hl        
+    inc hl
+    inc hl
+
+    jr  _see_cycle
+
+_see_end:
+
+    fret
+
+_see_type_code: db 0            ; TRUE -> code, FALSE -> colon
+_see_code:      counted_string "code"        
+_see_colon:     counted_string "colon"
+_see_immediate: counted_string "immediate"
+
+_error_not_found:
+    ld      hl, err_word_not_found
+    push    hl
+    fcall   print_line
+    ld hl,  _PAD
+    push hl
+    fcall print_line
+    ld hl, new_line
+    push hl
+    fcall print_line
+    
+    fret
+
 dict_search:
     ;
     ;   Search a word in the dictionary
@@ -411,9 +581,15 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_nop), hl    
 
-    mdict_add st_nop,       code_literal_runtime
+    mdict_add st_literal,   code_literal_runtime
     ld  hl, (_DICT)
     ld  (xt_literal), hl
+
+    mdict_add st_if,        code_if_runtime
+    ld  hl, (_DICT)
+    ld  (xt_if), hl
+
+    ;   Previous entries are shadowed by the "official" entries, later
 
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -430,6 +606,8 @@ dict_init:
     mdict_add st_minus,     code_minus
     mdict_add st_star,      code_star
     mdict_add st_slash,     code_slash
+    mdict_add st_rshift,    code_rshift
+    mdict_add st_lshift,    code_lshift
     mdict_add st_swap,      code_swap
     mdict_add st_f_m_slash_mod, code_f_m_slash_mod
     mdict_add st_immediate, code_immediate
@@ -459,6 +637,13 @@ dict_init:
     mdict_add st_drop,      code_drop
     mdict_add st_emit,      code_emit
     mdict_add st_pick,      code_pick
+    mdict_add st_if,        code_if
+    fcall code_immediate
+    mdict_add st_then,      code_then
+    fcall code_immediate
+    
+    mdict_add st_see,       code_see
+    mdict_add st_cr,        code_cr
     
     jmp forth_init
 
@@ -505,6 +690,12 @@ st_false:       counted_string "false"
 st_drop:        counted_string "drop"
 st_emit:        counted_string "emit"
 st_pick:        counted_string "pick"
+st_if:          counted_string "if"
+st_then:        counted_string "then"
+st_see:         counted_string "see"
+st_rshift:      counted_string "rshift"
+st_lshift:      counted_string "lshift"
+st_cr:          counted_string "cr"
 
 forth_init:
 

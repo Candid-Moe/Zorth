@@ -33,6 +33,7 @@ err_underflow:      counted_string "Error. Data Stack underflow"
 err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name"
 err_mode_comp:      counted_string "Error. Alrededy in compilation mode"
 err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
+err_unstructed:     counted_string "Error. Unstructed: "
 
 ;------ Forth Control Stack -----
 ;   This stack is indexed by YX

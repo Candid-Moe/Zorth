@@ -83,3 +83,52 @@ _itoa_len:
 _itoa_end:
 
     fret
+
+htoa:
+;
+;   Convert signed value to hexadecimal ASCII.
+;   ( n -- )
+;
+;   Result in PAD
+;
+    fenter
+
+    ld  hl, _htoa    
+    inc hl
+
+    pop de
+    ld  c, d
+    call OutHex8
+    ld  c, e
+    call OutHex8
+
+    ld  hl, _htoa
+    push hl
+
+    fret 
+
+;
+; Output the hex value of the 8-bit number stored in C
+;
+OutHex8:
+   ld  a,c
+   rra
+   rra
+   rra
+   rra
+   call  Conv
+   ld  a,c
+Conv:
+   and  $0F
+   add  a,$90
+   daa
+   adc  a,$40
+   daa
+   ; Show the value.
+   ld   (hl), a
+   inc  hl
+
+   ret
+
+_htoa:  db 4, "0000"
+_htoa_conv: db  "0123456789ABCDEF"

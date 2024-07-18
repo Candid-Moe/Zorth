@@ -226,6 +226,44 @@ code_pick:
 
     fret
 
+code_rshift:
+;
+;   Implements RSHIFT 
+;   ( x1 u -- x2 )
+;
+;   Perform a logical right shift of u bit-places on x1, giving x2. 
+;   Put zeroes into the most significant bits vacated by the shift. 
+;   An ambiguous condition exists if u is greater than or equal to the 
+;   number of bits in a cell. 
+;
+    ld  de, hl  ; save return address
+   
+    pop bc      
+    ld  b, c    ; b = how many bits to shift
+    pop hl      ; x1
+
+    xor a
+    cp  b
+    jz  _code_rshift_end
+
+_code_rshift_cycle:
+
+    ld  a, l    ;   Shift low byte by 1
+    sra a
+    ld  l, a
+
+    ld  a, h    ;   Shift high byte by 1
+    rr  a
+    ld  h, a
+    
+    djnz _code_rshift_cycle
+
+_code_rshift_end:
+
+    push hl
+    ld   hl, de
+    jp  (hl)
+
 code_lshift:
 ;
 ;   Implements LSHIFT

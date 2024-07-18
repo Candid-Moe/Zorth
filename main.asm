@@ -270,7 +270,16 @@ code_dot:
 ;
     fenter
 
+    ld  a, (_BASE)
+    cp  16
+    jr  z, _code_dot_hex
     fcall itoa
+    jr  _code_dot_print
+
+_code_dot_hex:
+    fcall htoa
+
+_code_dot_print:
     fcall code_count
     fcall code_type
     
@@ -526,6 +535,22 @@ code_space:
 
     fret
 
+code_cr:
+;
+;   Implements CR 
+;   ( -- )
+;
+;   Cause subsequent output to appear at the beginning of the next line. 
+;
+    fenter
+
+    ld  hl, new_line
+    push hl
+    fcall code_count
+    fcall code_type
+
+    fret
+
 print_line:
 ;
 ;   Print message on standard output
@@ -569,4 +594,17 @@ code_emit:
 
     fret
     
+_code_mode_error:
+    
+    ld  hl, err_mode_not_comp
+    push hl
+    fcall print_line
+
+    ld  hl, _PAD
+    push hl
+    fcall print_line
+    fcall code_backslash
+    
+    fret
+
 
