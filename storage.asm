@@ -14,6 +14,7 @@ defc BIT_IMMEDIATE = 2
 new_line:   counted_string '\n'
 space:      counted_string ' '
 words:      counted_string "words:\n"
+boot_file:  counted_string "forth.fs\000"
 
 _MODE_INTERPRETER: db TRUE
 _BASE:      db   10

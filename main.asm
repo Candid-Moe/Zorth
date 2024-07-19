@@ -22,6 +22,10 @@ init:
     fcall   print_line
     fcall   code_words
 
+    ld      hl, boot_file
+    push    hl
+    fcall   load_fs
+
 repl:
 ;
 ;   Read a line and execute every word in it.

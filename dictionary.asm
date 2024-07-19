@@ -303,6 +303,7 @@ _see_cycle:
     fcall code_dot
     fcall code_space
 
+    ;   For code words, there only one entry to print.
     ld  a, (_see_type_code)
     cp  TRUE
     jr  z, _see_end
@@ -645,7 +646,7 @@ dict_init:
     mdict_add st_see,       code_see
     mdict_add st_cr,        code_cr
     
-    jmp forth_init
+    fret
 
 st_nop:         counted_string ""
 st_pad:         counted_string "pad"
@@ -697,23 +698,4 @@ st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
 
-forth_init:
-
-    ld  hl, fs_1
-    push hl
-    ld  hl, (fs_1_len)
-    push hl
-    fcall code_evaluate
-
-    fret
-
-fs_1: db  ": 1+ 1 + ; : 1- 1 - ; : decimal 10 base ! ; : hex 16 base ! ; "
-      db  ": over >r dup r> swap ; " ; ( x1 x2 -- x1 x2 x1 )
-      db  ": tuck swap over ; "      ; ( x1 x2 -- x2 x1 x2 )
-      db  ": char+ 1 + ; "           ; ( c-addr1 -- c-addr2 ) 
-      db  ": chars ; "               ; ( n1 -- n2 )
-      db  ": bl 32 ; "               ; ( -- 0x20 )
-      db  ": nip swap drop ; "       ; ( x1 x2 -- x2 )
-
-fs_1_len: dw $ - fs_1
 

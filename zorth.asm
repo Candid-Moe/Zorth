@@ -24,6 +24,7 @@ include "multiply.asm"
 include "divide.asm"
 include "itoa.asm"
 include "itoa_16.asm"
+include "file.asm"
 
 ;   Storage must be the last include
 

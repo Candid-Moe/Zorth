@@ -91,8 +91,14 @@ _read_translate:
     ;   Return char in A
     ld  a, (hl)
     cp  '\n'
-    jr  nz, _read_translate_end
+    jr  z, _read_translate_space
+    cp  '\t'
+    jr  z, _read_translate_space
+    jr  _read_translate_end
+
+_read_translate_space:
     ld  a, ' '
+
 _read_translate_end:
     ret
 
