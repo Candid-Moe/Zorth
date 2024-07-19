@@ -11,5 +11,3 @@
 : nip swap drop ;        \ ( x1 x2 -- x2 )
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
-
-

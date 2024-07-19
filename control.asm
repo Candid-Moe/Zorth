@@ -37,15 +37,16 @@ code_if:
     ld  (hl), bc        ; Add IF xt to word in formation.
 
     inc hl
-    inc hl              
+    inc hl     
+
+    push hl
+    ctrl_push           ; Put the cell address to patch
 
     inc hl
     inc hl              ; Leave a cell for the destination address
 
     ld  (_DP), hl       ; Update DP
 
-    push hl
-    ctrl_push           ; Put the cell address to patch
 
     fret    
     
@@ -98,8 +99,7 @@ code_then:
 
     ;   Put the current address in the space following IF
 
-    ctrl_pop
-    pop hl
+    ctrl_pop        ; 
 
     ld  bc, (_DP)
     ld  (hl), bc

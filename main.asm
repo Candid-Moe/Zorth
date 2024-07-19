@@ -17,14 +17,15 @@ init:
 
     fcall   dict_init
 
+    ld      hl, boot_file
+    push    hl
+    fcall   load_fs
+
     ld      hl, words
     push    hl
     fcall   print_line
     fcall   code_words
 
-    ld      hl, boot_file
-    push    hl
-    fcall   load_fs
 
 repl:
 ;
@@ -608,6 +609,7 @@ _code_mode_error:
     push hl
     fcall print_line
     fcall code_backslash
+    fcall code_cr
     
     fret
 

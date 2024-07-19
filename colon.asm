@@ -51,8 +51,10 @@ code_colon:
     ld      hl, colon_sys
     ctrl_push
 
-    ;   Delete default code address
+    ;   Delete default code gen by CREATE
     ld  hl, (_DP)
+    dec hl
+    dec hl
     dec hl
     dec hl
     ld (_DP), hl

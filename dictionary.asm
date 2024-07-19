@@ -73,7 +73,14 @@ code_create:
     fcall   code_swap   ;                 ( -- code_addr name_addr )
 
     fcall   dict_add
-;    call    dict_make_  ;   Make it a colon word    
+    
+    ;
+    ;   Add empty cell
+    ;
+    ld  hl, (_DP)
+    inc hl
+    inc hl
+    ld  (_DP), hl
 
     sub a
     inc a   ; Set Z flag = 0
@@ -488,7 +495,7 @@ code_literal:
 
     ld  a, (_MODE_INTERPRETER)
     cp  FALSE
-    jr  nz, _code_literal_error
+    jp  nz, _code_literal_error
 
     ;   Compilation mode
     ;   Append the xt for literal to the last word
