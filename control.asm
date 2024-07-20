@@ -33,7 +33,7 @@ code_if:
     jp  z, _code_mode_error
 
     ld  hl, (_DP)
-    ld  bc, xt_if
+    ld  bc, (xt_if)
     ld  (hl), bc        ; Add IF xt to word in formation.
 
     inc hl
@@ -60,14 +60,29 @@ code_if_runtime:
     ld  a, l
     or  h       ; Test TOS
     
-    jr  nz, _code_if_runtime_end
+    jr  nz, _code_if_runtime_conditional
+
+    ;   Skip over the conditional code
 
     fcall _ex_pop   ;   
     pop hl
     ld  bc, (hl)
     push bc
     fcall _ex_push
+
+    jr _code_if_runtime_end
+
+_code_if_runtime_conditional:
+
+    ;   Execute the conditional part
     
+    fcall   _ex_pop     ;   Extra address next instruction.
+    pop hl          
+    inc hl
+    inc hl              ;   Add 2
+    push hl
+    fcall   _ex_push    ;   Now use this as address next instruction
+
 _code_if_runtime_end:
 
     fret
