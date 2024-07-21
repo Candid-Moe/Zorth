@@ -114,6 +114,11 @@ code_semmicolon:
 ;
     fenter
 
+    ;   Check MODE
+    ld  a, (_MODE_INTERPRETER)
+    cp  FALSE
+    jr  nz, _colon_error
+
     ;   Back to execution mode
     ld  a, TRUE
     ld  (_MODE_INTERPRETER), a

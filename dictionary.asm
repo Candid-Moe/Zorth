@@ -594,9 +594,9 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_literal), hl
 
-    mdict_add st_if,        code_if_runtime
+    mdict_add st_jz,        code_jz
     ld  hl, (_DICT)
-    ld  (xt_if), hl
+    ld  (xt_jz), hl
 
     mdict_add st_jump,      code_jp_runtime
     ld  hl, (_DICT)
@@ -634,6 +634,7 @@ dict_init:
     mdict_add st_allot,     code_allot
     mdict_add st_create,    code_create
     mdict_add st_colon,     code_colon
+    fcall code_immediate
     mdict_add st_semmicolon,code_semmicolon
     fcall code_immediate
     mdict_add st_store,     code_store
@@ -662,7 +663,11 @@ dict_init:
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
     mdict_add st_begin,     code_begin
+    fcall code_immediate
     mdict_add st_until,     code_until
+    fcall code_immediate
+    mdict_add st_again,     code_again
+    fcall code_immediate
     
     fret
 
@@ -721,5 +726,7 @@ st_cr:          counted_string "cr"
 st_invert:      counted_string "invert"
 st_begin:       counted_string "begin"
 st_until:       counted_string "until"
+st_jz:          counted_string "jz"
+st_again:       counted_string "again"
 
 

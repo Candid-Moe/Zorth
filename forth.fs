@@ -19,11 +19,12 @@
 : 0> 0= if false else 0< if false else true then then ; \ ( n -- flag ) if n > 0
 : 0<> 0= invert ;
 : > - 0> ;
-: < - 0< :
+: < - 0< ;
 : <> - 0<> ;
 : = - 0= ;
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
 : ?dup dup 0<> if dup then ;
-: mas begin + until ;
+: buffer create allot ;
+: char word 1 + c@ ;
 

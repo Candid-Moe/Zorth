@@ -4,6 +4,7 @@
 ;
 
 xt_if:  dw  0           ; IF runtime execution token.
+xt_jz:  dw 0
 xt_jp:  dw  0
 
 code_if:
@@ -34,13 +35,14 @@ code_if:
     jp  z, _code_mode_error
 
     ld  hl, (_DP)
-    ld  bc, (xt_if)
+    ld  bc, (xt_jz)
     ld  (hl), bc        ; Add IF xt to word in formation.
 
     inc hl
     inc hl     
 
     push hl
+
     ctrl_push           ; Put the cell address to patch
 
     inc hl
@@ -88,6 +90,46 @@ _code_if_runtime_end:
 
     fret
 
+code_jz:
+;
+;   Implement Jump if Zero
+;   ( x -- )
+;
+    fenter
+
+    pop hl
+    ld  a, l
+    or  h       ; Test TOS
+    
+    jr  nz, _code_jz_non
+
+    ;   Make the jump
+    ;   The address is stored in the next cell
+
+    fcall _ex_pop   ;   Address next cell   
+    pop hl  
+    ld  bc, (hl)    ;   Take de address
+    push bc
+    fcall _ex_push  ;   Put into exec. stack.
+
+    fret
+
+_code_jz_non:
+
+    ;   Don't jump, skip over the address
+    
+    fcall   _ex_pop     ;   Extra address next instruction.
+    pop hl          
+
+    inc hl
+    inc hl              ;   Add 2
+
+    push hl
+    fcall   _ex_push    ;   Now use this as address next instruction
+
+    fret
+
+    
 code_else:
 ;
 ;   Implements ELSE
@@ -222,6 +264,50 @@ code_begin:
 
     fret
 
+code_again:
+;
+;   Implements AGAIN 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: dest -- )
+;
+;   Append the run-time semantics given below to the current definition, 
+;   resolving the backward reference dest.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Continue execution at the location specified by dest. 
+;   If no other control flow words are used, any program code after AGAIN
+;   will not be executed. 
+;
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jp  z, _code_until_runtime
+
+    ld  hl, (_DP)
+    ld  bc, (xt_jp)
+    ld  (hl), bc        ; Add jump to word in after "begin"
+
+    inc hl
+    inc hl              ; Advance next free cell
+
+    ld  (_DP), hl
+    ctrl_pop
+    ld  bc, hl
+    ld  hl, (_DP)
+    ld  (hl), bc        ; Put the address for the jump.
+    
+    inc hl
+    inc hl
+    ld  (_DP), hl
+    
+    fret
+
+
 code_until:
 ;
 ;   Implements UNTIL
@@ -247,8 +333,8 @@ code_until:
     jp  z, _code_until_runtime
 
     ld  hl, (_DP)
-    ld  bc, (xt_jp)
-    ld  (hl), bc        ; Add jump to word in after "then"
+    ld  bc, (xt_jz)
+    ld  (hl), bc        ; Add jump to word in after "begin"
 
     inc hl
     inc hl              ; Advance next free cell
