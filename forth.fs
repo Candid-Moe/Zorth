@@ -24,5 +24,6 @@
 : = - 0= ;
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
-: ?dup 0<> if dup else drop 0 then ;
+: ?dup dup 0<> if dup then ;
+: mas begin + until ;
 

@@ -661,6 +661,8 @@ dict_init:
     mdict_add st_see,       code_see
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
+    mdict_add st_begin,     code_begin
+    mdict_add st_until,     code_until
     
     fret
 
@@ -717,5 +719,7 @@ st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
 st_invert:      counted_string "invert"
+st_begin:       counted_string "begin"
+st_until:       counted_string "until"
 
 

@@ -193,6 +193,94 @@ code_then:
     
     fret
 
+code_begin:
+;
+;   Implements BEGIN
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: -- dest )
+;
+;   Put the next location for a transfer of control, dest, onto the control flow stack. 
+;   Append the run-time semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Continue execution. 
 
+    fenter
 
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jp  z, _code_mode_error
 
+    ld  hl, (_DP)
+    ctrl_push
+
+    fret
+
+code_until:
+;
+;   Implements UNTIL
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: dest -- )
+;
+;   Append the run-time semantics given below to the current definition, 
+;   resolving the backward reference dest.
+;
+;   Run-time:
+;   ( x -- )
+;
+;   If all bits of x are zero, continue execution at the location specified by dest. 
+
+    fenter
+    
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jp  z, _code_until_runtime
+
+    ld  hl, (_DP)
+    ld  bc, (xt_jp)
+    ld  (hl), bc        ; Add jump to word in after "then"
+
+    inc hl
+    inc hl              ; Advance next free cell
+
+    ld  (_DP), hl
+    ctrl_pop
+    ld  bc, hl
+    ld  hl, (_DP)
+    ld  (hl), bc        ; Put the address for the jump.
+    
+    inc hl
+    inc hl
+    ld  (_DP), hl
+    
+    fret
+
+_code_until_runtime:
+
+    pop bc
+    ld  a, c
+    cp  b
+    jr  z, code_until_end
+
+    ;   TOS != 0 -> end
+
+    fcall _ex_pop
+    pop hl
+    inc hl
+    inc hl
+    push hl
+    fcall _ex_push
+
+code_until_end:
+
+    fret
