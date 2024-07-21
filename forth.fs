@@ -14,4 +14,8 @@
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
 : cells 2 * ;            \ ( n1 -- n2 )
-: mas if 1 else 2 then 3 ;
+: 0= $0000 or  if false else true then ;
+: 0< $8000 and if true else false then ;
+: 0> 0= if false else 0< if false else true then then ;
+: 0<> 0= invert ;
+

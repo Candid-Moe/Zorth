@@ -130,7 +130,14 @@ _repl_failed:
     fcall print_line
     
     ;   Discard rest of line and start again
-    fret
+    fcall   code_backslash
+    ;   Back to INTERPRETER mode
+    ld  a, TRUE
+    ld  (_MODE_INTERPRETER), a
+    ;   Empty control stack
+    ld  IY, _CONTROL_STACK
+
+    jr  _repl_end
 
 _repl_return:
     fret

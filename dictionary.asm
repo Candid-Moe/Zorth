@@ -227,6 +227,7 @@ code_see:
     or  l
     jp  z, _error_not_found
 
+    ; TODO Restore base
     ld  a, 16
     ld  (_BASE), a
 
@@ -644,6 +645,7 @@ dict_init:
     mdict_add st_evaluate,  code_evaluate
     mdict_add st_base,      code_base
     mdict_add st_and,       code_and
+    mdict_add st_or,        code_or
     mdict_add st_false,     code_false
     mdict_add st_true,      code_true
     mdict_add st_drop,      code_drop
@@ -658,6 +660,7 @@ dict_init:
     
     mdict_add st_see,       code_see
     mdict_add st_cr,        code_cr
+    mdict_add st_invert,    code_invert
     
     fret
 
@@ -674,6 +677,7 @@ st_tick:        counted_string "'"
 st_str_equals:  counted_string "str="
 st_dup:         counted_string "dup"
 st_and:         counted_string "and"
+st_or:          counted_string "or"
 st_dot:         counted_string "."
 st_star:        counted_string "*"
 st_minus:       counted_string "-"
@@ -712,6 +716,6 @@ st_see:         counted_string "see"
 st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
-
+st_invert:      counted_string "invert"
 
 

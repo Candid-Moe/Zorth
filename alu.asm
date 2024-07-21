@@ -35,6 +35,46 @@ code_drop:
     pop bc
     jp  (hl)
 
+code_invert:
+;
+;   Implements INVERT
+;   ( x1 -- x2 )
+;
+;   Invert all bits of x1, giving its logical inverse x2. 
+;
+    pop bc
+    ld  a, b
+    cpl
+    ld  b, a
+    ld  a, c
+    cpl
+    ld  c, a
+    push bc
+
+    jp  (hl)
+
+code_or:
+;
+;   Implements OR
+;   ( x1 x2 -- x3 )
+;
+;   x3 is the bit-by-bit inclusive-or of x1 with x2. 
+
+    pop bc
+    pop de
+
+    ld  a, b
+    or  d
+    ld  b, a
+
+    ld  a, c
+    or  e
+    ld  a, c
+
+    push bc
+
+    jp (hl)
+
 code_and:
 ;
 ;   Implements AND
