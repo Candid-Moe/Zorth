@@ -16,6 +16,13 @@
 : cells 2 * ;            \ ( n1 -- n2 )
 : 0= $0000 or  if false else true then ;
 : 0< $8000 and if true else false then ;
-: 0> 0= if false else 0< if false else true then then ;
+: 0> 0= if false else 0< if false else true then then ; \ ( n -- flag ) if n > 0
 : 0<> 0= invert ;
+: > - 0> ;
+: < - 0< :
+: <> - 0<> ;
+: = - 0= ;
+: +! dup >r @ + r> ! ;
+: abs dup 0< if negate then ;
+: ?dup 0<> if dup else drop 0 then ;
 
