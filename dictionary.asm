@@ -597,6 +597,10 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_if), hl
 
+    mdict_add st_jump,      code_jp_runtime
+    ld  hl, (_DICT)
+    ld  (xt_jp), hl
+
     ;   Previous entries are shadowed by the "official" entries, later
 
     mdict_add st_count,     code_count
@@ -646,6 +650,8 @@ dict_init:
     mdict_add st_emit,      code_emit
     mdict_add st_pick,      code_pick
     mdict_add st_if,        code_if
+    fcall code_immediate
+    mdict_add st_else,      code_else
     fcall code_immediate
     mdict_add st_then,      code_then
     fcall code_immediate
@@ -699,10 +705,13 @@ st_drop:        counted_string "drop"
 st_emit:        counted_string "emit"
 st_pick:        counted_string "pick"
 st_if:          counted_string "if"
+st_else:        counted_string "else"
+st_jump:        counted_string "jump"
 st_then:        counted_string "then"
 st_see:         counted_string "see"
 st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
+
 
 

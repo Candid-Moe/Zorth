@@ -4,6 +4,7 @@
 ;
 
 xt_if:  dw  0           ; IF runtime execution token.
+xt_jp:  dw  0
 
 code_if:
 ;
@@ -84,6 +85,77 @@ _code_if_runtime_conditional:
     fcall   _ex_push    ;   Now use this as address next instruction
 
 _code_if_runtime_end:
+
+    fret
+
+code_else:
+;
+;   Implements ELSE
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: orig1 -- orig2 )
+;
+;   Put the location of a new unresolved forward reference orig2 onto the 
+;   control flow stack. 
+;   Append the run-time semantics given below to the current definition. 
+;   The semantics will be incomplete until orig2 is resolved (e.g., by THEN). 
+;   Resolve the forward reference orig1 using the location following the 
+;   appended run-time semantics.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Continue execution at the location given by the resolution of orig2. 
+;
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jp  z, _code_mode_error
+
+    ;   Write a JMP after the IF code
+
+    ld  hl, (_DP)
+    ld  bc, (xt_jp)
+    ld  (hl), bc        ; Add jump to word in after "then"
+
+    inc hl
+    inc hl              ; Advance next free cell
+
+    inc hl
+    inc hl              ; Reserve a cell for the jmp destination
+
+    
+    ld  (_DP), hl
+
+    ;   Put the current address in the space following IF
+
+    ctrl_pop        ; 
+
+    ld  bc, (_DP)
+    ld  (hl), bc
+
+    ld  hl, bc      ; 
+    dec hl
+    dec hl
+
+    ctrl_push
+
+    fret
+    
+    
+code_jp_runtime:
+
+    fenter
+
+    fcall _ex_pop
+    pop hl
+    
+    ld de, (hl)
+    push de
+
+    fcall _ex_push
 
     fret
 
