@@ -94,7 +94,7 @@ _colon_error_no_name:
 
 code_semmicolon:
 ;
-;   Implements semicolon CORE
+;   Implements ;
 ;
 ;   Interpretation:
 ;   Interpretation semantics for this word are undefined.

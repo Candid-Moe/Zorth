@@ -8,8 +8,6 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
     ld      IY, _CONTROL_STACK
-    ld      HL, _EX_STACK
-    ld      (_EX_PTR), HL
     
     ld      HL, _BOOT_MSG
     push    HL

@@ -54,12 +54,12 @@ _ex_colon:
     ;   HL is the list address
 
     push hl             ; Save it
-    ld   de, hl
+
     ;   Store address next xt en EX_STACK
-    inc de
-    inc de              ; address next xt  
-    push de
-    fcall   _ex_push    ; Store in own stack
+
+    inc hl
+    inc hl
+    ctrl_push
 
     pop     hl
     ld      bc, (hl)    ; extract xt
@@ -68,8 +68,8 @@ _ex_colon:
     fcall   code_execute
 
     ;   Recover address next xt.
-    fcall _ex_pop
-    pop hl            ; address next xt
+
+    ctrl_pop
 
     ;   Check for 0x0000 at the end of code.
     ld  de, (hl)      ; load xt
@@ -82,75 +82,5 @@ _ex_colon:
 _ex_end:
     
     fret
-
-_ex_push:
-;
-;   Push address next instruction in our own stack
-;   ( addr -- )
-;
-    fenter
-
-    pop de
-
-    ld  bc, (_EX_PTR)
-
-    dec bc
-    ld  a, d
-    ld  (bc), a
-    dec bc
-    ld  a, e
-    ld  (bc), a
-
-    ld  (_EX_PTR), bc
-
-    fret
-
-_ex_pop:
-;
-;   Recover address next instruction    
-;   ( -- addr )
-;
-    fenter
-
-    ld  hl, (_EX_PTR)
-
-    ld  c, (hl)
-    inc hl
-    ld  b, (hl)
-    inc hl
-
-    ld (_EX_PTR), hl
-    
-    push bc
-
-    fret
-
-code_address:
-;
-;   Extract next address from execution stack and push into stack
-;
-    fenter
-
-    ld hl, (_EX_PTR)    ; hl = *next 
-    ld de, (hl)         ; hl = next
-    push de             ; copy into stack
-
-    inc de
-    inc de              ; replace next instruction address
-
-    ld hl, _EX_PTR
-    ld (hl), e
-    inc hl
-    ld (hl), d
-
-    fret
-
-
-
-;--- Return Stack for Execute ---
-_EX_PTR:    dw _EX_STACK
-            defs 128
-_EX_STACK:  dw  0x5050
-
 
 

@@ -41,8 +41,6 @@ code_if:
     inc hl
     inc hl     
 
-    push hl
-
     ctrl_push           ; Put the cell address to patch
 
     inc hl
@@ -50,46 +48,8 @@ code_if:
 
     ld  (_DP), hl       ; Update DP
 
-
     fret    
-    
-code_if_runtime:
-    ;
-    ;   To be called in runtime thru xt_if
-    ;
-    fenter
-
-    pop hl
-    ld  a, l
-    or  h       ; Test TOS
-    
-    jr  nz, _code_if_runtime_conditional
-
-    ;   Skip over the conditional code
-
-    fcall _ex_pop   ;   
-    pop hl
-    ld  bc, (hl)
-    push bc
-    fcall _ex_push
-
-    jr _code_if_runtime_end
-
-_code_if_runtime_conditional:
-
-    ;   Execute the conditional part
-    
-    fcall   _ex_pop     ;   Extra address next instruction.
-    pop hl          
-    inc hl
-    inc hl              ;   Add 2
-    push hl
-    fcall   _ex_push    ;   Now use this as address next instruction
-
-_code_if_runtime_end:
-
-    fret
-
+   
 code_jz:
 ;
 ;   Implement Jump if Zero
@@ -97,35 +57,32 @@ code_jz:
 ;
     fenter
 
-    pop hl
-    ld  a, l
-    or  h       ; Test TOS
+    ctrl_pop    ; extract pointer to next address
+
+    pop bc
+    ld  a, c
+    or  b       ; Test TOS
     
     jr  nz, _code_jz_non
 
     ;   Make the jump
     ;   The address is stored in the next cell
 
-    fcall _ex_pop   ;   Address next cell   
-    pop hl  
     ld  bc, (hl)    ;   Take de address
-    push bc
-    fcall _ex_push  ;   Put into exec. stack.
-
-    fret
+    ld  hl, bc
+    
+    jr  _code_jz_end
 
 _code_jz_non:
 
     ;   Don't jump, skip over the address
     
-    fcall   _ex_pop     ;   Extra address next instruction.
-    pop hl          
-
     inc hl
     inc hl              ;   Add 2
 
-    push hl
-    fcall   _ex_push    ;   Now use this as address next instruction
+_code_jz_end:
+
+    ctrl_push           ;   Now use this as address next instruction
 
     fret
 
@@ -188,16 +145,20 @@ code_else:
     
     
 code_jp_runtime:
-
+;
+;   Implements JMP
+;   ( -- )
+;
+;   Address is stored in the next cell
+;
     fenter
 
-    fcall _ex_pop
-    pop hl
+    ctrl_pop        ; Recover next cell address
     
-    ld de, (hl)
-    push de
+    ld de, (hl)     ; Take de address
+    ld hl, de
 
-    fcall _ex_push
+    ctrl_push       ;
 
     fret
 
@@ -360,12 +321,15 @@ _code_until_runtime:
 
     ;   TOS != 0 -> end
 
-    fcall _ex_pop
-    pop hl
+;    fcall _ex_pop
+;    pop hl
+    ctrl_pop
+
     inc hl
     inc hl
-    push hl
-    fcall _ex_push
+;    push hl
+;    fcall _ex_push
+    ctrl_push
 
 code_until_end:
 

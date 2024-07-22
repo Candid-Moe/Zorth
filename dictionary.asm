@@ -203,6 +203,26 @@ dict_delete_last:
 
     fret
 
+code_address:
+;
+;   Extract next address from control stack and push into stack
+;
+    fenter
+
+    ld hl, (IY)         ; hl = *next 
+    ld de, (hl)         ; hl = next
+    push de             ; copy into stack
+
+    inc de
+    inc de              ; replace next instruction address
+
+    ld hl, (IY)
+    ld (hl), e
+    inc hl
+    ld (hl), d
+
+    fret
+
 code_see:
 ;
 ;   Implements SEE
@@ -526,35 +546,23 @@ code_literal_runtime:
 
     fenter
 
-    ;   In interpreter mode, _EX_STACK give the next execution token address
+    ;   In interpreter mode, control stack have the next execution token address
     ;   in the current word. It's used by code_execute to keep trace of what
     ;   word is executing.
     ;   
-    ld      hl, (_EX_PTR)
+    ctrl_pop
     
-    ;   Get the value address
-    ld      c, (hl)     ; bc = @ cell
+    ;   Get the value
+    ld      c, (hl)    
     inc     hl
     ld      b, (hl)
+    inc     hl          ; HL -> next xt
 
-    ld      de, bc      ; Remember the value address
-    
-    ;   Extract the value
-    ld      hl, bc      ; load value at cell
-    ld      c, (hl)
-    inc     hl
-    ld      b, (hl)
-
-    push    bc
+    push    bc          ; Put value into stack
 
     ;   Now, change the "next inst" to skip over the value
-    inc     de
-    inc     de              ; DE point to next xt
 
-    ld      hl, (_EX_PTR)   ; Get second to last address in EX_STACK 
-    ld      (hl), e         ; Change the xt token address
-    inc     hl
-    ld      (hl), d    
+    ctrl_push
 
     fret
     
@@ -668,6 +676,8 @@ dict_init:
     fcall code_immediate
     mdict_add st_again,     code_again
     fcall code_immediate
+
+    mdict_add st_word,      code_word
     
     fret
 
@@ -677,6 +687,7 @@ st_count:       counted_string "count"
 st_type:        counted_string "type"
 st_refill:      counted_string "refill"
 st_plus:        counted_string "+"
+st_word:        counted_string "word"
 st_words:       counted_string "words"
 st_space:       counted_string "space"
 st_negate:      counted_string "negate"
