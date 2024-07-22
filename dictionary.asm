@@ -203,23 +203,17 @@ dict_delete_last:
 
     fret
 
+xt_address: dw 0
 code_address:
 ;
 ;   Extract next address from control stack and push into stack
 ;
     fenter
 
-    ld hl, (IY)         ; hl = *next 
-    ld de, (hl)         ; hl = next
-    push de             ; copy into stack
-
-    inc de
-    inc de              ; replace next instruction address
-
-    ld hl, (IY)
-    ld (hl), e
+    ld  hl, (_IP)
     inc hl
-    ld (hl), d
+    inc hl
+    push hl
 
     fret
 
@@ -610,6 +604,10 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
+    mdict_add st_nop,   code_address
+    ld  hl, (_DICT)
+    ld  (xt_address), hl
+
     ;   Previous entries are shadowed by the "official" entries, later
 
     mdict_add st_count,     code_count
@@ -678,6 +676,9 @@ dict_init:
     fcall code_immediate
 
     mdict_add st_word,      code_word
+    mdict_add st_c_fetch,   code_c_fetch
+    mdict_add st_c_store,   code_c_store
+    mdict_add st_depth,     code_depth
     
     fret
 
@@ -739,5 +740,7 @@ st_begin:       counted_string "begin"
 st_until:       counted_string "until"
 st_jz:          counted_string "jz"
 st_again:       counted_string "again"
-
+st_c_fetch:     counted_string "c@"
+st_c_store:     counted_string "c!"
+st_depth:       counted_string "depth"
 

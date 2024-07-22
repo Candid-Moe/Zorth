@@ -26,6 +26,8 @@ code_execute:
     inc hl  
     inc hl      ; hl -> code/colon
 
+    ld (_IP), hl    ; Save it just for reference
+
     and BIT_COLON   ; Test the CODE/COLON flag
 
     jr  nz, _ex_colon

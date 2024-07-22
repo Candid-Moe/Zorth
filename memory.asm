@@ -137,3 +137,56 @@ code_store:
     ld  (hl), b
 
     fret
+
+code_c_fetch:
+;
+;   Implements C@
+;   ( c-addr -- char )
+;
+;   Fetch the character stored at c-addr. 
+;   When the cell size is greater than character size, the unused high-order 
+;   bits are all zeroes. 
+;
+    fenter
+
+    pop hl
+    ld  b, 0
+    ld  c, (hl)
+    
+    fret
+
+code_c_store:
+;
+;   Implements C!
+;   ( char c-addr -- )
+:
+;   Store char at c-addr. 
+;   When character size is smaller than cell size, only the number of 
+;   low-order bits corresponding to character size are transferred.
+;
+    fenter
+
+    pop hl
+    pop bc
+
+    ld  (hl), c
+
+    fret
+
+code_depth:
+;
+;   Implement DEPTH
+;   ( -- +n )
+;
+;   +n is the number of single-cell values contained in the data stack
+;   before +n was placed on the stack. 
+;
+    fenter
+
+    ld hl, _DATA_STACK
+    ld de, SP
+    set_carry_0
+    sbc hl, de
+    push hl
+
+    fret

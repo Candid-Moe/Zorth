@@ -1,6 +1,7 @@
 \
 \	Forth
 \
+: , here ! 1 allot ;
 : 1+ 1 + ;
 : 1- 1 - ;
 : decimal 10 base ! ; 
@@ -27,4 +28,6 @@
 : ?dup dup 0<> if dup then ;
 : buffer create allot ;
 : char word 1 + c@ ;
+
+
 

@@ -16,6 +16,7 @@ space:      counted_string ' '
 words:      counted_string "words:\n"
 boot_file:  counted_string "forth.fs\000"
 
+_IP:        dw  0           ; Instruction Pointer. Point to a cell containing an xt address.
 _MODE_INTERPRETER: db TRUE
 _BASE:      db   10
 _SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
