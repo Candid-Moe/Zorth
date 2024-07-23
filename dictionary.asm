@@ -571,7 +571,7 @@ _code_literal_error:
     fcall   code_backslash       ; Forget the remaining words
     fret
 
-    
+xt_postpone:    dw 0    
 code_postpone:
 ;
 ;   Implements POSTPONE
@@ -590,7 +590,15 @@ code_postpone:
 
     ld  a, (_MODE_INTERPRETER)
     cp  TRUE
-    jp  z, _code_mode_error
+    jp  z, _code_postpone_error
+
+    ;   Insert an xt for this word
+    ld  hl, (_DP)
+    ld  bc, (xt_postpone)
+    ld  (hl), bc
+    inc hl
+    inc hl
+    ld  (_DP), hl
 
     ld  hl, ' '
     push hl
@@ -606,6 +614,30 @@ code_postpone:
 
     fret    
     
+_code_postpone_runtime:
+    ;
+    fenter
+
+    ctrl_pop
+    push hl
+    inc hl
+    inc hl
+    ctrl_push
+
+    pop hl
+    ld  bc, (hl)    ; xt to add to current word
+    ld  hl, (_DP)
+    ld  (hl), bc
+    inc hl
+    inc hl
+    ld  (_DP), hl
+
+    fret
+    
+_code_postpone_error:
+
+    jp  _code_mode_error
+
 macro mdict_add st, code
     ld hl, code
     push hl
@@ -638,9 +670,13 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
-    mdict_add st_nop,   code_address
+    mdict_add st_nop,       code_address
     ld  hl, (_DICT)
     ld  (xt_address), hl
+
+    mdict_add st_nop,       _code_postpone_runtime
+    ld  hl, (_DICT)
+    ld (xt_postpone), hl
 
     ;   Previous entries are shadowed by the "official" entries, later
 
@@ -713,8 +749,10 @@ dict_init:
     mdict_add st_c_fetch,   code_c_fetch
     mdict_add st_c_store,   code_c_store
     mdict_add st_depth,     code_depth
-    mdict_add st_postpone,  code_postpone   
+
+    mdict_add st_postpone,  code_postpone
     fcall code_immediate 
+
     mdict_add st_paren,     code_paren
     fcall code_immediate
     mdict_add st_abort,     code_abort

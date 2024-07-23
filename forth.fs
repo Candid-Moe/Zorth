@@ -12,6 +12,8 @@
 : nip swap drop ;        \ ( x1 x2 -- x2 )
 : rot >r swap r> swap ;  \ ( x1 x2 x3 -- x2 x3 x1 ) 
 : 2swap >r rot r> rot ;  \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
+: 2dup over over ;
+: ?dup dup 0<> if dup then ;
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
 : cells 2 * ;            \ ( n1 -- n2 )
@@ -25,10 +27,10 @@
 : = - 0= ;
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
-: ?dup dup 0<> if dup then ;
+: max 2dup < if swap drop else drop then ;
 : buffer create allot ;
 : char bl word 1 + c@ ;
 : c, here c! 1 allot ; immediate
 : compile, , 2 allot ; immediate
-
+: [char] char postpone literal ; immediate
 
