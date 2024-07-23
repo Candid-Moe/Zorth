@@ -149,10 +149,13 @@ code_c_fetch:
 ;
     fenter
 
-    pop hl
+    pop de
     ld  b, 0
-    ld  c, (hl)
+    ld  a, (de)
+    ld  c, a
     
+    push bc
+
     fret
 
 code_c_store:
@@ -187,6 +190,10 @@ code_depth:
     ld de, SP
     set_carry_0
     sbc hl, de
+    ld  de, 1
+
     push hl
+    push de
+    fcall code_rshift
 
     fret

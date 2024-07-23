@@ -572,6 +572,40 @@ _code_literal_error:
     fret
 
     
+code_postpone:
+;
+;   Implements POSTPONE
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( "<spaces>name" -- )
+;
+;   Skip leading space delimiters. Parse name delimited by a space. Find name. 
+;   Append the compilation semantics of name to the current definition.
+;   An ambiguous condition exists if name is not found.
+;
+    fenter
+
+    ld  a, (_MODE_INTERPRETER)
+    cp  TRUE
+    jp  z, _code_mode_error
+
+    ld  hl, ' '
+    push hl
+    fcall code_word
+    fcall dict_search
+    pop bc
+    
+    ld  hl, (_DP)
+    ld  (hl), bc
+    inc hl
+    inc hl
+    ld  (_DP), hl
+
+    fret    
+    
 macro mdict_add st, code
     ld hl, code
     push hl
@@ -675,11 +709,18 @@ dict_init:
     mdict_add st_again,     code_again
     fcall code_immediate
 
-    mdict_add st_word,      code_word
+    mdict_add st_word,      code_word_no_clobber
     mdict_add st_c_fetch,   code_c_fetch
     mdict_add st_c_store,   code_c_store
     mdict_add st_depth,     code_depth
-    
+    mdict_add st_postpone,  code_postpone   
+    fcall code_immediate 
+    mdict_add st_paren,     code_paren
+    fcall code_immediate
+    mdict_add st_abort,     code_abort
+    mdict_add st_quit,      code_quit
+    mdict_add st_parse,     code_parse
+
     fret
 
 st_nop:         counted_string ""
@@ -743,4 +784,9 @@ st_again:       counted_string "again"
 st_c_fetch:     counted_string "c@"
 st_c_store:     counted_string "c!"
 st_depth:       counted_string "depth"
-
+st_postpone:    counted_string "postpone"
+st_paren:       counted_string "("
+st_abort:       counted_string "abort"
+st_quit:        counted_string "quit"
+st_parse:       counted_string "parse"
+st_s_quote:     counted_string "s\""

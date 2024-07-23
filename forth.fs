@@ -27,7 +27,8 @@
 : abs dup 0< if negate then ;
 : ?dup dup 0<> if dup then ;
 : buffer create allot ;
-: char word 1 + c@ ;
-
+: char bl word 1 + c@ ;
+: c, here c! 1 allot ; immediate
+: compile, , 2 allot ; immediate
 
 

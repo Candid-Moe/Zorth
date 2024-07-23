@@ -24,7 +24,6 @@ init:
     fcall   print_line
     fcall   code_words
 
-
 repl:
 ;
 ;   Read a line and execute every word in it.
@@ -195,6 +194,190 @@ code_bye:
 ;
     EXIT()
 
+code_abort:
+;
+;   Implements ABORT 
+;   ( i * x -- ) ( R: j * x -- )
+;
+;   Empty the data stack and perform the function of QUIT, which includes
+;   emptying the return stack, without displaying a message. 
+;
+        ld      SP, _DATA_STACK
+        jr      code_quit
+
+code_quit:
+;
+;   Implements QUIT
+;   ( -- ) ( R: i * x -- )
+;
+;   Empty the return stack, store zero in SOURCE-ID if it is present, 
+;   make the user input device the input source, and enter interpretation state.
+;   Do not display a message. Repeat the following:
+;
+;   Accept a line from the input source into the input buffer, set >IN to zero,
+;   and interpret.
+;
+;   Display the implementation-defined system prompt if in interpretation state, 
+;   all processing has been completed, and no ambiguous condition exists.
+;
+    ld      IX, _RETURN_STACK
+    ld      IY, _CONTROL_STACK
+
+    xor     a
+    ld      (_SOURCE_ID), a
+    ld      (_gtIN), a
+
+    ld      a, TRUE
+    ld      (_MODE_INTERPRETER), a    
+    
+    jp      repl
+    
+code_search:
+;
+;   Implements SEARCH
+;   ( c -- c-addr | flag )
+;
+;   Search char c in the TIB
+;
+    fenter
+    
+    ld  hl, (gTIB)
+    ld  bc, (hl)    ; BC = Len of TIB area
+    ld  hl, bc
+    ld  de, (_gtIN)
+    set_carry_0
+    sbc hl, de
+    ld  bc, hl      ; BC = remaining char is TIB area
+
+    ld  hl, (TIB)
+    ld  de, (hl)    
+    ex  hl, de      ; HL = pointer to TIB area
+    ld  de, bc
+
+    ld  de, (_gtIN) ;
+    add hl, de      ; HL = starting position for searching
+
+_code_search_cycle:
+
+    ;   Check buffer end
+    ld  a, b
+    or  c
+    jr  z, _code_search_not_found
+
+    pop de
+    ld  a, e
+    push de
+
+    ;   Check the character
+
+    ld  d, (HL)     ; Char to inspect
+    cp  d
+    jz  _code_search_found
+
+    ;   Check EOL
+
+    ld  a, '\n'
+    cp  d
+    jz  _code_search_not_found
+
+    jr  _code_search_cycle
+
+_code_search_found:
+
+    pop     de
+    push    hl
+
+    fret
+
+_code_search_not_found:
+
+    pop     de
+    ld      de, 0
+    push    de
+
+    fret
+
+code_s_quote:
+;
+;   Implement S" 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( "ccc<quote>" -- )
+;
+;   Parse ccc delimited by " (double-quote). 
+;   Append the run-time semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- c-addr u )
+;
+;   Return c-addr and u describing a string consisting of the characters ccc. 
+;   A program shall not alter the returned string. 
+;
+    fenter
+
+    ld  hl, '"'
+    push hl
+
+    fcall code_search
+
+    pop hl
+    ld  a, h
+    or  l
+;    jz  _s_quote_not_found
+
+        
+
+    fret
+
+code_paren:
+;
+;   Implements (
+;
+;   Compilation:
+;   Perform the execution semantics given below.
+;
+;   Execution:
+;   ( "ccc<paren>" -- )
+;
+;   Parse ccc delimited by ) (right parenthesis). ( is an immediate word.
+;
+;   The number of characters in ccc may be zero to the number of characters
+;   in the parse area. 
+;
+    fenter
+
+    ld  a, (_gtIN)
+    ld  c, a
+    ld  hl,  (gTIB)
+    ld  a, (hl)
+    sub c
+    ld  b, 0
+    ld  c, a
+    ld  de, bc
+
+    ld  a, ')'
+    ld  hl, (TIB)
+    ld  e, (hl)
+    inc hl
+    ld  d, (hl)
+    inc hl
+    ex de, hl    
+    ld  de, (_gtIN)
+    add hl, de
+    cpir
+    ld  a, e
+    sub c
+    ld  c, a
+
+    ld  a, (_gtIN)    
+    add c
+    ld  (_gtIN), a
+    
+    fret
+
 code_backslash:
 ;
 ;   Implements \
@@ -267,8 +450,43 @@ code_tick:
 ;
     fenter
 
-    ld  hl, (_DICT)     ; First dict entry
-    
+    ld    hl, ' '
+    push  hl
+    fcall code_word
+    pop hl                  ; origin
+            
+    ;   Check word len
+    ld  a, (hl)             ; len
+    cp  0
+    jz  _code_tick_error
+
+    push    hl
+    fcall   dict_search
+    pop     hl
+
+    ld      a, l
+    or      h
+    jz      _code_tick_not_found
+
+
+    push    hl
+        
+    fret
+
+_code_tick_error:
+
+    ld  hl, err_missing_name
+    push hl
+    fcall   print_line
+
+    fret
+
+_code_tick_not_found:
+
+    ld      hl, err_word_not_found
+    push    hl
+    fcall   print_line
+
     fret
 
 code_dot:

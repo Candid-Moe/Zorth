@@ -102,6 +102,32 @@ _read_translate_space:
 _read_translate_end:
     ret
 
+code_word_no_clobber:
+;
+;   Implements WORD copying word to second area,
+;   not to clobber with REPL in main.
+;
+    fenter
+
+    fcall   code_word
+    pop     hl
+    push    hl      ; origin
+    ld      b, 0
+    ld      a, (hl)
+    inc     a
+    ld      c, a
+    
+    ld      hl, _PAD_NO_CLOBBER
+    push    hl      ; destination
+    push    bc      ; len
+    fcall   code_move
+    ld      hl, _PAD_NO_CLOBBER
+    push    hl
+    
+    fret
+
+_PAD_NO_CLOBBER:    db 80
+
 code_tib:
 ;
 ;   Implements TIB
@@ -122,4 +148,45 @@ code_gtib:
     ld      bc, (gTIB)
     push    bc
     jp      (hl)
+
+code_parse:
+;
+;   Implements PARSE 
+;   ( char "ccc<char>" -- c-addr u )
+;
+;   Parse ccc delimited by the delimiter char.
+;
+;   c-addr is the address (within the input buffer) and u is the length of 
+;   the parsed string. 
+;   If the parse area was empty, the resulting string has a zero length. 
+;
+    fenter
+
+    ld      hl, (_gtIN)    ; >IN
+    ld      c, (hl)
+    ld      b, 0
+
+    ld      hl, (TIB)       
+    ld      de, (hl)        ; TIB
+    ex      hl, de
+    add     hl, bc          ; HL = current position in the input area
+
+    push    hl
+
+    ld      hl, (gTIB)
+    ld      de, (hl)
+    ld      a, c
+    sub     e
+    ld      c, a
+    ld      b, 0
+    
+    pop     hl
+    pop     de
+    ld      a, e
+
+    cpir
+    push hl
+    push bc
+
+    fret
 
