@@ -271,6 +271,7 @@ code_see:
 
     push hl
 
+    push af
     and BIT_COLON
     jz  _see_code_def
     ld  a, FALSE
@@ -288,6 +289,7 @@ _see_imm:
     fcall print_line
     fcall code_space
 
+    pop af
     and BIT_IMMEDIATE
     jz  _see_next
     ld  hl, _see_immediate

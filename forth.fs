@@ -33,4 +33,5 @@
 : c, here c! 1 allot ; immediate
 : compile, , 2 allot ; immediate
 : [char] char postpone literal ; immediate
+: ( [char] ) parse drop drop ; immediate
 

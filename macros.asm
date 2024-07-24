@@ -86,8 +86,7 @@ macro dec_byte address
 endm
 
 macro set_carry_0
-    scf
-    ccf
+    or  a
 endm
 
 macro   jump_zero reg, dest
