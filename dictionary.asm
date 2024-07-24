@@ -620,20 +620,18 @@ _code_postpone_runtime:
     ;
     fenter
 
-    ctrl_pop
-    push hl
+    ctrl_pop        ; Recover xt in next cell
+    push hl         ; XT 
     inc hl
     inc hl
-    ctrl_push
+    ctrl_push       ; Must the next address
 
-    pop hl
-    ld  bc, (hl)    ; xt to add to current word
-    ld  hl, (_DP)
-    ld  (hl), bc
-    inc hl
-    inc hl
-    ld  (_DP), hl
+    pop     hl
+    ld      de, (hl)
+    push    de
 
+    fcall   code_execute
+    
     fret
     
 _code_postpone_error:
@@ -676,7 +674,7 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_address), hl
 
-    mdict_add st_nop,       _code_postpone_runtime
+    mdict_add st_postpone,       _code_postpone_runtime
     ld  hl, (_DICT)
     ld (xt_postpone), hl
 
