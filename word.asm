@@ -162,31 +162,46 @@ code_parse:
 ;
     fenter
 
-    ld      hl, (_gtIN)    ; >IN
-    ld      c, (hl)
     ld      b, 0
+    ld      a, (_gtIN)      ; >IN
+    ld      c, a
 
     ld      hl, (TIB)       
-    ld      de, (hl)        ; TIB
-    ex      hl, de
     add     hl, bc          ; HL = current position in the input area
+    inc     hl              ; skip the white space between words
 
-    push    hl
+    push    hl              ; Working copy
 
-    ld      hl, (gTIB)
-    ld      de, (hl)
-    ld      a, c
-    sub     e
+    ld      hl, (gTIB)      ; Calculating # chars left in input area
+    ld      a,  (hl)        ; String total length
+    sub     c
+    dec     a               ; Count the white space just skipped
     ld      c, a
-    ld      b, 0
+    ld      b, 0            ; BC = # chars left
     
-    pop     hl
-    pop     de
+    pop     hl              ;
+    pop     de              ; Char to search for
     ld      a, e
+    push    hl              ; Return the string starting address 
 
     cpir
-    push hl
-    push bc
 
+    dec     hl              ; HL -> char founded
+    pop     de              ; Starting address
+    push    de
+    or  a
+    sbc hl, de
+
+    push hl                 ; String len
+
+    ld  a, (_gtIN)          ; 
+    ld  d,  0
+    ld  e,  a
+    add hl, de
+    inc hl                  ; One for the skipped char at begining
+    inc hl                  ; One for the char found
+    ld  a, l
+    ld  (_gtIN), a          ; Move >IN over the string
+    
     fret
 
