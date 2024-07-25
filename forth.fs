@@ -31,7 +31,9 @@
 : buffer create allot ;
 : char bl word 1 + c@ ;
 : c, here c! 1 allot ; immediate
-: compile, , 2 allot ; immediate
+: compile, , 1 cells allot ; immediate
 : [char] char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
+: .( [char] ) parse type ; immediate
+: , here ! 1 cells allot ;
 
