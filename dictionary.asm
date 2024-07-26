@@ -68,20 +68,22 @@ code_create:
     ;   Add to dictionary
 
     ;   Args for dict_add
-    ld      de, code_address
-    push    de          ; code address    ( -- name_addr code_addr )
-    fcall   code_swap   ;                 ( -- code_addr name_addr )
+    ld      de, (xt_address)
+    push    de          ; ( -- name_addr code_addr )
+    fcall   code_swap   ; ( -- code_addr name_addr )
 
     fcall   dict_add
-    
-    ;
-    ;   Add empty cell
-    ;
-    ld  hl, (_DP)
-    inc hl
-    inc hl
-    ld  (_DP), hl
 
+    ;   Make it a colon definition
+
+    ld  hl, (_DICT)
+    inc hl
+    inc hl
+
+    ld  a, (hl)
+    or  BIT_COLON
+    ld  (hl), a
+    
     sub a
     inc a   ; Set Z flag = 0
     fret
@@ -96,7 +98,75 @@ _code_create_error:
 
     fret
 
-        
+code_does:
+;
+;   Implements DOES>
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: colon-sys1 -- colon-sys2 )
+;
+;   Append the run-time semantics below to the current definition. 
+;   Whether or not the current definition is rendered findable in the 
+;   dictionary by the compilation of DOES> is implementation defined. 
+;   Consume colon-sys1 and produce colon-sys2. 
+;   Append the initiation semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- ) ( R: nest-sys1 -- )
+;
+;   Replace the execution semantics of the most recent definition, referred to as name,
+;   with the name execution semantics given below. Return control to the calling 
+;   definition specified by nest-sys1. 
+;   An ambiguous condition exists if name was not defined with CREATE or a user-defined
+;   word that calls CREATE.
+;
+;   Initiation:
+;   ( i * x -- i * x a-addr ) ( R: -- nest-sys2 )
+:
+;   Save implementation-dependent information nest-sys2 about the calling definition.
+;   Place name's data field address on the stack. 
+;   The stack effects i * x represent arguments to name.
+;
+;   name Execution:
+;   ( i * x -- j * x )
+;
+;   Execute the portion of the definition that begins with the initiation semantics
+;   appended by the DOES> which modified name. The stack effects i * x and j * x 
+;   represent arguments to and results from name, respectively. 
+ 
+    fenter
+
+    fcall code_code
+
+    ld  hl, (_DP)
+    ld  bc, (xt_jp)
+    ld  (hl), bc        ; Add jump 
+
+    inc hl
+    inc hl              ; Advance next free cell
+    ld  (_DP), hl
+    
+    ctrl_pop            ; The address of cell after DOES>
+    ex  hl, de          ; DE = address
+
+    ld  hl, (_DP)    
+    ld (hl), de         
+    inc hl
+    inc hl
+
+    ld  (_DP), hl    
+
+    inc de
+    inc de
+    ex  hl, de
+    ctrl_push
+                
+    fret       
+
+
 dict_end:
     ;   
     ;   Add a fret to current word
@@ -132,6 +202,20 @@ code_immediate:
 
     ld  a, (hl)
     or  BIT_IMMEDIATE
+    ld  (hl), a
+
+    fret
+
+code_code:
+:
+    fenter
+
+    ld  hl, (_DICT)
+    inc hl
+    inc hl
+
+    ld  a, (hl)
+    or  BIT_COLON
     ld  (hl), a
 
     fret
@@ -210,10 +294,12 @@ code_address:
 ;
     fenter
 
-    ld  hl, (_IP)
+    ctrl_pop        ; ctrl stack contain next cell address.
+    push hl     
+
     inc hl
     inc hl
-    push hl
+    ctrl_push       ; skip over the cell
 
     fret
 
@@ -670,7 +756,7 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
-    mdict_add st_nop,       code_address
+    mdict_add st_address,       code_address
     ld  hl, (_DICT)
     ld  (xt_address), hl
 
@@ -678,7 +764,10 @@ dict_init:
     ld  hl, (_DICT)
     ld (xt_postpone), hl
 
-    ;   Previous entries are shadowed by the "official" entries, later
+    ;   Previous entries are cut off from the list
+
+    ld  hl, 0
+    ld (_DICT), hl
 
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -758,9 +847,11 @@ dict_init:
     mdict_add st_abort,     code_abort
     mdict_add st_quit,      code_quit
     mdict_add st_parse,     code_parse
+    mdict_add st_does,      code_does
 
     fret
 
+st_address:     counted_string "address"
 st_nop:         counted_string ""
 st_pad:         counted_string "pad"
 st_count:       counted_string "count"
@@ -828,3 +919,4 @@ st_abort:       counted_string "abort"
 st_quit:        counted_string "quit"
 st_parse:       counted_string "parse"
 st_s_quote:     counted_string "s\""
+st_does:        counted_string "does>"

@@ -36,4 +36,6 @@
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
 : , here ! 1 cells allot ;
+: constant create , does> @ ;
+: variable create ;
 

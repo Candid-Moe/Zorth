@@ -55,8 +55,8 @@ code_colon:
     ld  hl, (_DP)
     dec hl
     dec hl
-    dec hl
-    dec hl
+;    dec hl
+;    dec hl
     ld (_DP), hl
 
     ;
