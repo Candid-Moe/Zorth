@@ -7,9 +7,10 @@
 ;   Entry Format:
 ;
 ;   - address next entry (word)
+;   - # words (byte)
 ;   - flags (byte)
 ;   - address of name
-;   - address of code
+;   - Code Address (for code words) or List of XT (colon definition)
 ;
 ;   Flags:
 ;   - bit 0: COLON (1) / CODE (0)
@@ -78,7 +79,8 @@ code_create:
 
     ld  hl, (_DICT)
     inc hl
-    inc hl
+    inc hl      ; # words
+    inc hl      ; flag
 
     ld  a, (hl)
     or  BIT_COLON
@@ -197,8 +199,10 @@ code_immediate:
     fenter
 
     ld  hl, (_DICT)
+
     inc hl
-    inc hl
+    inc hl  ; # words
+    inc hl  ; flags
 
     ld  a, (hl)
     or  BIT_IMMEDIATE
@@ -212,7 +216,8 @@ code_code:
 
     ld  hl, (_DICT)
     inc hl
-    inc hl
+    inc hl  ; # words
+    inc hl  ; flags
 
     ld  a, (hl)
     or  BIT_COLON
@@ -255,6 +260,10 @@ dict_add:
 
     ;   Pointer to next entry
     ld_hl_de
+
+    ;   # words
+    ld  (hl), 0
+    inc hl
     
     ;   Flags
     ld  (hl), 0
@@ -320,8 +329,8 @@ code_see:
     ld hl, ' '
     push hl
     fcall code_word
-
     fcall dict_search    
+
     pop hl
     ld  a, h
     or  l
@@ -332,13 +341,22 @@ code_see:
     ld  (_BASE), a
 
     push hl
-    push hl
+    push hl             ; Dictionary entry address
 
     fcall code_dot
     fcall code_space    ; address
 
     pop hl
     inc hl
+    inc hl      ; # words
+    push hl
+    ld  a, (hl)
+    ld  d, 0
+    ld  e, a
+    inc de
+    push de
+    fcall code_to_r ; R: # words
+    pop hl
     inc hl      ; flags
     ld  a, (hl)
     push af
@@ -386,14 +404,22 @@ _see_imm:
 _see_next:
     fcall code_cr
     pop hl
-
     
 _see_cycle:
-   
-    ;   Check if end of colon definition
 
-    ld  de, (hl)
-    ld  a, d
+    push hl   
+    ;   Check if end of colon definition
+    fcall code_r_from   ; Get counter # words
+    pop de          
+    dec de              ; 
+    push de
+    push de
+    fcall code_to_r     ; Store counter
+
+    pop de              ; Test end 
+    pop hl
+
+    ld  a, d 
     or  e
     jr  z, _see_end
 
@@ -421,6 +447,7 @@ _see_cycle:
     ;   Print the name
     pop  hl             ; xt address
     inc  hl
+    inc  hl ; # words
     inc  hl ; flags
     inc  hl ; name    
 
@@ -442,6 +469,9 @@ _see_cycle_next:
     jr  _see_cycle
 
 _see_end:
+
+    fcall   code_r_from ; Discard counter
+    pop de
 
     fret
 
@@ -491,6 +521,7 @@ _dict_search_cycle:
 
     ld   hl, (_dict_ptr)
     inc  hl      
+    inc  hl      ; # words
     inc  hl      ; hl -> flags
     inc  hl      ; hl -> name address    
     ld   bc, (hl)

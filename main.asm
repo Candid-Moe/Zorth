@@ -74,6 +74,7 @@ _repl_words:
     ;   check for immediate words (always be executed)
     ld  de, hl          ; xt 
     inc de      
+    inc de              ; # words
     inc de              ; flag
     ld  a, (de) 
     and BIT_IMMEDIATE   ; mode immediate
@@ -693,6 +694,7 @@ _code_words_cycle:
 
     push hl         ; Keep entry address
 
+    inc hl          ; # words
     inc hl          ; flags
     inc hl          ; Name address
     inc hl

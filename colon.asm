@@ -131,6 +131,32 @@ code_semmicolon:
 
     jr  nz, _code_unstructed_error
 
+    ;   Count # words
+
+    ld  de, (_DICT)
+    inc de
+    inc de  ; # words
+    push de
+    inc de  ; flag
+    inc de  ; name
+    inc de  ;
+    inc de  ; code
+
+    ld  hl, (_DP)
+    set_carry_0
+    sbc hl, de
+    ld  de, hl
+
+    ld  a, d    ; de >> 1
+    rrca        ;
+    ld  d, a
+    ld  a, e
+    rra         ;
+    ld  e, a
+    
+    pop hl
+    ld  (hl), e ; # words
+    
     ;   Mark the end of current definition
     ld  hl, 0
     push hl

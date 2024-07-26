@@ -18,6 +18,7 @@ code_execute:
     pop hl
 
     inc hl
+    inc hl      ; # words
     inc hl      ; hl -> flags    
     
     ld  a, (hl) ; A = flags
