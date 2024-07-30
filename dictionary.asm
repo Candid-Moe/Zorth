@@ -142,8 +142,6 @@ code_does:
  
     fenter
 
-    fcall code_code
-
     ld  hl, (_DP)
     ld  bc, (xt_jp)
     ld  (hl), bc        ; Add jump 
@@ -188,21 +186,6 @@ code_immediate:
 
     ld  a, (hl)
     or  BIT_IMMEDIATE
-    ld  (hl), a
-
-    fret
-
-code_code:
-:
-    fenter
-
-    ld  hl, (_DICT)
-    inc hl
-    inc hl  ; # words
-    inc hl  ; flags
-
-    ld  a, (hl)
-    or  BIT_COLON
     ld  (hl), a
 
     fret

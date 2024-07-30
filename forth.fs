@@ -1,7 +1,6 @@
 \
 \	Forth
 \
-: , here ! 1 allot ; 
 : 1+ 1 + ;
 : 1- 1 - ;
 : decimal 10 base ! ; 
@@ -25,6 +24,7 @@
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
 : cells 2 * ;            \ ( n1 -- n2 )
+: , here ! 1 cells allot ; 
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
@@ -35,7 +35,6 @@
 : [char] postpone char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
-: , here ! 1 cells allot ;
 : constant create , does> @ ;
 : variable align here 0 , constant ;
 
