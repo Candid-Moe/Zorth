@@ -55,20 +55,7 @@ code_colon:
     ld  hl, (_DP)
     dec hl
     dec hl
-;    dec hl
-;    dec hl
     ld (_DP), hl
-
-    ;
-    ;   Mark entry as COLON definition
-    ;
-    ld  hl, (_DICT)
-    inc hl
-    inc hl
-
-    ld  a, (hl)
-    or  BIT_COLON
-    ld  (hl), a
 
 _colon_end:
 
@@ -153,14 +140,10 @@ code_semmicolon:
     ld  a, e
     rra         ;
     ld  e, a
-    
+
+    ;   Count the cells     
     pop hl
     ld  (hl), e ; # words
-    
-    ;   Mark the end of current definition
-    ld  hl, 0
-    push hl
-    fcall add_cell    
     
     fret
 

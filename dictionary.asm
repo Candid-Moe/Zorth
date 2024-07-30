@@ -88,6 +88,7 @@ code_create:
     
     sub a
     inc a   ; Set Z flag = 0
+
     fret
 
 _code_create_error:
@@ -168,25 +169,6 @@ code_does:
                 
     fret       
 
-
-dict_end:
-    ;   
-    ;   Add a fret to current word
-    ;   ( -- )
-
-    fenter
-
-    ld  hl, (_DP)
-    
-    ld  (hl), $C3
-    inc hl
-    ld  de, return
-    ld_hl_de
-    ;
-    ld  (_DP), hl
-
-    fret
-    
 code_immediate:
 ;
 ;   Implements IMMEDIATE
@@ -262,7 +244,7 @@ dict_add:
     ld_hl_de
 
     ;   # words
-    ld  (hl), 0
+    ld  (hl), 1
     inc hl
     
     ;   Flags
@@ -830,7 +812,6 @@ dict_init:
     mdict_add st_allot,     code_allot
     mdict_add st_create,    code_create
     mdict_add st_colon,     code_colon
-    fcall code_immediate
     mdict_add st_semmicolon,code_semmicolon
     fcall code_immediate
     mdict_add st_store,     code_store

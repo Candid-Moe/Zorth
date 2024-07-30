@@ -1,7 +1,7 @@
 \
 \	Forth
 \
-: , here ! 1 allot ;
+: , here ! 1 allot ; 
 : 1+ 1 + ;
 : 1- 1 - ;
 : decimal 10 base ! ; 
@@ -29,7 +29,7 @@
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
 : buffer create allot ;
-: char bl word 1 + c@ ;
+: char bl word 1 + c@ ; immediate
 : c, here c! 1 allot ; immediate
 : compile, , 1 cells allot ; immediate
 : [char] char postpone literal ; immediate
@@ -37,5 +37,5 @@
 : .( [char] ) parse type ; immediate
 : , here ! 1 cells allot ;
 : constant create , does> @ ;
-: variable create ;
+: variable align here 0 , constant ;
 

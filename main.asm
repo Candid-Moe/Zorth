@@ -52,44 +52,43 @@ _repl_words:
     ld      de, ' '
     push    de
     fcall   code_word
-    pop     hl      ; Word address
-    ld  b, (hl)     ; Count byte
-
-    ;   Do we have a word to process?    
-    jump_zero b, _repl_return  ; No, get out
+    pop     hl              ; Word address
+    ld      a, (hl)         ; Count byte
+    cp      0
+    jr      z, _repl_return ;   Do we have a word to process?    
 
     ;   Obtain the execution token for word
-    push    hl              ; word address
+    push    hl
     fcall   get_xt
-    pop hl      ;     
-    ld  a, h
-    or  a, l        
-    jr  z, _repl_failed
+    pop     hl      ;     
+    ld      a, h
+    or      a, l        
+    jr      z, _repl_failed
 
-    push hl
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
-    jz  _repl_execute
+    push    hl
+    ld      a, (_MODE_INTERPRETER)
+    cp      TRUE
+    jz      _repl_execute
     
     ;   check for immediate words (always be executed)
-    ld  de, hl          ; xt 
-    inc de      
-    inc de              ; # words
-    inc de              ; flag
-    ld  a, (de) 
-    and BIT_IMMEDIATE   ; mode immediate
-    jr  nz, _repl_execute
+    ld      de, hl          ; xt 
+    inc     de      
+    inc     de              ; # words
+    inc     de              ; flag
+    ld      a, (de) 
+    and     BIT_IMMEDIATE   ; mode immediate
+    jr      nz, _repl_execute
 
     ;   Mode compilation, not immediate
     ;   Add the xt to the last word in dictionary
 
-    fcall add_cell
+    fcall   add_cell
 
-    jr  _repl_end
+    jr      _repl_end
 
 _repl_execute:
-    fcall code_execute    
-    jr  _repl_end
+    fcall   code_execute    
+    jr      _repl_end
        
 _repl_end:
 ;
@@ -392,7 +391,7 @@ code_backslash:
 ;   Parse and discard the remainder of the parse area. \ is an immediate word. 
 ;
 ;   Note: this word search for a '\n' in the input area, so it process correctly
-;   things like ": 1+ 1 + ; \ sum : 1- 1 - ;", which have two logical lines.
+;   things like ": 1+ 1 + ; \ sum \n 1- 1 - ;", which have two logical lines.
 ;
     fenter
 

@@ -16,7 +16,6 @@ space:      counted_string ' '
 words:      counted_string "words:\n"
 boot_file:  counted_string "forth.fs\000"
 
-_IP:        dw  0           ; Instruction Pointer. Point to a cell containing an xt address.
 _MODE_INTERPRETER: db TRUE
 _BASE:      db   10
 _SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
@@ -33,7 +32,7 @@ _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 err_word_not_found: counted_string "Error. Word not found: "
 err_underflow:      counted_string "Error. Data Stack underflow"
 err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name"
-err_mode_comp:      counted_string "Error. Alrededy in compilation mode"
+err_mode_comp:      counted_string "Error. Already in compilation mode"
 err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
 err_unstructed:     counted_string "Error. Unstructed: "
 

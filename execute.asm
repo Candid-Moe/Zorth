@@ -15,19 +15,20 @@ code_execute:
 ;
     fenter
 
-    pop hl
+    pop hl              ; ( xt -- )
 
     inc hl
     inc hl      ; # words
-    inc hl      ; hl -> flags    
-    
+
+    ld  e, 0
+    ld  d, (hl)
+
+    inc hl      ; hl -> flags        
     ld  a, (hl) ; A = flags
     
     inc hl      ; hl -> name
     inc hl  
     inc hl      ; hl -> code/colon
-
-    ld (_IP), hl    ; Save it just for reference
 
     and BIT_COLON   ; Test the CODE/COLON flag
 
@@ -55,32 +56,45 @@ _ex_colon:
     ;   Colon word is a list of xt addresses.
     ;
     ;   HL is the list address
+    ;   DE # cells in the list
 
-    push hl             ; Save it
+    push hl
 
-    ;   Store address next xt en EX_STACK
+    add hl, de
+    add hl, de
+    ex  hl, de  ;   DE = @last instruction + 1
+
+    pop hl
+    push de
+
+_ex_colon_cycle:
+
+    push hl             ; Save it           ( -- @xt )
+
+    ;   Store address next xt en ctrl stack
 
     inc hl
     inc hl
-    ctrl_push
+    ctrl_push           ;                  ( -- @xt )
 
-    pop     hl
+    pop     hl          ;                  ( @xt -- )
     ld      bc, (hl)    ; extract xt
-    push    bc          ; Pass to EXECUTE
+    push    bc          ; Pass to EXECUTE   ( -- xt )
 
     fcall   code_execute
 
     ;   Recover address next xt.
-
     ctrl_pop
+    pop de
+    ld  a, h
+    cp  d
+    jr  nz, _ex_end
+    ld  a, l
+    cp  e
+    jr  nz, _ex_end
+    push de
 
-    ;   Check for 0x0000 at the end of code.
-    ld  de, (hl)      ; load xt
-    ld  a, e
-    or  d
-    jr  nz, _ex_colon
-    
-    jr  _ex_end
+    jr  _ex_colon_cycle
 
 _ex_end:
     
