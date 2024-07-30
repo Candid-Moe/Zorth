@@ -20,8 +20,8 @@ code_execute:
     inc hl
     inc hl      ; # words
 
-    ld  e, 0
-    ld  d, (hl)
+    ld  d, 0
+    ld  e, (hl)
 
     inc hl      ; hl -> flags        
     ld  a, (hl) ; A = flags
@@ -55,27 +55,28 @@ _ex_colon:
     ;
     ;   Colon word is a list of xt addresses.
     ;
-    ;   HL is the list address
-    ;   DE # cells in the list
+    ;   HL is the address of first XT
+    ;   DE # elements in the list
 
-    push hl
+    push hl     ;   Remember hl
 
     add hl, de
     add hl, de
     ex  hl, de  ;   DE = @last instruction + 1
 
-    pop hl
-    push de
+    push de             ;  DE is the address past last list element.
+    fcall   code_to_r   ;  ( @last -- : R -- @last )
+
+    pop hl      ;   Recover hl
 
 _ex_colon_cycle:
 
-    push hl             ; Save it           ( -- @xt )
+    ;   HL is the address of the list element where XT is.
 
-    ;   Store address next xt en ctrl stack
-
-    inc hl
-    inc hl
-    ctrl_push           ;                  ( -- @xt )
+    push    hl          ; Save it          ( -- @xt )
+    inc     hl
+    inc     hl
+    ctrl_push           ; Use ctrl stack to remember next step (can be modified by execute)
 
     pop     hl          ;                  ( @xt -- )
     ld      bc, (hl)    ; extract xt
@@ -83,21 +84,27 @@ _ex_colon_cycle:
 
     fcall   code_execute
 
-    ;   Recover address next xt.
-    ctrl_pop
-    pop de
+    ;   Recover address next xt and check if we reached the last one
+
+    ctrl_pop            ; HL = @xt+1, next XT address
+    ld  d, (ix + 1)     ; @last
+    ld  e, (ix)         
+
+    ;   Compare HL = DE
     ld  a, h
     cp  d
-    jr  nz, _ex_end
+    jr  nz, _ex_colon_cycle
     ld  a, l
     cp  e
-    jr  nz, _ex_end
-    push de
+    jr  nz, _ex_colon_cycle
 
-    jr  _ex_colon_cycle
-
-_ex_end:
+_ex_cycle_end:
     
+    inc ix
+    inc ix              ; discard @last
+    
+_ex_end:
+
     fret
 
 
