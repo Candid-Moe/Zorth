@@ -15,62 +15,16 @@ code_execute:
 ;
     fenter
 
-    pop hl              ; ( xt -- )
+    pop  hl                ; ( @xt -- )
 
-    inc hl
-    inc hl      ; # words
+    call   _ex_classify    ; HL = @
 
-    ld  d, 0
-    ld  e, (hl)
-
-    inc hl      ; hl -> flags        
-    ld  a, (hl) ; A = flags
-    
-    inc hl      ; hl -> name
-    inc hl  
-    inc hl      ; hl -> code/colon
-
-    and BIT_COLON   ; Test the CODE/COLON flag
-
-    jr  nz, _ex_colon
-    jr  _ex_code
-
-_ex_code:
-    ;
-    ;   Execute a code word
-    ;   HL = code address
-
-    ;   Putting the dest. address in the jp inst.
-
-    ld bc, (hl)
-    ld (_ex_jp + 1), bc
-    ld hl, _ex_end
-
-_ex_jp:    
-    jp   0          ; dest. will be overwritten 
-
-_ex_colon:
+_ex_colon_cycle:
     ;   Execute a colon word
     ;   ( -- )
     ;
     ;   Colon word is a list of xt addresses.
     ;
-    ;   HL is the address of first XT
-    ;   DE # elements in the list
-
-    push hl     ;   Remember hl
-
-    add hl, de
-    add hl, de
-    ex  hl, de  ;   DE = @last instruction + 1
-
-    push de             ;  DE is the address past last list element.
-    fcall   code_to_r   ;  ( @last -- : R -- @last )
-
-    pop hl      ;   Recover hl
-
-_ex_colon_cycle:
-
     ;   HL is the address of the list element where XT is.
 
     push    hl          ; Save it          ( -- @xt )
@@ -80,31 +34,59 @@ _ex_colon_cycle:
 
     pop     hl          ;                  ( @xt -- )
     ld      bc, (hl)    ; extract xt
-    push    bc          ; Pass to EXECUTE   ( -- xt )
 
+    ld      a, b        ; Is the last one ?
+    or      c
+    jr      z, _ex_cycle_end
+
+    ld      hl, bc
+    call   _ex_classify
+    jr      nz, _ex_colon_execute
+
+    ;   Don't call CODE words via EXECUTE because code may manipulate the R stack
+
+    ld bc, (hl)
+    ld (_ex_colon_jp + 1), bc
+    ld hl, _ex_colon_next
+
+_ex_colon_jp:    
+    jp   0          ; dest. will be overwritten 
+
+_ex_colon_execute:
+    
+    push    bc          ; Pass to EXECUTE   ( -- xt )
     fcall   code_execute
 
-    ;   Recover address next xt and check if we reached the last one
+_ex_colon_next:
 
-    ctrl_pop            ; HL = @xt+1, next XT address
-    ld  d, (ix + 1)     ; @last
-    ld  e, (ix)         
+    ;   Recover address next xt
 
-    ;   Compare HL = DE
-    ld  a, h
-    cp  d
-    jr  nz, _ex_colon_cycle
-    ld  a, l
-    cp  e
-    jr  nz, _ex_colon_cycle
+    ctrl_pop            ; HL = @xt+1
+    jr  _ex_colon_cycle
 
 _ex_cycle_end:
     
-    inc ix
-    inc ix              ; discard @last
-    
+    ctrl_pop
+
 _ex_end:
 
     fret
 
 
+_ex_classify:
+    
+    ;   Classify the xt in HL as code or colon.
+    ;   Set Z flag if code, reset is colon
+
+    inc hl
+    inc hl      ; # words
+    inc hl      ; hl -> flags        
+    ld  a, (hl) ; A = flags
+    
+    inc hl      ; hl -> name
+    inc hl  
+    inc hl      ; hl -> code/colon
+
+    and BIT_COLON   ; Test the CODE/COLON flag
+
+    ret

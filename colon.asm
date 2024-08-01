@@ -144,6 +144,17 @@ code_semmicolon:
     ;   Count the cells     
     pop hl
     ld  (hl), e ; # words
+
+    ;   Mark the colon definition end with a 0
+
+    ld  hl, (_DP)
+    ld  (hl), 0
+    inc hl
+    ld  (hl), 0
+    inc hl
+    
+    ld  (_DP), hl
+        
     
     fret
 

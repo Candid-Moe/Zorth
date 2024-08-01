@@ -49,8 +49,8 @@ code_create:
     cp  0
     jz  _code_create_error
 
-    ld   de, (_DP)  
-    push de         ; destination   ( -- name_addr )
+    ld      de, (_DP)  
+    push    de         ; destination   ( -- name_addr )
     ;   Calculate total len and save it onto the stack
     ld   d, 0
     ld   e, a       ; de = len
@@ -218,6 +218,7 @@ dict_add:
     ;
     fenter
 
+    fcall   code_align
     ;   Copy (_DICT) to (_DP)
     ld  de, (_DICT) ; de = last entry address
     ld  hl, (_DP)   ; hl = next free byte address

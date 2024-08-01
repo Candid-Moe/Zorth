@@ -4,7 +4,7 @@
 ;
 
 xt_if:  dw  0           ; IF runtime execution token.
-xt_jz:  dw 0
+xt_jz:  dw  0
 xt_jp:  dw  0
 
 code_if:
@@ -34,19 +34,16 @@ code_if:
     cp  TRUE
     jp  z, _code_mode_error
 
+    ld      bc, (xt_jz)
+    push    bc
+    fcall   add_cell    ; Add IF xt to word in formation.
+
     ld  hl, (_DP)
-    ld  bc, (xt_jz)
-    ld  (hl), bc        ; Add IF xt to word in formation.
-
-    inc hl
-    inc hl     
-
     ctrl_push           ; Put the cell address to patch
 
-    inc hl
-    inc hl              ; Leave a cell for the destination address
-
-    ld  (_DP), hl       ; Update DP
+    ld      bc, 0
+    push    bc
+    fcall   add_cell    ; Leave a cell for the destination address
 
     fret    
    
@@ -109,31 +106,30 @@ code_else:
 ;
 ;   Continue execution at the location given by the resolution of orig2. 
 ;
+    fenter 
+
     ld  a, (_MODE_INTERPRETER)
     cp  TRUE
     jp  z, _code_mode_error
 
     ;   Write a JMP after the IF code
 
-    ld  hl, (_DP)
     ld  bc, (xt_jp)
-    ld  (hl), bc        ; Add jump to word in after "then"
+    push    bc
+    fcall   add_cell    ; Add jump to address after "then"
 
-    inc hl
-    inc hl              ; Advance next free cell
-
-    inc hl
-    inc hl              ; Reserve a cell for the jmp destination
-
+    ld      bc, 0 
+    push    bc
+    fcall   add_cell    ; Reserve a cell for the jump destination
     
-    ld  (_DP), hl
-
     ;   Put the current address in the space following IF
 
-    ctrl_pop        ; 
-
-    ld  bc, (_DP)
+    ctrl_pop            ; HL = IF address + 1
+    ld  bc, (_DP)       :
     ld  (hl), bc
+
+    ;   Remember the previous cell, the address to jump over the 
+    ;   then part.
 
     ld  hl, bc      ; 
     dec hl
@@ -245,26 +241,19 @@ code_again:
 ;   If no other control flow words are used, any program code after AGAIN
 ;   will not be executed. 
 ;
+    fenter 
+
     ld  a, (_MODE_INTERPRETER)
     cp  TRUE
     jp  z, _code_until_runtime
 
-    ld  hl, (_DP)
     ld  bc, (xt_jp)
-    ld  (hl), bc        ; Add jump to word in after "begin"
+    push bc
+    fcall add_cell      ; Add jump to word in after "begin"
 
-    inc hl
-    inc hl              ; Advance next free cell
-
-    ld  (_DP), hl
     ctrl_pop
-    ld  bc, hl
-    ld  hl, (_DP)
-    ld  (hl), bc        ; Put the address for the jump.
-    
-    inc hl
-    inc hl
-    ld  (_DP), hl
+    push hl
+    fcall add_cell      ; Put the address for the jump.
     
     fret
 
@@ -293,26 +282,19 @@ code_until:
     cp  TRUE
     jp  z, _code_until_runtime
 
-    ld  hl, (_DP)
-    ld  bc, (xt_jz)
-    ld  (hl), bc        ; Add jump to word in after "begin"
+    ld      bc, (xt_jz)
+    push    bc
+    fcall   add_cell    ; Add jump to word in after "begin"
 
-    inc hl
-    inc hl              ; Advance next free cell
-
-    ld  (_DP), hl
     ctrl_pop
-    ld  bc, hl
-    ld  hl, (_DP)
-    ld  (hl), bc        ; Put the address for the jump.
-    
-    inc hl
-    inc hl
-    ld  (_DP), hl
+    push hl
+    fcall   add_cell    ; Put the address for the jump.
     
     fret
 
 _code_until_runtime:
+
+    fenter
 
     pop bc
     ld  a, c

@@ -50,11 +50,12 @@ code_align:
 ;
 ;   If the data-space pointer is not aligned, reserve enough space to align it. 
 ;
-    fenter 
+    fenter
 
-    fcall code_here
+    ld    de, (_DP)
+    push  de
     fcall code_aligned
-    pop de
+    pop   de
     ld (_DP), de
 
     fret
@@ -74,10 +75,9 @@ code_aligned:
     inc de
 
 _code_aligned_end:
-;
     push de
+    
     jp  (hl)
-
 
 code_allot:
 ;

@@ -15,9 +15,9 @@ init:
 
     fcall   dict_init
 
-    ld      hl, boot_file
-    push    hl
-    fcall   load_fs
+;    ld      hl, boot_file
+;    push    hl
+;    fcall   load_fs
 
     ld      hl, words
     push    hl
@@ -34,16 +34,8 @@ repl:
 
     fcall  code_refill
     ;   Check return code
-    pop     bc
-    jump_zero c, repl
-
-    fcall    inner_interpreter
-
-    jr      repl
-
-inner_interpreter:
-
-    fenter
+    pop         bc
+    jump_zero   c, repl
 
 _repl_words:
 ;
@@ -55,7 +47,7 @@ _repl_words:
     pop     hl              ; Word address
     ld      a, (hl)         ; Count byte
     cp      0
-    jr      z, _repl_return ;   Do we have a word to process?    
+    jp      z, _repl_return ;   Do we have a word to process?    
 
     ;   Obtain the execution token for word
     push    hl
@@ -65,7 +57,7 @@ _repl_words:
     or      a, l        
     jr      z, _repl_failed
 
-    push    hl
+    push    hl              ; xt
     ld      a, (_MODE_INTERPRETER)
     cp      TRUE
     jz      _repl_execute
@@ -87,6 +79,27 @@ _repl_words:
     jr      _repl_end
 
 _repl_execute:
+    ;
+    ;   See how xt must be executed.
+    ;   Code words are jumped directly
+    ;   Colon definitions are run by code_execute
+    call    _ex_classify
+    jr      nz, _repl_execute_colon
+
+    pop     bc  ; Discard XT 
+
+    ;   Execute a CODE works.
+    ;   Call the code directly
+
+    ld bc, (hl)
+    ld (_repl_jp + 1), bc
+    ld hl, _repl_end
+
+_repl_jp:    
+    jp   0          ; dest. will be overwritten 
+
+_repl_execute_colon:
+
     fcall   code_execute    
     jr      _repl_end
        
@@ -109,7 +122,7 @@ _repl_end:
     push hl
     fcall print_line
 
-    fret
+    jr  _repl_return
 
 _repl_failed:
 ;
@@ -137,8 +150,31 @@ _repl_failed:
     jr  _repl_end
 
 _repl_return:
+    
+    ;   Don't return unless we were called
+    ld  a, (_repl_depth)
+    cp  0
+    jp  z, repl
+    
     fret
 
+_repl_depth:    db  0
+inner_interpreter:
+
+    fenter
+    
+    ld  a, (_repl_depth)
+    inc a
+    ld (_repl_depth), a
+
+    fcall   _repl_words
+
+    ld  a, (_repl_depth)
+    dec a
+    ld (_repl_depth), a
+
+    fret
+    
 return:
 ;
 ;   For routines called with fenter/fret, return is via
