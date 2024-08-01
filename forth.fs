@@ -32,9 +32,9 @@
 : char bl word 1 + c@ ; immediate
 : c, here c! 1 allot ; immediate
 : compile, , 1 cells allot ; immediate
-: [char] postpone char postpone literal ; immediate
-: ( [char] ) parse drop drop ; immediate
-: .( [char] ) parse type ; immediate
 : constant create , does> @ ;
 : variable align here 0 , constant ;
+: [char] postpone char postpone literal ; immediate
+\ : ( [char] ) parse drop drop ; immediate
+\ : .( [char] ) parse type ; immediate
 

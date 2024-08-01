@@ -15,9 +15,9 @@ init:
 
     fcall   dict_init
 
-;    ld      hl, boot_file
-;    push    hl
-;    fcall   load_fs
+    ld      hl, boot_file
+    push    hl
+    fcall   load_fs
 
     ld      hl, words
     push    hl
@@ -45,6 +45,7 @@ _repl_words:
     push    de
     fcall   code_word
     pop     hl              ; Word address
+
     ld      a, (hl)         ; Count byte
     cp      0
     jp      z, _repl_return ;   Do we have a word to process?    
@@ -156,24 +157,21 @@ _repl_return:
     cp  0
     jp  z, repl
     
-    fret
+    ld  hl, _repl_depth
+    dec (hl)
+
+    fret                ; This returns to inner_interpreter caller
 
 _repl_depth:    db  0
 inner_interpreter:
 
     fenter
     
-    ld  a, (_repl_depth)
-    inc a
-    ld (_repl_depth), a
+    ld  hl, _repl_depth
+    inc (hl)
 
-    fcall   _repl_words
+    fcall   _repl_words ; This call never return.
 
-    ld  a, (_repl_depth)
-    dec a
-    ld (_repl_depth), a
-
-    fret
     
 return:
 ;
@@ -651,11 +649,10 @@ _refill_true:
     dec bc
     add hl, bc
     
-    ld  b, (hl)     ; B is the last char 
-    ld  a, '\n'
-    cp  b
+    ld  a, (hl)     ; B is the last char 
+    cp  '\n'
     jnz _refill_true_next
-    ld (hl), ' '  
+    ld  (hl), ' '  
   
 _refill_true_next:     
 
