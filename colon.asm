@@ -35,8 +35,8 @@ code_colon:
     fenter
 
     ;   Check MODE_EXECUTION
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jr  nz, _colon_error
 
     ;   Create dictionary entry
@@ -44,8 +44,8 @@ code_colon:
     fcall   code_create
     jr      z, _colon_end
     
-    ld  a, FALSE
-    ld  (_MODE_INTERPRETER), a
+    ld  a, TRUE
+    ld  (_STATE), a
 
     ;   Put a marker in the control stack   
     ld      hl, colon_sys
@@ -53,6 +53,8 @@ code_colon:
 
     ;   Delete default code gen by CREATE
     ld  hl, (_DP)
+    dec hl
+    dec hl
     dec hl
     dec hl
     ld (_DP), hl
@@ -102,13 +104,13 @@ code_semmicolon:
     fenter
 
     ;   Check MODE
-    ld  a, (_MODE_INTERPRETER)
-    cp  FALSE
+    ld  a, (_STATE)
+    cp  TRUE
     jr  nz, _colon_error
 
     ;   Back to execution mode
-    ld  a, TRUE
-    ld  (_MODE_INTERPRETER), a
+    ld  a, FALSE
+    ld  (_STATE), a
 
     ;   Check the control stack; must have a colon-sys
     ctrl_pop

@@ -59,8 +59,8 @@ _repl_words:
     jr      z, _repl_failed
 
     push    hl              ; xt
-    ld      a, (_MODE_INTERPRETER)
-    cp      TRUE
+    ld      a, (_STATE)
+    cp      FALSE
     jz      _repl_execute
     
     ;   check for immediate words (always be executed)
@@ -143,8 +143,8 @@ _repl_failed:
     ;   Discard rest of line and start again
     fcall   code_backslash
     ;   Back to INTERPRETER mode
-    ld  a, TRUE
-    ld  (_MODE_INTERPRETER), a
+    ld  a, FALSE
+    ld  (_STATE), a
     ;   Empty control stack
     ld  IY, _CONTROL_STACK
 
@@ -261,8 +261,8 @@ code_quit:
     ld      (_SOURCE_ID), a
     ld      (_gtIN), a
 
-    ld      a, TRUE
-    ld      (_MODE_INTERPRETER), a    
+    ld      a, FALSE
+    ld      (_STATE), a    
     
     jp      repl
     
@@ -366,51 +366,24 @@ code_s_quote:
 
     fret
 
-code_paren:
+code_state:
 ;
-;   Implements (
+;   Implements STATE
+;   ( -- a-addr )
 ;
-;   Compilation:
-;   Perform the execution semantics given below.
+;   a-addr is the address of a cell containing the compilation-state flag. 
+;   STATE is true when in compilation state, false otherwise. 
+;   The true value in STATE is non-zero, but is otherwise implementation-defined. 
+;   Only the following standard words alter the value in STATE: : 
+;       (colon), ; (semicolon), ABORT, QUIT, :NONAME, [ (left-bracket), ] (right-bracket).
 ;
-;   Execution:
-;   ( "ccc<paren>" -- )
-;
-;   Parse ccc delimited by ) (right parenthesis). ( is an immediate word.
-;
-;   The number of characters in ccc may be zero to the number of characters
-;   in the parse area. 
-;
-    fenter
+;   Note:
+;   A program shall not directly alter the contents of STATE. 
 
-    ld  a, (_gtIN)
-    ld  c, a
-    ld  hl,  (gTIB)
-    ld  a, (hl)
-    sub c
-    ld  b, 0
-    ld  c, a
-    ld  de, bc
+    ld      bc, _STATE
+    push    bc
 
-    ld  a, ')'
-    ld  hl, (TIB)
-    ld  e, (hl)
-    inc hl
-    ld  d, (hl)
-    inc hl
-    ex de, hl    
-    ld  de, (_gtIN)
-    add hl, de
-    cpir
-    ld  a, e
-    sub c
-    ld  c, a
-
-    ld  a, (_gtIN)    
-    add c
-    ld  (_gtIN), a
-    
-    fret
+    jp      (hl)
 
 code_backslash:
 ;
@@ -532,7 +505,8 @@ code_dot:
 ;
     fenter
 
-    ld  a, (_BASE)
+    ld  bc, (_BASE)
+    ld  a, c
     cp  16
     jr  z, _code_dot_hex
     fcall itoa
@@ -672,10 +646,9 @@ code_pad:
 ;   c-addr is the address of a transient region that can be used
 ;   to hold data for intermediate processing. 
 ;
-    fenter
 
-    ld      hl, _PAD
-    push    hl
+    ld      bc, _PAD
+    push    bc
 
     fret
 

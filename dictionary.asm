@@ -74,6 +74,9 @@ code_create:
     fcall   code_swap   ; ( -- code_addr name_addr )
 
     fcall   dict_add
+    ld  hl, 0
+    push hl
+    fcall   add_cell
 
     ;   Make it a colon definition
 
@@ -219,6 +222,7 @@ dict_add:
     fenter
 
     fcall   code_align
+
     ;   Copy (_DICT) to (_DP)
     ld  de, (_DICT) ; de = last entry address
     ld  hl, (_DP)   ; hl = next free byte address
@@ -303,8 +307,8 @@ code_see:
     jp  z, _error_not_found
 
     ; TODO Restore base
-    ld  a, 16
-    ld  (_BASE), a
+    ld  de, 16
+    ld  (_BASE), de
 
     push hl
     push hl             ; Dictionary entry address
@@ -529,8 +533,8 @@ _dict_search_xt_value:
     ;   A value was converted. Now actions depend on
     ;   which state we are.
     ;
-    ld  a, (_MODE_INTERPRETER)
-    cp  a, TRUE
+    ld  a, (_STATE)
+    cp  a, FALSE
     jr  nz, _dict_search_xt_compile:
 
     ;   Mode interpreter
@@ -593,8 +597,8 @@ code_literal:
 ;
     fenter
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  FALSE
+    ld  a, (_STATE)
+    cp  TRUE
     jp  nz, _code_literal_error
 
     ;   Compilation mode
@@ -673,47 +677,49 @@ code_postpone:
 ;
     fenter
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_postpone_error
 
-    ;   Insert an xt for this word
-    ld  hl, (_DP)
-    ld  bc, (xt_postpone)
-    ld  (hl), bc
-    inc hl
-    inc hl
-    ld  (_DP), hl
-
-    ld  hl, ' '
-    push hl
-    fcall code_word
-    fcall dict_search
-    pop bc
-    
-    ld  hl, (_DP)
-    ld  (hl), bc
-    inc hl
-    inc hl
-    ld  (_DP), hl
+    ld      hl, ' '
+    push    hl
+    fcall   code_word   ; ( ' ' -- c-addr )
+    fcall   dict_search ; ( c-addr -- xt )
+    fcall   add_cell    ; ( xt -- )
 
     fret    
     
 _code_postpone_runtime:
     ;
+    ;   Take the XT from the next cell and 
+    ;   call execute
+    ;
     fenter
 
-    ctrl_pop        ; Recover xt in next cell
-    push hl         ; XT 
+    ctrl_pop        ; Recover address of next xt.
+    push hl         ; ( -- @XT )
     inc hl
     inc hl
-    ctrl_push       ; Must the next address
+    ctrl_push       ; Jump over to the next address
 
-    pop     hl
+    pop     hl      ; ( @XT -- ) Take de address, recover the XT
     ld      de, (hl)
-    push    de
+    push    de      ; ( -- XT )
+    ld      hl, de
+    ;
+    call    _ex_classify
+    jr      nz, _code_postpone_execute
+
+    ;   Code words, just put the xt directly
+
+    fcall   add_cell    ; ( XT -- )
+    jr      _code_postpone_end    
+
+_code_postpone_execute:
 
     fcall   code_execute
+
+_code_postpone_end:
     
     fret
     
@@ -838,12 +844,11 @@ dict_init:
     mdict_add st_postpone,  code_postpone
     fcall code_immediate 
 
-    mdict_add st_paren,     code_paren
-    fcall code_immediate
     mdict_add st_abort,     code_abort
     mdict_add st_quit,      code_quit
     mdict_add st_parse,     code_parse
     mdict_add st_does,      code_does
+    mdict_add st_state,     code_state
 
     fret
 
@@ -910,9 +915,9 @@ st_c_fetch:     counted_string "c@"
 st_c_store:     counted_string "c!"
 st_depth:       counted_string "depth"
 st_postpone:    counted_string "postpone"
-st_paren:       counted_string "("
 st_abort:       counted_string "abort"
 st_quit:        counted_string "quit"
 st_parse:       counted_string "parse"
 st_s_quote:     counted_string "s\""
 st_does:        counted_string "does>"
+st_state:       counted_string "state"

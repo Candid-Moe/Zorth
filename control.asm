@@ -30,8 +30,8 @@ code_if:
 ;
     fenter
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_mode_error
 
     ld      bc, (xt_jz)
@@ -108,8 +108,8 @@ code_else:
 ;
     fenter 
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_mode_error
 
     ;   Write a JMP after the IF code
@@ -179,8 +179,8 @@ code_then:
 
     fenter
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_mode_error
 
     ;   Put the current address in the space following IF
@@ -212,8 +212,8 @@ code_begin:
 
     fenter
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_mode_error
 
     ld  hl, (_DP)
@@ -243,8 +243,8 @@ code_again:
 ;
     fenter 
 
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_until_runtime
 
     ld  bc, (xt_jp)
@@ -278,8 +278,8 @@ code_until:
 
     fenter
     
-    ld  a, (_MODE_INTERPRETER)
-    cp  TRUE
+    ld  a, (_STATE)
+    cp  FALSE
     jp  z, _code_until_runtime
 
     ld      bc, (xt_jz)
