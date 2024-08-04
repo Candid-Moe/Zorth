@@ -918,6 +918,8 @@ dict_init:
     ld  (xt_loop), hl
 
     mdict_add st_i,         code_i
+    mdict_add st_s_quote,   code_s_quote
+    fcall code_immediate
 
     fret
 
@@ -993,3 +995,4 @@ st_state:       counted_string "state"
 st_do:          counted_string "do"
 st_loop:        counted_string "loop"
 st_i:           counted_string "i"
+

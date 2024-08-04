@@ -352,17 +352,57 @@ code_s_quote:
 ;
     fenter
 
-    ld  hl, '"'
-    push hl
+    ld      hl, '"'
+    push    hl
+    fcall   code_parse
 
-    fcall code_search
+    ;   The final string address
+    ld      hl, (xt_literal)
+    push    hl
+    fcall   add_cell        ; add a load for address
 
-    pop hl
-    ld  a, h
-    or  l
-;    jz  _s_quote_not_found
+    ld      hl, (_DP)
+    ld      de, 10
+    add     hl, de
+    push    hl
+    fcall   add_cell        ; address to load
 
-        
+    ld      hl, (xt_literal)
+    push    hl
+    fcall   add_cell        ; add a load for length
+
+    pop     hl
+    push    hl
+    push    hl
+    fcall   add_cell        ; length to load
+
+    ;   Add a jmp over the string
+
+    ld      hl, (xt_jp)
+    push    hl
+    fcall   add_cell        ; jmp
+
+    ld      hl, (_DP)
+
+    pop     bc
+    push    bc
+    add     hl, bc          ; # chars in string
+    inc     hl
+    inc     hl              ; One cell for the address
+
+    push    hl
+    fcall   add_cell        ; address
+
+    ;   Move the text
+    pop     bc              ; length
+    ld      hl, (_DP)
+    push    hl
+    push    bc
+
+    add     hl, bc          ; Allot the space
+    ld      (_DP), hl
+
+    fcall   code_move
 
     fret
 
@@ -402,46 +442,14 @@ code_backslash:
 ;
     fenter
 
-    ld  hl, (TIB)            ; entry buffer
+    ld      hl, '\n'
+    push    hl
+    fcall   code_parse
+    pop     hl
+    pop     hl
 
-    ld  b,  0
-    ld  a,  (_gtIN)         ; current position in entry buffer
-    ld  c,  a 
-    add hl, bc              ; HL -> next char in entry buffer
+    fret 
 
-    ld  a, (_gtIN)
-    ld  b, a
-    ld  de, (gTIB)
-    ld  a, (de)          
-    sub b                   
-    ld  b, a                ; B contains length remaining in entry buffer
-
-_code_backslash_cycle:
-
-    ;   Check how many bytes to examine 
-
-    xor a   
-    cp  b                   ; remaining == 0?
-    jz  _code_backslash_exit
-
-    ;   Look at the byte in entry buffer
-    ld  a, (hl)
-    cp  '\n'
-    jr  z, _code_backslash_exit
-   
-    inc hl                  ; Next char in entry buffer
-    dec b                   ; Decrement count of remaining bytes
-
-    inc_byte _gtIN          ; Move input index
-
-    jp  _code_backslash_cycle
-
-_code_backslash_found:
-    inc_byte _gtIN
-
-_code_backslash_exit:
-        
-    fret
 
 code_tick:
 ;
@@ -728,30 +736,6 @@ _code_words_end:
     push hl
     fcall print_line
 
-    fret
-
-code_spaces:
-;
-;   Implements SPACES
-;   ( n -- )
-;
-;   If n is greater than zero, display n spaces. 
-
-    fenter
-    
-    pop bc
-    inc bc
-    djnz _code_spaces_end
-
-_code_spaces_cycle:
-
-    push bc
-    fcall code_space
-    pop bc
-    djnz _code_spaces_cycle
-
-_code_spaces_end:
-    
     fret
 
 code_space:

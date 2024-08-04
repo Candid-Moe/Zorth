@@ -44,5 +44,6 @@
 : lit, ( x -- ) postpone literal ;
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
-: xy 11 2 do 1 + loop ;
+: spaces 0 do space loop ;
+: xy s" hola" type ;
 
