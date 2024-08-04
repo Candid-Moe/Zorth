@@ -193,6 +193,36 @@ code_immediate:
 
     fret
 
+save_to_DP:
+;
+;   Copy a counted-string to DP
+;   ( c-string -- )
+;
+    fenter
+
+    pop     hl
+    ld      a, (hl) ; String len
+    ld      d, 0
+    ld      e, a    ; de = len
+
+    ld      de, (_DP)  
+    push    de         ; destination   ( -- name_addr )
+
+    ;   Calculate total len and save it onto the stack
+    inc  de         ; total len
+    push de         ;               ( -- name_addr len )
+
+    ;   Prepare moving the name
+    push hl         ; origin        ( -- name_addr len origin)
+    ld   hl, (_DP)  
+    push hl         ; destination   ( -- name_addr len origin dest )
+    push de         ; length        ( -- name_addr len origin dest len )
+
+    fcall   code_move   ; copy name from input area to heap ( -- name_addr len )
+    fcall   code_allot  ; total len already in stack        ( -- name_addr )
+
+    fret
+
 add_cell:
 ;
 ;   Add TOS to _DP
@@ -269,7 +299,7 @@ dict_delete_last:
 xt_address: dw 0
 code_address:
 ;
-;   Extract next address from control stack and push into stack
+;   Change ctrl stack to skip over the next cell
 ;
     fenter
 
@@ -279,6 +309,33 @@ code_address:
     inc hl
     inc hl
     ctrl_push       ; skip over the cell
+
+    fret
+
+code_dot_quote:
+;
+;   Implements ."
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( "ccc<quote>" -- )
+;
+;   Parse ccc delimited by " (double-quote). 
+;   Append the run-time semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Display ccc. 
+
+    fenter
+
+    ld      hl, '"'
+    push    hl
+    fcall   code_parse
+    
 
     fret
 
@@ -850,6 +907,18 @@ dict_init:
     mdict_add st_does,      code_does
     mdict_add st_state,     code_state
 
+    mdict_add st_do,        code_do
+    fcall code_immediate
+    ld  hl, (_DICT)
+    ld  (xt_do), hl
+
+    mdict_add st_loop,      code_loop
+    fcall code_immediate
+    ld  hl, (_DICT)
+    ld  (xt_loop), hl
+
+    mdict_add st_i,         code_i
+
     fret
 
 st_address:     counted_string "address"
@@ -921,3 +990,6 @@ st_parse:       counted_string "parse"
 st_s_quote:     counted_string "s\""
 st_does:        counted_string "does>"
 st_state:       counted_string "state"
+st_do:          counted_string "do"
+st_loop:        counted_string "loop"
+st_i:           counted_string "i"

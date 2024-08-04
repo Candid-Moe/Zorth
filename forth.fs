@@ -44,4 +44,5 @@
 : lit, ( x -- ) postpone literal ;
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
+: xy 11 2 do 1 + loop ;
 

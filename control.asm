@@ -316,3 +316,197 @@ _code_until_runtime:
 code_until_end:
 
     fret
+
+xt_do:  dw  0
+code_do:
+;
+;   Implements DO
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: -- do-sys )
+;
+;   Place do-sys onto the control-flow stack. 
+;   Append the run-time semantics given below to the current definition. 
+;   The semantics are incomplete until resolved by a consumer of do-sys 
+;   such as LOOP.
+;
+;   Run-time:
+;   ( n1 | u1 n2 | u2 -- ) ( R: -- loop-sys )
+;
+;   Set up loop control parameters with index n2 | u2 and limit n1 | u1. 
+;   An ambiguous condition exists if n1 | u1 and n2 | u2 are not both the same type.
+;   Anything already on the return stack becomes unavailable until the loop-control
+;   parameters are discarded. 
+;
+;   Implementation: We don't use "fenter" in order to save control parameters on top
+;   of stack.
+;
+
+    ld      a, (_STATE)
+    cp      TRUE
+    jr      nz, _code_do_exec
+
+_code_do_comp:
+
+    push    hl          ; Return address
+
+    ;   Insert the load params instruction
+    ld      hl, (xt_do)
+    push    hl
+    fcall   add_cell
+
+    ld      hl, (_DP)   ; Put a do-sys in control stack: address first
+    ctrl_push   
+
+    ld      hl, do_sys  ; Then the mark.
+    ctrl_push
+
+    pop     hl
+    jp      (hl)        ; Return
+    
+_code_do_exec:
+
+    pop     bc          ; BC = Index
+    pop     de          ; DE = Limit
+    push    hl          ; return address
+    push    bc
+    push    de          
+    fcall   code_to_r   ; (R -- Limit )
+    fcall   code_to_r   ; (R -- Index )
+
+    pop     hl          ; return address 
+    jp      (hl)        ; Return
+
+xt_loop:    dw  0
+code_loop:
+;
+;   Implements LOOP
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: do-sys -- )
+;
+;   Append the run-time semantics given below to the current definition. 
+;   Resolve the destination of all unresolved occurrences of LEAVE between 
+;   the location given by do-sys and the next location for a transfer of 
+;   control, to execute the words following the LOOP.
+;
+;   Run-time:
+;   ( -- ) ( R: loop-sys1 -- | loop-sys2 )
+;
+;   An ambiguous condition exists if the loop control parameters are unavailable. 
+;   Add one to the loop index. If the loop index is then equal to the loop limit,
+;   discard the loop parameters and continue execution immediately following the loop.
+;   Otherwise continue execution at the beginning of the loop. 
+;
+;   Implementation: We don't use "fenter" in order to save control parameters on top
+;   of stack.
+;
+
+    push    hl      ; Save return address
+
+    ld      a, (_STATE)
+    cp      TRUE
+    jr      nz, _code_loop_exec
+
+_code_loop_comp:
+    ;
+    ;   Compilation state
+    ;
+    ctrl_pop        ; Recover do_sys, (C: do_sys -- )
+    
+    xor a           ; HL = do_sys ?
+    cp  h
+    jp  nz, _code_loop_error
+    ld  a, do_sys
+    cp  l
+    jr  nz, _code_loop_error
+
+    ;   Write a LOOP XT
+    ld      hl, (xt_loop)
+    push    hl
+    fcall   add_cell
+
+    ctrl_pop        ; Extract address    
+    push    hl
+    fcall   add_cell
+
+    pop hl          ; Return address
+
+    jp  (hl)
+
+_code_loop_exec:
+    ;
+    ;   Execution state
+    ;
+    
+    fcall   code_r_from ; Index ( -- index : R limit index -- limit )
+    pop     hl
+    inc     hl
+    push    hl          ; ( -- index+1 : R limit -- limit )
+
+    fcall   code_r_from ; Limit ( index+1 -- index+1 limit : R limit -- )
+    pop     de          ; ( index+1 limit -- index+1 )
+    pop     hl          ; ( index+1 -- )
+    push    hl          ; ( -- index+1 )
+
+    set_carry_0         ; Compare for Index = Limit
+    sbc     hl, de      ; HL = index - limit
+    jr      z, _code_loop_end
+
+    push    de          ; ( index+1 -- index+1 limit )
+    fcall   code_to_r   ; ( index+1 limit -- index+1 : R -- limit )
+    fcall   code_to_r   ; ( index+1 -- : R limit -- limit index+1 )
+
+    ;   Replace next instruction address
+    ctrl_pop            ; Extract current next cell address
+    ld      de, (hl)    ; Take contains of next cell, an address
+    ex      hl, de      
+    ctrl_push           ; Make it the new next cell
+
+    pop     hl
+    jp      (hl)
+
+_code_loop_end:
+
+    pop hl      ; ( index+1 -- )
+
+    ; Skip next instruction (address)
+
+    ctrl_pop
+    inc     hl
+    inc     hl
+    ctrl_push
+
+    ; Recover return address
+    pop hl
+    jp  (hl)
+
+_code_loop_error:
+
+    jp  (hl)
+    
+    
+code_i:
+;
+;   Implements I 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- n | u ) ( R: loop-sys -- loop-sys )
+;
+;   n | u is a copy of the current (innermost) loop index. 
+;   An ambiguous condition exists if the loop control parameters are unavailable. 
+;
+    ld      c, (ix)
+    ld      b, (ix+1)
+    push    bc
+
+    jp  (hl)
