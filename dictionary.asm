@@ -482,6 +482,11 @@ _see_cycle:
     ld   a, d
     cp   0x40
     jr   c, _see_cycle_next
+
+    ld   a, (de)        ; length
+    cp   10
+    jr  nc, _see_cycle_next
+
     push de
     fcall print_line
 
@@ -921,6 +926,11 @@ dict_init:
     mdict_add st_s_quote,   code_s_quote
     fcall code_immediate
 
+    mdict_add st_leave,     code_leave
+    fcall code_immediate
+    ld  hl, (_DICT)
+    ld  (xt_leave), hl
+
     fret
 
 st_address:     counted_string "address"
@@ -995,4 +1005,4 @@ st_state:       counted_string "state"
 st_do:          counted_string "do"
 st_loop:        counted_string "loop"
 st_i:           counted_string "i"
-
+st_leave:       counted_string "leave"

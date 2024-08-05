@@ -30,6 +30,7 @@
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
+: min 2dup < if drop else swap drop then ;
 : buffer create allot ;
 : char bl word 1 + c@ ; immediate
 : c, here c! 1 allot ; immediate
@@ -39,11 +40,10 @@
 : [char] postpone char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
-: compile, ( xt -- ) , ;
 : lit ( -- x ) ( R: addr1 -- addr2 ) r> dup cell+ >r @ ;
 : lit, ( x -- ) postpone literal ;
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
 : spaces 0 do space loop ;
-: xy s" hola" type ;
+: fac 11 2 do i . i 5 = if leave then loop 42 ;
 

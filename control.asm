@@ -341,7 +341,7 @@ code_do:
 ;   Anything already on the return stack becomes unavailable until the loop-control
 ;   parameters are discarded. 
 ;
-;   Implementation: We don't use "fenter" in order to save control parameters on top
+;   Implementation: We don't use "fenter" in order to mantain control parameters on top
 ;   of stack.
 ;
 
@@ -363,6 +363,9 @@ _code_do_comp:
 
     ld      hl, do_sys  ; Then the mark.
     ctrl_push
+
+    ld      hl, 0
+    leave_push          ; Mark a new frame start
 
     pop     hl
     jp      (hl)        ; Return
@@ -418,8 +421,27 @@ _code_loop_comp:
     ;
     ;   Compilation state
     ;
-    ctrl_pop        ; Recover do_sys, (C: do_sys -- )
-    
+
+    ld  bc, (_DP)   ; BC = address after 2 cells
+    inc bc
+    inc bc
+    inc bc
+    inc bc
+
+_code_loop_comp_leave:
+    ;   First, process all LEAVE for this DO
+    leave_pop
+    ld  a, h
+    cp  l
+    jr  z, _code_loop_next
+
+    ld  (hl), bc
+    jr  _code_loop_comp_leave
+
+_code_loop_next:
+
+    ctrl_pop
+
     xor a           ; HL = do_sys ?
     cp  h
     jp  nz, _code_loop_error
@@ -509,4 +531,59 @@ code_i:
     ld      b, (ix+1)
     push    bc
 
+    jp  (hl)
+
+xt_leave:    dw  0
+code_leave:
+;
+;   Implements LEAVE 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- ) ( R: loop-sys -- )
+;
+;   Discard the current loop control parameters. 
+;   An ambiguous condition exists if they are unavailable. 
+;   Continue execution immediately following the innermost 
+;   syntactically enclosing DO...LOOP or DO...+LOOP.
+; 
+    push hl
+
+    ld  a, (_STATE)
+    cp  TRUE      
+    jr  nz, _code_leave_exec
+
+    ld      hl, (xt_leave)     ; Insert a jmp
+    push    hl
+    fcall   add_cell    
+
+    ld      hl, (_DP)       ; Remember address location
+    leave_push
+
+    ld      hl, 0
+    push    hl
+    fcall   add_cell
+
+    pop hl
+    jp  (hl)
+
+_code_leave_exec:
+
+    ;   Discard control parameters in return stack
+
+    fcall   code_r_from
+    fcall   code_r_from
+    pop     hl
+    pop     hl
+
+    ;   Jump outside
+
+    ctrl_pop
+    ld      bc, (hl)
+    ld      hl, bc
+    ctrl_push
+
+    pop hl
     jp  (hl)

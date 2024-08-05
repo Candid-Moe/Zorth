@@ -6,6 +6,7 @@
 defgroup {
     colon_sys = 1,
     do_sys,
+    leave_sys
 }
 
 defc TRUE  = -1
@@ -37,6 +38,12 @@ err_mode_comp:      counted_string "Error. Already in compilation mode"
 err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
 err_unstructed:     counted_string "Error. Unstructed: "
 
+;------ Forth Leave Stack ------
+;
+        defs 128
+_LEAVE_STACK:
+_L_GUARD:   dw 0x5050
+_IX_LEAVE:  dw _LEAVE_STACK
 ;------ Forth Control Stack -----
 ;   This stack is indexed by YX
 ;

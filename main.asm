@@ -8,6 +8,8 @@ init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
     ld      IY, _CONTROL_STACK
+    ld      hl, _LEAVE_STACK
+    ld      (_IX_LEAVE), hl
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -526,37 +528,10 @@ _code_dot_hex:
 _code_dot_print:
     fcall code_count
     fcall code_type
+    fcall code_space
     
     fret 
     
-    pop de
-
-    ld  hl, _PAD
-    inc hl          ; Reserve a byte for the count
-
-    call itoa_16
-    ;  hl was changed by itoa_16, back 1 byte
-    ld  de, hl
-    dec de          ; DE -> count byte
-
-    ld  bc, 0
-    ld  a, 0
-
-_code_dot_count:    
-
-    cpir
-    sub  a, c       ; Made count in c positive
-    inc  a          ; Add 1 for the trailing space
-    ld   (de), a    ; Store count 
-    ld   (hl), ' '  ; Add a strailing space
-
-    push de        
-
-    fcall code_count
-    fcall code_type
-
-    fret
-
 code_type:
 ;
 ;   Implements TYPE

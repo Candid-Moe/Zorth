@@ -40,6 +40,22 @@ macro ld_hl_de
 endm
 
 
+macro leave_push
+    push iy
+    ld   iy, (_IX_LEAVE)
+    ctrl_push
+    ld   (_IX_LEAVE), iy
+    pop  iy
+endm
+
+macro leave_pop
+    push iy
+    ld   iy, (_IX_LEAVE)
+    ctrl_pop
+    ld  (_IX_LEAVE), iy
+    pop iy
+endm
+
 ;   
 ;   ctrl_push: push HL in the Control Stack    
 ;
