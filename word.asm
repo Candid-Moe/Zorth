@@ -176,6 +176,8 @@ code_parse:
     ld      a,  (hl)        ; String total length
     sub     c
     dec     a               ; Count the white space just skipped
+    jr      z, _code_parse_eol:
+
     ld      c, a
     ld      b, 0            ; BC = # chars left
     
@@ -205,3 +207,14 @@ code_parse:
     
     fret
 
+_code_parse_eol:
+
+    ;   Char not found
+    ld  hl, _gtIN
+    inc (hl)
+
+    ld  hl, 0
+    push hl
+    push hl
+
+    fret

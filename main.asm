@@ -138,9 +138,7 @@ _repl_failed:
     ld hl,  _PAD
     push hl
     fcall print_line
-    ld hl, new_line
-    push hl
-    fcall print_line
+    fcall code_cr
     
     ;   Discard rest of line and start again
     fcall   code_backslash

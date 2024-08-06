@@ -1,3 +1,6 @@
+\
+\	Forth
+\
 : 1+ 1 + ;
 : 1- 1 - ;
 : decimal 10 base ! ; 
@@ -55,8 +58,5 @@
 : u< - 0< ;
 : u> - 0> ;
 : c" s" ; immediate
-\
-\	Forth
-\
 
 
