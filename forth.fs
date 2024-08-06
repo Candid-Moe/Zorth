@@ -7,9 +7,10 @@
 : bl 32 ;                \ ( -- 0x20 )
 : hex 16 base ! ; 
 : 0= $0000 or  if false else true then ;
-: 0< $8000 and if true else false then ;
-: 0> 0= if false else 0< if false else true then then ; \ ( n -- flag ) if n > 0
 : 0<> 0= invert ;
+: ?dup dup 0<> if dup then ;
+: 0< $8000 and if true else false then ;
+: 0> ?dup 0= if false else 0< if false else true then then ; \ ( n -- flag ) if n > 0
 : > - 0> ;
 : < - 0< ;
 : <> - 0<> ;
@@ -24,7 +25,6 @@
 : 2>r swap >r >r ;       \ ( x1 x2 -- ) ( R: -- x1 x2 ) 
 : 2r> r> r> swap ;       \ ( -- x1 x2 ) ( R: x1 x2 -- ) 
 : 2r@ r> r> 2dup >r >r swap ; \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
-: ?dup dup 0<> if dup then ;
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
 : cells 2 * ;            \ ( n1 -- n2 )
@@ -57,6 +57,6 @@
 : u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
 : u< - 0< ;
 : u> - 0> ;
-: c" s" ; immediate
+: .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 
 

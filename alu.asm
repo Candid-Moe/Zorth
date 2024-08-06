@@ -69,12 +69,35 @@ code_or:
 
     ld  a, c
     or  e
+    ld  c, a
+
+    push bc
+
+    jp (hl)
+
+code_xor:
+;
+;   Implements XOR
+;   ( x1 x2 -- x3 )
+;
+;   x3 is the bit-by-bit exclusive-or of x1 with x2. 
+;
+    pop bc
+    pop de
+
+    ld  a, b
+    xor  d
+    ld  b, a
+
+    ld  a, c
+    xor  e
     ld  a, c
 
     push bc
 
     jp (hl)
 
+    
 code_and:
 ;
 ;   Implements AND

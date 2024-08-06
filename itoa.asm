@@ -7,7 +7,7 @@
 itoa:
 ;
 ;   Convert signed value to ASCII.
-;   ( n -- )
+;   ( n -- c-addr )
 ;
 ;   Result in PAD
 ;

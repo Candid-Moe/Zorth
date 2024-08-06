@@ -934,6 +934,8 @@ dict_init:
     mdict_add st_two_slash, code_two_slash
     mdict_add st_slash_mod, code_slash_mod
     mdict_add st_u_m_star,  code_u_m_star
+    mdict_add st_itoa,      itoa
+    mdict_add st_xor,       code_xor
 
     fret
 
@@ -1013,3 +1015,5 @@ st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"
 st_slash_mod:   counted_string "/mod"
 st_u_m_star:    counted_string "um*"
+st_itoa:        counted_string "itoa"
+st_xor:         counted_string "xor"
