@@ -1,7 +1,3 @@
-\
-\	Forth
-\
-
 : 1+ 1 + ;
 : 1- 1 - ;
 : decimal 10 base ! ; 
@@ -21,11 +17,18 @@
 : rot >r swap r> swap ;  \ ( x1 x2 x3 -- x2 x3 x1 ) 
 : 2swap >r rot r> rot ;  \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
 : 2dup over over ;
+: 2drop drop drop ;
+: 2>r swap >r >r ;       \ ( x1 x2 -- ) ( R: -- x1 x2 ) 
+: 2r> r> r> swap ;       \ ( -- x1 x2 ) ( R: x1 x2 -- ) 
+: 2r@ r> r> 2dup >r >r swap ; \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
 : ?dup dup 0<> if dup then ;
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
 : cells 2 * ;            \ ( n1 -- n2 )
 : cell+ 2 + ;
+: 2@ dup cell+ @ swap @ ;   \ ( a-addr -- x1 x2 ) 
+: 2! swap over ! cell+ ! ;  \ ( x1 x2 a-addr -- ) 
+: 2* 1 lshift ;
 : , here ! 1 cells allot ; 
 : +! dup >r @ + r> ! ;
 : abs dup 0< if negate then ;
@@ -34,9 +37,12 @@
 : buffer create allot ;
 : char bl word 1 + c@ ; immediate
 : c, here c! 1 allot ; immediate
+: fill rot rot 0 do 2dup ! 1 + loop ; \ ( c-addr u char -- ) 
+: erase 0 fill ;
 : compile, , 1 cells allot ; immediate
 : constant create , does> @ ;
 : variable align here 0 , constant ;
+: value constant ;
 : [char] postpone char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
@@ -45,5 +51,12 @@
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
 : spaces 0 do space loop ;
-: fac 11 2 do i . i 5 = if leave then loop 42 ;
+: u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
+: u< - 0< ;
+: u> - 0> ;
+: c" s" ; immediate
+\
+\	Forth
+\
+
 

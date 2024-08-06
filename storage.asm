@@ -18,7 +18,7 @@ space:      counted_string ' '
 words:      counted_string "words:\n"
 boot_file:  counted_string "forth.fs\000"
 
-_STATE:     dw   TRUE       ; True in compilation state, false otherwise
+_STATE:     dw   FALSE      ; True in compilation state, false otherwise
 _BASE:      dw   10
 _SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
 _gTIB:      db   0          ; #TIB, len of string in _TIB

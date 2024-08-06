@@ -63,7 +63,7 @@ _repl_words:
     push    hl              ; xt
     ld      a, (_STATE)
     cp      FALSE
-    jz      _repl_execute
+    jr      z, _repl_execute
     
     ;   check for immediate words (always be executed)
     ld      de, hl          ; xt 

@@ -169,9 +169,29 @@ code_star:
     call multiply16
 
     push de
-    push hl
 
 	fret
+
+code_u_m_star:
+;
+;   Implements UM* 
+;
+;   ( u1 u2 -- ud )
+;
+;   Multiply u1 by u2, giving the unsigned double-cell product ud. 
+;   All values and arithmetic are unsigned. 
+;
+    fenter 
+
+    pop bc
+    pop de
+
+    call multiply16
+
+    push hl
+    push de
+
+    fret
 
 code_slash:
 ;
@@ -196,6 +216,29 @@ code_slash:
     push bc
 
     fret
+
+code_slash_mod:
+;
+;   Implements /mod
+;   ( n1 n2 -- n3 n4 )
+;
+;   Divide n1 by n2, giving the single-cell remainder n3 and the single-cell quotient n4.
+;   An ambiguous condition exists if n2 is zero. If n1 and n2 differ in sign, the
+;   implementation-defined result returned will be the same as that returned by either
+;   the phrase >R S>D R> FM/MOD or the phrase >R S>D R> SM/REM. 
+
+    fenter
+
+    pop de
+    pop bc
+
+    call divide16
+
+    push hl
+    push bc
+
+    fret
+
 
 code_f_m_slash_mod:
 ;
@@ -341,6 +384,25 @@ _code_lshift_end:
     push hl
     ld   hl, de
     jp  (hl)
+
+code_two_slash:
+;
+;   Implements 2/
+;   ( x1 -- x2 )
+;
+;   x2 is the result of shifting x1 one bit toward the least-significant bit,
+;   leaving the most-significant bit unchanged. 
+;
+
+    pop     bc
+    ld      a, c
+    sra     b
+    rra     
+    ld      c, a
+    push    bc
+
+    jp  (hl)
+
 
 multiply_by_10:
 ;   ( n -- n * 10 )

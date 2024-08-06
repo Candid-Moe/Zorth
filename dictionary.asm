@@ -931,6 +931,10 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_leave), hl
 
+    mdict_add st_two_slash, code_two_slash
+    mdict_add st_slash_mod, code_slash_mod
+    mdict_add st_u_m_star,  code_u_m_star
+
     fret
 
 st_address:     counted_string "address"
@@ -1006,3 +1010,6 @@ st_do:          counted_string "do"
 st_loop:        counted_string "loop"
 st_i:           counted_string "i"
 st_leave:       counted_string "leave"
+st_two_slash:   counted_string "2/"
+st_slash_mod:   counted_string "/mod"
+st_u_m_star:    counted_string "um*"
