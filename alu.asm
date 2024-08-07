@@ -191,7 +191,7 @@ code_star:
 
     call multiply16
 
-    push de
+    push hl
 
 	fret
 

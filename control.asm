@@ -572,14 +572,9 @@ code_leave:
 _code_leave_exec:
 
     ;   Discard control parameters in return stack
-
-    fcall   code_r_from
-    fcall   code_r_from
-    pop     hl
-    pop     hl
+    fcall   code_unloop
 
     ;   Jump outside
-
     ctrl_pop
     ld      bc, (hl)
     ld      hl, bc
@@ -587,3 +582,47 @@ _code_leave_exec:
 
     pop hl
     jp  (hl)
+
+code_unloop:
+;
+;   Implements UNLOOP
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- ) ( R: loop-sys -- )
+;
+;   Discard the loop-control parameters for the current nesting level. 
+;   An UNLOOP is required for each nesting level before the definition may be EXITed. 
+;   An ambiguous condition exists if the loop-control parameters are unavailable.
+;
+    push    hl
+
+    fcall   code_r_from
+    fcall   code_r_from
+    pop     hl
+    pop     hl
+
+    pop     hl
+    jp      (hl)
+
+code_exit:
+;
+;   Implements EXIT
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- ) ( R: nest-sys -- )
+;
+;   Return control to the calling definition specified by nest-sys. 
+;   Before executing EXIT within a do-loop, a program shall discard the 
+;   loop-control parameters by executing UNLOOP. 
+;
+
+    fcall   code_r_from
+    pop hl
+    jp  (hl)
+

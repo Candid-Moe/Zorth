@@ -149,6 +149,22 @@ code_gtib:
     push    bc
     jp      (hl)
 
+code_source:
+;
+;   Implements SOURCE
+;   ( -- c-addr u )
+;
+;   c-addr is the address of, and u is the number of characters in, the input buffer. 
+;
+    ld      bc, (TIB)
+    push    bc
+    ld      b, 0
+    ld      a, (_gtIN)
+    ld      c, a
+    push    bc
+
+    jp      (hl)
+
 code_parse:
 ;
 ;   Implements PARSE 

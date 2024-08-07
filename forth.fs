@@ -58,5 +58,6 @@
 : u< - 0< ;
 : u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
-
+\ : exit 0 , ; immediate
+: xy 11 1 do i . i 5 = if unloop exit then loop ;
 

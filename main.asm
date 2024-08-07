@@ -631,7 +631,7 @@ code_pad:
     ld      bc, _PAD
     push    bc
 
-    fret
+    jp  (hl)
 
 code_count:
 ;
