@@ -939,6 +939,7 @@ dict_init:
     mdict_add st_source,    code_source
     mdict_add st_unloop,    code_unloop
     mdict_add st_exit,      code_exit
+    mdict_add st_j,         code_j
 
     fret
 
@@ -1023,3 +1024,4 @@ st_xor:         counted_string "xor"
 st_source:      counted_string "source"
 st_unloop:      counted_string "unloop"
 st_exit:        counted_string "exit"
+st_j:           counted_string "j"

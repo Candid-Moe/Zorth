@@ -49,6 +49,7 @@
 : [char] postpone char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
+: ." [char] " parse does> type ; immediate
 : lit ( -- x ) ( R: addr1 -- addr2 ) r> dup cell+ >r @ ;
 : lit, ( x -- ) postpone literal ;
 : ] true  state ! ; immediate
@@ -58,6 +59,6 @@
 : u< - 0< ;
 : u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
-\ : exit 0 , ; immediate
+: >body 6 + ;
 : xy 11 1 do i . i 5 = if unloop exit then loop ;
 

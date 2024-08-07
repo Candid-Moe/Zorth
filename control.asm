@@ -533,6 +533,26 @@ code_i:
 
     jp  (hl)
 
+code_j:
+;
+;   Implements J 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- n | u ) ( R: loop-sys1 loop-sys2 -- loop-sys1 loop-sys2 )
+;
+;   n | u is a copy of the next-outer loop index. 
+;   An ambiguous condition exists if the loop control parameters of the next-outer loop, 
+;   loop-sys1, are unavailable. 
+;
+    ld      c, (ix+4)
+    ld      b, (ix+5)
+    push    bc
+
+    jp  (hl)
+
 xt_leave:    dw  0
 code_leave:
 ;
