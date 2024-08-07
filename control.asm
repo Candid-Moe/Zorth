@@ -626,23 +626,3 @@ code_unloop:
 
     pop     hl
     jp      (hl)
-
-code_exit:
-;
-;   Implements EXIT
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Execution:
-;   ( -- ) ( R: nest-sys -- )
-;
-;   Return control to the calling definition specified by nest-sys. 
-;   Before executing EXIT within a do-loop, a program shall discard the 
-;   loop-control parameters by executing UNLOOP. 
-;
-
-    fcall   code_r_from
-    pop hl
-    jp  (hl)
-

@@ -789,6 +789,17 @@ _code_postpone_error:
 
     jp  _code_mode_error
 
+code_dict:
+;
+;   Implements DICT
+;   ( -- addr )
+;
+;   Return address of dictionary head
+;
+    ld      bc, _DICT
+    push    bc
+    jp      (hl)
+
 macro mdict_add st, code
     ld hl, code
     push hl
@@ -938,8 +949,9 @@ dict_init:
     mdict_add st_xor,       code_xor
     mdict_add st_source,    code_source
     mdict_add st_unloop,    code_unloop
-    mdict_add st_exit,      code_exit
     mdict_add st_j,         code_j
+    mdict_add st_execute,   code_execute
+    mdict_add st_dict,      code_dict
 
     fret
 
@@ -1023,5 +1035,6 @@ st_itoa:        counted_string "itoa"
 st_xor:         counted_string "xor"
 st_source:      counted_string "source"
 st_unloop:      counted_string "unloop"
-st_exit:        counted_string "exit"
 st_j:           counted_string "j"
+st_execute:     counted_string "execute"
+st_dict:        counted_string "dict"

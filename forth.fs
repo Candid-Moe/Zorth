@@ -42,7 +42,7 @@
 : c, here c! 1 allot ; immediate
 : fill rot rot 0 do 2dup ! 1 + loop ; \ ( c-addr u char -- ) 
 : erase 0 fill ;
-: compile, , 1 cells allot ; immediate
+: compile, , ; immediate
 : constant create , does> @ ;
 : variable align here 0 , constant ;
 : value constant ;
@@ -59,6 +59,15 @@
 : u< - 0< ;
 : u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
+: exit 0 , ; immediate
 : >body 6 + ;
-: xy 11 1 do i . i 5 = if unloop exit then loop ;
+: ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
+: defer ( "name" -- ) create postpone abort , does> ( ... -- ... ) @ execute ;
+: defer@ ( xt1 -- xt2 ) >body @ ;
+: defer! ( xt2 xt1 -- ) >body ! ;
+\ : within ( test low high -- flag ) over - >r - r> u< ;
+: within ( test low high -- flag ) over - rot rot - u> ;
+: marker dict @ @ create , does> dict ! ; 
+marker x
+
 
