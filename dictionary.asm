@@ -74,9 +74,9 @@ code_create:
     fcall   code_swap   ; ( -- code_addr name_addr )
 
     fcall   dict_add
-    ld  hl, 0
-    push hl
-    fcall   add_cell
+;    ld  hl, 0
+;    push hl
+;    fcall   add_cell
 
     ;   Make it a colon definition
 
@@ -542,7 +542,7 @@ _dict_search_cycle:
 
     ;   Test list end. HL -> entry
     ld  a, h
-    or  a, l
+    or  l
     jr  z, _dict_search_not_found
 
     ;   Duplicate word address

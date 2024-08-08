@@ -442,11 +442,30 @@ code_backslash:
 ;
     fenter
 
+    ;   Get next char in input area
+    ld      a, (_gtIN)
+    ld      d, 0
+    ld      e, a
+    ld      hl, (TIB)
+    add     hl, de
+
+    ld      a, (hl)
+    cp      '\n'    
+    jr      z, _code_backslash_end
+
+    ;   If not '\n', search for it.
+    ;   Note: code_parse start searching one char past next one,
+    ;   on the assumptions that's a white space (true) and not
+    ;   relevante (false). 
+    ;   TODO: correct this mess
+        
     ld      hl, '\n'
     push    hl
     fcall   code_parse
     pop     hl
     pop     hl
+
+_code_backslash_end:
 
     fret 
 

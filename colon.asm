@@ -55,8 +55,8 @@ code_colon:
     ld  hl, (_DP)
     dec hl
     dec hl
-    dec hl
-    dec hl
+;    dec hl
+;    dec hl
     ld (_DP), hl
 
 _colon_end:
@@ -144,19 +144,15 @@ code_semmicolon:
     ld  e, a
 
     ;   Count the cells     
+
     pop hl
     ld  (hl), e ; # words
 
     ;   Mark the colon definition end with a 0
 
-    ld  hl, (_DP)
-    ld  (hl), 0
-    inc hl
-    ld  (hl), 0
-    inc hl
-    
-    ld  (_DP), hl
-        
+    ld  hl, 0
+    push hl
+    fcall   add_cell
     
     fret
 

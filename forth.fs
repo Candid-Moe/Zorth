@@ -67,7 +67,6 @@
 : defer! ( xt2 xt1 -- ) >body ! ;
 \ : within ( test low high -- flag ) over - >r - r> u< ;
 : within ( test low high -- flag ) over - rot rot - u> ;
-: marker dict @ @ create , does> dict ! ; 
-marker x
+: marker dict @ @ create , ; \ does>  @  dict ! ; 
 
 
