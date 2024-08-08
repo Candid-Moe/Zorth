@@ -49,7 +49,6 @@
 : [char] postpone char postpone literal ; immediate
 : ( [char] ) parse drop drop ; immediate
 : .( [char] ) parse type ; immediate
-: ." [char] " parse does> type ; immediate
 : lit ( -- x ) ( R: addr1 -- addr2 ) r> dup cell+ >r @ ;
 : lit, ( x -- ) postpone literal ;
 : ] true  state ! ; immediate
@@ -62,11 +61,14 @@
 : exit 0 , ; immediate
 : >body 6 + ;
 : ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
+: .¨ postpone s" ['] type postpone , ; immediate
 : defer ( "name" -- ) create postpone abort , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
-\ : within ( test low high -- flag ) over - >r - r> u< ;
 : within ( test low high -- flag ) over - rot rot - u> ;
 : marker dict @ @ create , ; \ does>  @  dict ! ; 
-
+: recurse dict @ , ; immediate
+: fac ( +n1 -- +n2)
+   dup 2 < if drop 1 exit then
+   dup 1- recurse * ;
 

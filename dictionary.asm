@@ -952,6 +952,7 @@ dict_init:
     mdict_add st_j,         code_j
     mdict_add st_execute,   code_execute
     mdict_add st_dict,      code_dict
+    mdict_add st_move,      code_move
 
     fret
 
@@ -1038,3 +1039,4 @@ st_unloop:      counted_string "unloop"
 st_j:           counted_string "j"
 st_execute:     counted_string "execute"
 st_dict:        counted_string "dict"
+st_move:        counted_string "move"
