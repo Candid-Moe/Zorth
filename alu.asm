@@ -354,14 +354,12 @@ code_rshift:
 
 _code_rshift_cycle:
 
+    srl  h  ;   Shift high byte by 1
+    
     ld  a, l    ;   Shift low byte by 1
-    sra a
+    rra 
     ld  l, a
 
-    ld  a, h    ;   Shift high byte by 1
-    rr  a
-    ld  h, a
-    
     djnz _code_rshift_cycle
 
 _code_rshift_end:

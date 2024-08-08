@@ -3,6 +3,7 @@
 \
 : 1+ 1 + ;
 : 1- 1 - ;
+: m* * ;
 : decimal 10 base ! ; 
 : bl 32 ;                \ ( -- 0x20 )
 : hex 16 base ! ; 
@@ -66,9 +67,23 @@
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
 : within ( test low high -- flag ) over - rot rot - u> ;
-: marker dict @ @ create , ; \ does>  @  dict ! ; 
+: marker dict @  dict create , , does> . . ; 
 : recurse dict @ , ; immediate
 : fac ( +n1 -- +n2)
    dup 2 < if drop 1 exit then
    dup 1- recurse * ;
-
+: collentz ( u -- )
+    begin
+        dup u.
+        dup 1 = 
+            if 
+                drop exit 
+            then
+        dup 1 and 
+            if
+                3 * 1 +
+            else
+                1 rshift
+            then
+    again ;
+        
