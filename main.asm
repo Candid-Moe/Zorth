@@ -819,4 +819,34 @@ _code_mode_error:
     
     fret
 
+code_ioctl:
+;
+;   Implements IOCTL
+;   ( device_number command_number param -- )
+;
+;    
+    fenter
 
+    pop de
+    pop bc
+    pop hl
+    ld  h, l
+    IOCTL
+
+    fret
+
+code_ioctl_set_xy:
+;
+;   Implements IOCTL_SET_XY
+;   ( x y -- )
+;
+    fenter
+
+    pop     bc
+    ld  e, c
+    pop     bc
+    ld  d, c
+
+    fcall   code_ioctl
+
+    fret

@@ -38,12 +38,12 @@
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
 : min 2dup < if drop else swap drop then ;
-: buffer create allot ;
 : char bl word 1 + c@ ; immediate
 : c, here c! 1 allot ; immediate
 : fill rot rot 0 do 2dup ! 1 + loop ; \ ( c-addr u char -- ) 
 : erase 0 fill ;
 : compile, , ; immediate
+: buffer:  create allot ;
 : constant create , does> @ ;
 : variable align here 0 , constant ;
 : value constant ;
@@ -86,4 +86,7 @@
                 1 rshift
             then
     again ;
-        
+: abort" postpone s" if type then ;      
+: ioctl_clear 0 6 0 ioctl ; 
+\ : ioctl_get_xy 0 2 2 buffer: a drop dup >r ioctl r> dup c@ swap 1 + c@ ;
+

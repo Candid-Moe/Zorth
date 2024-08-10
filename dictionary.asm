@@ -953,6 +953,8 @@ dict_init:
     mdict_add st_execute,   code_execute
     mdict_add st_dict,      code_dict
     mdict_add st_move,      code_move
+    mdict_add st_ioctl,     code_ioctl
+    mdict_add st_ioctl_set_xy, code_ioctl_set_xy
 
     fret
 
@@ -1040,3 +1042,5 @@ st_j:           counted_string "j"
 st_execute:     counted_string "execute"
 st_dict:        counted_string "dict"
 st_move:        counted_string "move"
+st_ioctl:       counted_string "ioctl"
+st_ioctl_set_xy: counted_string "ioctl_set_xy"
