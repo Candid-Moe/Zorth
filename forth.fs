@@ -60,7 +60,7 @@
 : u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit 0 , ; immediate
-: >body 8 + ;
+: >body 10 + ;
 : ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
 : .¨ postpone s" ['] type postpone , ; immediate
 : defer ( "name" -- ) create postpone abort , does> ( ... -- ... ) @ execute ;
@@ -69,6 +69,8 @@
 : within ( test low high -- flag ) over - rot rot - u> ;
 : marker dict @  dict create , , does> . . ; 
 : recurse dict @ , ; immediate
+: value constant ;
+: to ' >body ! ; 
 : fac ( +n1 -- +n2)
    dup 2 < if drop 1 exit then
    dup 1- recurse * ;
