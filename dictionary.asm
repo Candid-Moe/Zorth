@@ -9,7 +9,7 @@
 ;   - address next entry (word)
 ;   - # words (byte)
 ;   - flags (byte)
-;   - address of name
+;   - name address 
 ;   - Code Address (for code words) or List of XT (colon definition)
 ;
 ;   Flags:
@@ -69,20 +69,23 @@ code_create:
     ;   Add to dictionary
 
     ;   Args for dict_add
-    ld      de, (xt_address)
+    ;   We need cells for address/does> ops
+    ld      de, (xt_nop)
     push    de          ; ( -- name_addr code_addr )
     fcall   code_swap   ; ( -- code_addr name_addr )
-
     fcall   dict_add
-;    ld  hl, 0
-;    push hl
-;    fcall   add_cell
+    
+    ld      hl, (xt_address)
+    push    hl
+    fcall   add_cell    ; 
 
     ;   Make it a colon definition
 
     ld  hl, (_DICT)
     inc hl
     inc hl      ; # words
+    ld  a, 2
+    ld (hl), a
     inc hl      ; flag
 
     ld  a, (hl)
@@ -145,30 +148,53 @@ code_does:
  
     fenter
 
-    ld  hl, (_DP)
-    ld  bc, (xt_jp)
-    ld  (hl), bc        ; Add jump 
+    ;
+    ;   Replace old default instruction from create
+    ;   with does>
+    ;
 
-    inc hl
-    inc hl              ; Advance next free cell
-    ld  (_DP), hl
+    ld  hl, (_DICT)
+    inc hl  
+    inc hl  ; # words
+    inc hl  ; flags
+    inc hl  ; name
+    inc hl  
+    inc hl  ; code
+   
+    ld  de, (xt_does)   ; Reeplace old code with DOES>
+    ld  (hl), de
     
-    ctrl_pop            ; The address of cell after DOES>
-    ex  hl, de          ; DE = address
-
-    ld  hl, (_DP)    
-    ld (hl), de         
     inc hl
     inc hl
+    ld  de, hl
 
-    ld  (_DP), hl    
-
-    inc de
-    inc de
+    ctrl_pop
     ex  hl, de
+    ld  (hl), de        ; Save address where does> start
+    ld hl, _EXIT        ; Terminate word execution
+
     ctrl_push
-                
+                   
     fret       
+
+xt_does: dw 0
+_does_exec:
+
+    fenter
+
+    ;   First, put next address into the stack
+    ctrl_pop
+    ld  de, (hl)        ; @does>
+
+    inc     hl
+    inc     hl
+    push    hl          ; >BODY
+    ;
+
+    ld  hl, de
+    ctrl_push
+    ;       
+    fret
 
 code_immediate:
 ;
@@ -299,15 +325,16 @@ dict_delete_last:
 xt_address: dw 0
 code_address:
 ;
+;   Push next cell address to the stack
 ;   Change ctrl stack to skip over the next cell
 ;
     fenter
 
     ctrl_pop        ; ctrl stack contain next cell address.
-    push hl     
 
-    inc hl
-    inc hl
+    inc  hl
+    inc  hl         ; 
+
     ctrl_push       ; skip over the cell
 
     fret
@@ -920,7 +947,12 @@ dict_init:
     mdict_add st_abort,     code_abort
     mdict_add st_quit,      code_quit
     mdict_add st_parse,     code_parse
+    mdict_add st_does,      _does_exec
+    ld hl, (_DICT)
+    ld (xt_does), hl
     mdict_add st_does,      code_does
+    
+
     mdict_add st_state,     code_state
 
     mdict_add st_do,        code_do

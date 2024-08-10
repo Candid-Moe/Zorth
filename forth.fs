@@ -60,7 +60,7 @@
 : u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit 0 , ; immediate
-: >body 6 + ;
+: >body 8 + ;
 : ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
 : .¨ postpone s" ['] type postpone , ; immediate
 : defer ( "name" -- ) create postpone abort , does> ( ... -- ... ) @ execute ;
@@ -87,6 +87,5 @@
             then
     again ;
 : abort" postpone s" if type then ;      
-: ioctl_clear 0 6 0 ioctl ; 
-\ : ioctl_get_xy 0 2 2 buffer: a drop dup >r ioctl r> dup c@ swap 1 + c@ ;
+: clear 0 6 0 ioctl ;                   \ Screen clear
 
