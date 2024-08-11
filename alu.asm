@@ -216,40 +216,11 @@ code_u_m_star:
 
     fret
 
-code_slash:
+code_divide:
 ;
-;   Implements /
-;   ( n1 n2 -- n3 )
+;   
+;   ( n1 n2 -- remainder quocient )
 ;
-;   Divide n1 by n2, giving the single-cell quotient n3. 
-;   An ambiguous condition exists if n2 is zero. 
-;   If n1 and n2 differ in sign, the implementation-defined result 
-;   returned will be the same as that returned by either the phrase 
-;       >R S>D R> FM/MOD SWAP DROP 
-;   or the phrase 
-;       >R S>D R> SM/REM SWAP DROP. 
-;
-    fenter
-
-    pop de
-    pop bc
-
-    call divide16
-
-    push bc
-
-    fret
-
-code_slash_mod:
-;
-;   Implements /mod
-;   ( n1 n2 -- n3 n4 )
-;
-;   Divide n1 by n2, giving the single-cell remainder n3 and the single-cell quotient n4.
-;   An ambiguous condition exists if n2 is zero. If n1 and n2 differ in sign, the
-;   implementation-defined result returned will be the same as that returned by either
-;   the phrase >R S>D R> FM/MOD or the phrase >R S>D R> SM/REM. 
-
     fenter
 
     pop de
@@ -261,7 +232,6 @@ code_slash_mod:
     push bc
 
     fret
-
 
 code_f_m_slash_mod:
 ;
@@ -273,16 +243,25 @@ code_f_m_slash_mod:
 ;   An ambiguous condition exists if n1 is zero or if the quotient lies 
 ;   outside the range of a single-cell signed integer. 
 ;
+
     fenter
 
-    pop de
+
     pop bc
+    pop hl
+    pop de
 
-    call divide16
+    push ix
+    ld ix, de
 
-    push hl
-    push bc
+    call div32_16
 
+    pop  bc
+    push de
+    push ix
+
+    ld ix, bc
+    
     fret
 
 code_dup:

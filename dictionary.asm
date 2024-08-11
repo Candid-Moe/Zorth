@@ -886,7 +886,8 @@ dict_init:
     mdict_add st_plus,      code_plus
     mdict_add st_minus,     code_minus
     mdict_add st_star,      code_star
-    mdict_add st_slash,     code_slash
+;    mdict_add st_slash,     code_slash
+    mdict_add st_divide,    code_divide
     mdict_add st_rshift,    code_rshift
     mdict_add st_lshift,    code_lshift
     mdict_add st_swap,      code_swap
@@ -975,7 +976,7 @@ dict_init:
     ld  (xt_leave), hl
 
     mdict_add st_two_slash, code_two_slash
-    mdict_add st_slash_mod, code_slash_mod
+;    mdict_add st_slash_mod, code_slash_mod
     mdict_add st_u_m_star,  code_u_m_star
     mdict_add st_itoa,      itoa
     mdict_add st_xor,       code_xor
@@ -987,6 +988,8 @@ dict_init:
     mdict_add st_move,      code_move
     mdict_add st_ioctl,     code_ioctl
     mdict_add st_ioctl_set_xy, code_ioctl_set_xy
+    mdict_add st_ctrl_pop,  code_ctrl_pop
+    mdict_add st_ctrl_push, code_ctrl_push
 
     fret
 
@@ -1076,3 +1079,6 @@ st_dict:        counted_string "dict"
 st_move:        counted_string "move"
 st_ioctl:       counted_string "ioctl"
 st_ioctl_set_xy: counted_string "ioctl_set_xy"
+st_ctrl_push:   counted_string ">ctrl"
+st_ctrl_pop:    counted_string "ctrl>"
+st_divide:      counted_string "divide"

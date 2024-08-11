@@ -35,6 +35,7 @@
 : 2* 1 lshift ;
 : , here ! 1 cells allot ; 
 : +! dup >r @ + r> ! ;
+: s>d 0 ;
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
 : min 2dup < if drop else swap drop then ;
@@ -55,6 +56,21 @@
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
 : spaces 0 do space loop ;
+: /mod dup >r
+       dup $8000 and >r abs swap 
+       dup $8000 and >r abs swap 
+       divide r> r>  
+       <> if 
+            1+ negate swap r> swap - swap 
+        else 
+            r> 
+            drop
+        then ;
+: / dup $8000 and >r abs swap 
+    dup $8000 and >r abs swap 
+    divide swap drop r> r>  
+    <> if negate then ;
+
 : u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
 : u< - 0< ;
 : u> - 0> ;
@@ -62,8 +78,8 @@
 : exit 0 , ; immediate
 : >body 10 + ;
 : ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
-: .¨ postpone s" ['] type postpone , ; immediate
-: defer ( "name" -- ) create postpone abort , does> ( ... -- ... ) @ execute ;
+: ." postpone s" ['] type postpone , ; immediate
+: defer ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
 : within ( test low high -- flag ) over - rot rot - u> ;
@@ -71,6 +87,12 @@
 : recurse dict @ , ; immediate
 : value constant ;
 : to ' >body ! ; 
+: is
+   state @ if
+     postpone ['] postpone defer!
+   else
+     ' defer!
+   then ; immediate
 : fac ( +n1 -- +n2)
    dup 2 < if drop 1 exit then
    dup 1- recurse * ;
@@ -90,4 +112,5 @@
     again ;
 : abort" postpone s" if type then ;      
 : clear 0 6 0 ioctl ;                   \ Screen clear
+: unused $FFFF here - ;
 

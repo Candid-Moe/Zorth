@@ -10,6 +10,8 @@ init:
     ld      IY, _CONTROL_STACK
     ld      hl, _LEAVE_STACK
     ld      (_IX_LEAVE), hl
+
+    fcall   clear_screen
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -848,5 +850,20 @@ code_ioctl_set_xy:
     ld  d, c
 
     fcall   code_ioctl
+
+    fret
+
+clear_screen:
+
+    fenter
+
+    ld hl, 0
+    push hl
+    ld hl, 6
+    push hl
+    ld hl, 0
+    push hl
+
+    fcall code_ioctl
 
     fret

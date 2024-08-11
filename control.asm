@@ -626,3 +626,75 @@ code_unloop:
 
     pop     hl
     jp      (hl)
+
+code_case:
+;
+;   Implements CASE 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: -- case-sys )
+;
+;   Mark the start of the CASE...OF...ENDOF...ENDCASE structure. 
+;   Append the run-time semantics given below to the current definition.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Continue execution. 
+    
+    fenter
+
+    ld  hl, case_sys
+    ctrl_push
+
+    fret
+
+code_of:
+;
+;   Implements OF
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: -- of-sys )
+;
+;   Put of-sys onto the control flow stack. 
+;   Append the run-time semantics given below to the current definition. 
+;   The semantics are incomplete until resolved by a consumer of of-sys such as ENDOF.
+;
+;   Run-time:
+;   ( x1 x2 -- | x1 )
+;
+;   If the two values on the stack are not equal, discard the top value and continue
+;   execution at the location specified by the consumer of of-sys, e.g., following 
+;   the next ENDOF. Otherwise, discard both values and continue execution in line. 
+;
+
+code_ctrl_push:
+;
+;   Implements >CTRL
+;   ( x -- : C -- x )
+;
+    fenter
+
+    pop hl
+    ctrl_push
+
+    fret
+
+code_ctrl_pop:
+;
+;   Implements CTRL>
+;   ( -- x : C x -- )
+;
+    fenter
+
+    ctrl_pop
+    push hl
+
+    fret
+;    

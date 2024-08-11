@@ -18,6 +18,15 @@ code_execute:
     pop  hl                ; ( @xt -- )
 
     call   _ex_classify    ; HL = @
+    jr     nz, _ex_colon_cycle
+
+    ld bc, (hl)
+    ld (_ex_code_jp + 1), bc
+    ld hl, _ex_end
+
+_ex_code_jp:    
+    jp   0          ; dest. will be overwritten 
+
 
 _ex_colon_cycle:
     ;   Execute a colon word

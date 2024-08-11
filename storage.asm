@@ -6,7 +6,9 @@
 defgroup {
     colon_sys = 1,
     do_sys,
-    leave_sys
+    leave_sys,
+    case_sys,
+    of_sys
 }
 
 defc TRUE  = -1
