@@ -331,11 +331,10 @@ code_address:
     fenter
 
     ctrl_pop        ; ctrl stack contain next cell address.
+    push    hl
 
-    inc  hl
-    inc  hl         ; 
-
-    ctrl_push       ; skip over the cell
+    ld hl, _EXIT
+    ctrl_push       ; and end word
 
     fret
 
@@ -990,6 +989,9 @@ dict_init:
     mdict_add st_ioctl_set_xy, code_ioctl_set_xy
     mdict_add st_ctrl_pop,  code_ctrl_pop
     mdict_add st_ctrl_push, code_ctrl_push
+    mdict_add st_c_quote,   code_c_quote
+    fcall code_immediate
+    mdict_add st_find,      code_find
 
     fret
 
@@ -1082,3 +1084,5 @@ st_ioctl_set_xy: counted_string "ioctl_set_xy"
 st_ctrl_push:   counted_string ">ctrl"
 st_ctrl_pop:    counted_string "ctrl>"
 st_divide:      counted_string "divide"
+st_c_quote:     counted_string "c\""
+st_find:        counted_string "find"

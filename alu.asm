@@ -43,12 +43,15 @@ code_invert:
 ;   Invert all bits of x1, giving its logical inverse x2. 
 ;
     pop bc
+
     ld  a, b
     cpl
     ld  b, a
+
     ld  a, c
     cpl
     ld  c, a
+
     push bc
 
     jp  (hl)
@@ -245,7 +248,6 @@ code_f_m_slash_mod:
 ;
 
     fenter
-
 
     pop bc
     pop hl

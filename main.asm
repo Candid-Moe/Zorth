@@ -56,10 +56,12 @@ _repl_words:
 
     ;   Obtain the execution token for word
     push    hl
-    fcall   get_xt
-    pop     hl      ;     
-    ld      a, h
-    or      a, l        
+    fcall   code_find
+    pop     bc             ; return code
+    pop     hl             ; xt
+
+    ld      a, b
+    or      c        
     jr      z, _repl_failed
 
     push    hl              ; xt
@@ -186,42 +188,64 @@ return:
     inc     ix
     jp      (hl)        ; return via jump
 
-get_xt:
+code_find:
 ;
-;   Get the execution token for the word just readed.
-;   The word can be anything, including numeric values.
-;   
-;   ( c-addr -- xt )
+;   Implements FIND 
+;   ( c-addr -- c-addr 0 | xt 1 | xt -1 )
 ;
-;   c-addr is word as counted-string
-
+;   Find the definition named in the counted string at c-addr. 
+;   If the definition is not found, return c-addr and zero. 
+;   If the definition is found, return its execution token xt. 
+;   If the definition is immediate, also return one (1), otherwise 
+;   also return minus-one (-1). 
+;   For a given string, the values returned by FIND while compiling 
+;   may differ from those returned while not compiling. 
+;
     fenter 
 
-_get_xt_word:
     ;
     ;   Search the entry in the dictionary
     ;
-    ;   If word is not found, return FALSE
+    ;   If word is not found, return c-addr FALSE
     ;
 
+    pop hl
+    push hl
+    push hl
+    fcall code_to_r     ; ( : R -- c-addr )
+
     fcall dict_search
+
     pop hl
     ;   Test error
-    ld a, h
-    or l
-    jr  z, _get_xt_not_word
+    ld  a, h
+    or  l
+    jr  nz, _code_find_found
 
-    ; The xt is the dictionary entry 
-
-    jr  _get_xt_end
-
-_get_xt_not_word:
-
-    ld  hl, 0
-
-_get_xt_end:
-
+    fcall code_r_from   ; Recover string address
+    ld  hl, 0           ; Rturn code
     push hl
+
+    fret 
+
+_code_find_found:
+
+    push    hl  ; xt
+    ld      bc, 3
+    add     hl, bc
+    ld      a, (hl)
+    ld      bc, 1
+    and     BIT_IMMEDIATE
+    jr      z, _code_find_end
+    ld      bc, -1
+
+_code_find_end:
+
+    push    bc  ; return code
+
+    fcall   code_r_from ; Discard string address
+    pop     de
+
     fret
 
 code_bye:
@@ -333,6 +357,82 @@ _code_search_not_found:
 
     fret
 
+code_c_quote:
+;
+;   Implements C" 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( "ccc<quote>" -- )
+;
+;   Parse ccc delimited by " (double-quote) and append the run-time semantics
+;   given below to the current definition.
+;
+;   Run-time:
+;   ( -- c-addr )
+;
+;   Return c-addr, a counted string consisting of the characters ccc. 
+;   A program shall not alter the returned string. 
+;
+    fenter
+
+    ld      hl, '"'
+    push    hl
+    fcall   code_parse
+
+    ;   Compilation mode
+
+    ;   Put the counted string address in the stack
+
+    ld      hl, (xt_literal)
+    push    hl
+    fcall   add_cell        ; add a load for string address
+
+    ld      hl, (_DP)
+    ld      de, 6
+    add     hl, de
+    push    hl
+    fcall   add_cell        ; string address to load
+
+    ;   Add a jmp over the string
+
+    ld      hl, (xt_jp)
+    push    hl
+    fcall   add_cell        ; jmp
+
+    ld      hl, (_DP)
+    pop     bc
+    push    bc
+    add     hl, bc          ; # chars in string
+    inc     hl              ; one byte for the count byte
+    inc     hl
+    inc     hl              ; two byte for the address
+
+    push    hl
+    fcall   code_aligned    ;
+    fcall   add_cell        ; address
+    
+    ;   Move the text
+    pop     bc              ; length
+    ld      hl, (_DP)       ; 
+    ld      (hl), c         ; count length
+    inc     hl
+    push    hl
+    push    bc
+
+    add     hl, bc          ; Allot the space
+    inc     hl              ; count byte
+    push    hl
+    fcall   code_aligned
+    pop     hl
+    ld      (_DP), hl
+
+    fcall   code_move
+
+    fret
+
 code_s_quote:
 ;
 ;   Implement S" 
@@ -358,6 +458,17 @@ code_s_quote:
     push    hl
     fcall   code_parse
 
+    ld      a, (_STATE)
+    cp      TRUE
+    jp      z, _code_s_quote_comp
+    
+    ;   Interpretation mode
+    
+    fret 
+
+_code_s_quote_comp:
+
+    ;   Compilation mode
     ;   The final string address
     ld      hl, (xt_literal)
     push    hl

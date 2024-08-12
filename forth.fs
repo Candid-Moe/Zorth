@@ -35,7 +35,7 @@
 : 2* 1 lshift ;
 : , here ! 1 cells allot ; 
 : +! dup >r @ + r> ! ;
-: s>d 0 ;
+: s>d dup 0< if -1 else 0 then ;
 : abs dup 0< if negate then ;
 : max 2dup < if swap drop else drop then ;
 : min 2dup < if drop else swap drop then ;
@@ -56,16 +56,16 @@
 : ] true  state ! ; immediate
 : [ false state ! ; immediate
 : spaces 0 do space loop ;
-: /mod dup >r
-       dup $8000 and >r abs swap 
+: /mod 
+       dup $8000 and dup >r >r abs swap 
        dup $8000 and >r abs swap 
        divide r> r>  
        <> if 
-            1+ negate swap r> swap - swap 
-        else 
-            r> 
-            drop
-        then ;
+            1+ negate swap 1+ swap
+          then
+       r> if
+            swap negate swap
+         then ;
 : / dup $8000 and >r abs swap 
     dup $8000 and >r abs swap 
     divide swap drop r> r>  
@@ -82,6 +82,11 @@
 : defer ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
+: action-of state @ if
+        postpone ['] postpone defer@
+    else
+        ' defer@
+    then ; immediate
 : within ( test low high -- flag ) over - rot rot - u> ;
 : marker dict @  dict create , , does> . . ; 
 : recurse dict @ , ; immediate
@@ -93,6 +98,9 @@
    else
      ' defer!
    then ; immediate
+\ : abort" state @ if postpone s" type else ." Interpreting a compile-only word" then ; immediate
+: clear 0 6 0 ioctl ;                   \ Screen clear
+: unused $FFFF here - ;
 : fac ( +n1 -- +n2)
    dup 2 < if drop 1 exit then
    dup 1- recurse * ;
@@ -110,7 +118,9 @@
                 1 rshift
             then
     again ;
-: abort" postpone s" if type then ;      
-: clear 0 6 0 ioctl ;                   \ Screen clear
-: unused $FFFF here - ;
+
+\ 10 7 /mod . .  \ 1 3
+\ 10 -7 /mod . . \ -2 -4
+\ -10 7 /mod . . \ -2 4
+\ -10 -7 /mod . . \ 1 -3
 

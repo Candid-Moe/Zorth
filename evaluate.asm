@@ -17,10 +17,25 @@ code_evaluate:
 ;
     fenter
 
+    ld      a, (_gtIN)
+    ld      b, 0
+    ld      c, a
+    push    bc
+    fcall   code_to_r           ; old >IN to R
+    
+    ld      bc, (gTIB)
+    push    bc
+    fcall   code_to_r           ; old gTIB to R
+
+    ld      bc, (TIB)
+    push    bc
+    fcall   code_to_r           ; old TIB to R
+
     pop     bc                  ; u
     ld      a, c
     ld      (eval_gTIB), a
     ld      bc, eval_gTIB
+
     ld      (gTIB), bc
 
     pop     hl
@@ -31,13 +46,19 @@ code_evaluate:
 
     fcall   inner_interpreter
 
-    ; TODO: Save and retrieve old values
-    ld      hl, _TIB
+    fcall   code_r_from
+    pop     hl
     ld      (TIB), hl
 
-    ld      hl, _gTIB
+    fcall   code_r_from
+    pop     hl
     ld      (gTIB), hl
-        
+
+    fcall   code_r_from
+    pop     hl
+    ld      a, l
+    ld      (_gtIN),a
+
     fret
 
 eval_gTIB:  db 0
