@@ -66,6 +66,7 @@
        r> if
             swap negate swap
          then ;
+: mod /mod drop ;
 : / dup $8000 and >r abs swap 
     dup $8000 and >r abs swap 
     divide swap drop r> r>  
@@ -88,7 +89,7 @@
         ' defer@
     then ; immediate
 : within ( test low high -- flag ) over - rot rot - u> ;
-: marker dict @  dict create , , does> . . ; 
+: marker dict @ create , does> @ dict ! ; 
 : recurse dict @ , ; immediate
 : value constant ;
 : to ' >body ! ; 

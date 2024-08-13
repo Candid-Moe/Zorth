@@ -976,7 +976,7 @@ dict_init:
 
     mdict_add st_two_slash, code_two_slash
 ;    mdict_add st_slash_mod, code_slash_mod
-    mdict_add st_u_m_star,  code_u_m_star
+;    mdict_add st_u_m_star,  code_u_m_star
     mdict_add st_itoa,      itoa
     mdict_add st_xor,       code_xor
     mdict_add st_source,    code_source
