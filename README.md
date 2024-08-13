@@ -1,4 +1,34 @@
-# Zorth
-Forth for the Zeal 8 bit OS.
-![release_v1_1_0](https://github.com/Candid-Moe/Zorth/assets/172752004/81247a80-3fec-4bc8-9d46-d327625a6116)
-The [Zeal 8-bit](http://zeal8bit.com) is a single board Z80 based computer.
+# Zorth: Forth for the Zeal 8-bit OS
+Zorth is a free Forth interpreter written from scratch for the Zeal 8-bit OS. 
+
+![Screenshot at 2024-08-13 06-59-51](https://github.com/user-attachments/assets/dbbb56f1-df31-4f70-884e-5b439821c319)
+
+Currently executed most of the CORE words, plus some extensions.
+
+This repository contains:
+
+- zorth.bin and forth.fs, the two files needed to run Forth.
+- assembler source files if you have interest in it.
+
+## How to run it in the emulator ##
+
+In the emulator, type `cd h:/` and then select your PC directory where you copy the files.
+Now you have access to your PC directory from the emulador.
+In the emulator, type `exec zorth.bin` and voila!
+
+## How to run in the Zeal 8-bit board ##
+
+You have to pack zorth.bin and forth.fs in the romdisk while compiling the operating system, and then upload the image
+
+## How compile source files ##
+
+I use the Z80 Assembler from project [z88dk](https://github.com/z88dk/z88dk). You only need `z80asm` file.
+
+Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
+
+## Pending ##
+
+- Several unsigned arithmetic operations.
+- Most formating/editing words.
+- case, of, endof, endcase.
+- accept, key
