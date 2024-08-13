@@ -23,7 +23,7 @@ boot_file:  counted_string "forth.fs\000"
 _EXIT:      dw   0          ;
 _STATE:     dw   FALSE      ; True in compilation state, false otherwise
 _BASE:      dw   10
-_SOURCE_ID: db   DEV_STDIN  ; 1 = keyboard
+_SOURCE_ID: db   0          ; 0 = keyboard -1 = string
 _gTIB:      db   0          ; #TIB, len of string in _TIB
 _TIB:       defs 80         ; Input line
 gTIB:       dw  _gTIB

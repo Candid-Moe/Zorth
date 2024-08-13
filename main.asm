@@ -248,6 +248,25 @@ _code_find_end:
 
     fret
 
+code_source_id:
+;
+;   Implements SOURCE-ID 
+;   ( -- 0 | -1 )
+;
+;   Identifies the input source as follows:
+;   SOURCE-ID 	Input source
+;   -1 	String (via EVALUATE)
+;    0 	User input device
+;
+    fenter
+
+    ld  a, (_SOURCE_ID)
+    ld  b, 0
+    ld  c, a
+    push bc
+
+    fret
+
 code_bye:
 ;
 ;

@@ -33,6 +33,7 @@
 : 2@ dup cell+ @ swap @ ;   \ ( a-addr -- x1 x2 ) 
 : 2! swap over ! cell+ ! ;  \ ( x1 x2 a-addr -- ) 
 : 2* 1 lshift ;
+: 2over 3 pick 3 pick ;
 : , here ! 1 cells allot ; 
 : +! dup >r @ + r> ! ;
 : s>d dup 0< if -1 else 0 then ;

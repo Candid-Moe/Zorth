@@ -17,6 +17,14 @@ code_evaluate:
 ;
     fenter
 
+    ld      a, (_SOURCE_ID)
+    ld      b, 0
+    ld      c, a
+    push    bc
+    fcall   code_to_r           ; old source-id to R
+    ld      a, -1
+    ld      (_SOURCE_ID), a
+
     ld      a, (_gtIN)
     ld      b, 0
     ld      c, a
@@ -58,6 +66,11 @@ code_evaluate:
     pop     hl
     ld      a, l
     ld      (_gtIN),a
+
+    fcall   code_r_from
+    pop     hl
+    ld      a, l
+    ld      (_SOURCE_ID), a
 
     fret
 

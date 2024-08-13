@@ -307,6 +307,7 @@ code_pick:
     pop bc  ; u
     ld  hl, sp
     add hl, bc
+    add hl, bc
     
     ld  bc, (hl)
     push bc

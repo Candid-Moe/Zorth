@@ -159,7 +159,7 @@ code_source:
     ld      bc, (TIB)
     push    bc
     ld      b, 0
-    ld      a, (_gtIN)
+    ld      a, (gTIB)
     ld      c, a
     push    bc
 

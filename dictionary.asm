@@ -1008,6 +1008,7 @@ dict_init:
     mdict_add st_c_quote,   code_c_quote
     fcall code_immediate
     mdict_add st_find,      code_find
+    mdict_add st_source_id, code_source_id
 
     fret
 
@@ -1102,3 +1103,5 @@ st_ctrl_pop:    counted_string "ctrl>"
 st_divide:      counted_string "divide"
 st_c_quote:     counted_string "c\""
 st_find:        counted_string "find"
+st_source_id:   counted_string "source-id"
+
