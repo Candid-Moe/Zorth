@@ -3,7 +3,7 @@ Zorth is a free Forth interpreter written from scratch for the Zeal 8-bit OS.
 
 ![Screenshot at 2024-08-13 06-59-51](https://github.com/user-attachments/assets/dbbb56f1-df31-4f70-884e-5b439821c319)
 
-Currently executed most of the CORE words, plus some extensions.
+Currently execute most of the CORE words, plus some extensions.
 
 This repository contains:
 
