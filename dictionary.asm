@@ -562,6 +562,22 @@ dict_search:
     fenter
 
     ld  hl, (_DICT) ; First entry
+    ;   
+    ;   In compilation mode, don't look at the first entry,
+    ;   which is under construction and not yet valid.
+    ;   (This way you can extend a previous word)
+    ;
+    ld  a, (_STATE)
+    cp  FALSE
+    jr  z, _dict_search_start
+
+    ;   Compilation mode
+
+    ld  bc, (hl)
+    ld  hl, bc
+
+_dict_search_start:
+
     ld (_dict_ptr), hl
 
 _dict_search_cycle:
