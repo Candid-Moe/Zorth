@@ -911,6 +911,9 @@ dict_init:
     mdict_add st_to_r,      code_to_r
     mdict_add st_r_from,    code_r_from
     mdict_add st_r_fetch,   code_r_fetch
+    mdict_add st_to_cs,     code_to_cs
+    mdict_add st_cs_from,   code_cs_from
+    mdict_add st_cs_fetch,  code_cs_fetch
     mdict_add st_cmove,     code_cmove
     mdict_add st_align,     code_align
     mdict_add st_aligned,   code_aligned
@@ -1035,6 +1038,9 @@ st_slash:       counted_string "/"
 st_to_r:        counted_string ">r"
 st_r_from:      counted_string "r>"
 st_r_fetch:     counted_string "r@"
+st_to_cs:       counted_string  ">cs"
+st_cs_from:     counted_string  "cs>"
+st_cs_fetch:    counted_string "cs@"    
 st_f_m_slash_mod: counted_string "fm/mod"
 st_cmove:       counted_string "cmove"
 st_align:       counted_string "align"
@@ -1104,4 +1110,5 @@ st_divide:      counted_string "divide"
 st_c_quote:     counted_string "c\""
 st_find:        counted_string "find"
 st_source_id:   counted_string "source-id"
+
 
