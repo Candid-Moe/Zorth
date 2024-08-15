@@ -8,20 +8,26 @@ Currently execute most of the CORE words, plus some extensions.
 This repository contains:
 
 - zorth.bin and forth.fs, the two files needed to run Forth.
+- os_with_romdisk.img, for running on the real hardware.
 - assembler source files if you have interest in it.
 
 ## How to run it in the emulator ##
 
+You only need the files `zorth.bin` and `forth.fs`.
+
 In the emulator, type `cd h:/` and then select your PC directory where you copy the files.
 Now you have access to your PC directory from the emulador.
+
 In the emulator, type `exec zorth.bin` and voila!
 
 ![Screenshot at 2024-08-13 10-20-01](https://github.com/user-attachments/assets/98326d9a-c733-4023-b121-ebfaad680ae2)
 
 
-## How to run in the Zeal 8-bit board ##
+## How to run on the Zeal 8-bit board ##
 
-You have to pack zorth.bin and forth.fs in the romdisk while compiling the operating system, and then upload the image
+You can upload `os_with_romdisk.img` to your board. This contains the Operating System plus zorth.bin and forth.fs in the A: drive
+
+You can build your own image, packing zorth.bin and forth.fs in the romdisk while compiling the operating system, and then upload the image.
 
 ## How compile source files ##
 
@@ -30,6 +36,8 @@ I use the Z80 Assembler from project [z88dk](https://github.com/z88dk/z88dk). Yo
 Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 ## Extensions ##
+
+**bye** ( -- ) The end the program.
 
 **clear** ( -- )  Clear screen
 
