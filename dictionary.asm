@@ -168,12 +168,11 @@ code_does:
     inc hl
     ld  de, hl
 
-    ctrl_pop
+    ex_pop
     ex  hl, de
     ld  (hl), de        ; Save address where does> start
     ld hl, _EXIT        ; Terminate word execution
-
-    ctrl_push
+    ex_push
                    
     fret       
 
@@ -183,7 +182,7 @@ _does_exec:
     fenter
 
     ;   First, put next address into the stack
-    ctrl_pop
+    ex_pop
     ld  de, (hl)        ; @does>
 
     inc     hl
@@ -192,7 +191,7 @@ _does_exec:
     ;
 
     ld  hl, de
-    ctrl_push
+    ex_push
     ;       
     fret
 
@@ -330,11 +329,11 @@ code_address:
 ;
     fenter
 
-    ctrl_pop        ; ctrl stack contain next cell address.
+    ex_pop        ; ctrl stack contain next cell address.
     push    hl
 
     ld hl, _EXIT
-    ctrl_push       ; and end word
+    ex_push       ; and end word
 
     fret
 
@@ -588,9 +587,7 @@ _dict_search_cycle:
     jr  z, _dict_search_not_found
 
     ;   Duplicate word address
-    pop  hl             ; ( addr -- )  
-    push hl
-    push hl             ; ( -- addr add )
+    dup   hl            ; ( -- addr addr )
     fcall code_count    ; ( addr addr -- addr c-addr u )
 
     ld   hl, (_dict_ptr)
@@ -601,7 +598,7 @@ _dict_search_cycle:
     ld   bc, (hl)
     push bc
     fcall code_count        ; ( -- addr c-addr1 u1 c-addr2 u2 )
-    fcall code_str_equals   ; ( -- addr flag )
+    fcall code_str_equals_i ; ( -- addr flag )
     pop bc                  ; ( -- addr )
     jump_non_zero c, _dict_search_found
 
@@ -733,11 +730,11 @@ code_literal_runtime:
 
     fenter
 
-    ;   In interpreter mode, control stack have the next execution token address
+    ;   In interpreter mode, execution stack have the next execution token address
     ;   in the current word. It's used by code_execute to keep trace of what
     ;   word is executing.
     ;   
-    ctrl_pop
+    ex_pop
     
     ;   Get the value
     ld      c, (hl)    
@@ -749,7 +746,7 @@ code_literal_runtime:
 
     ;   Now, change the "next inst" to skip over the value
 
-    ctrl_push
+    ex_push
 
     fret
     
@@ -800,11 +797,11 @@ _code_postpone_runtime:
     ;
     fenter
 
-    ctrl_pop        ; Recover address of next xt.
+    ex_pop        ; Recover address of next xt.
     push hl         ; ( -- @XT )
     inc hl
     inc hl
-    ctrl_push       ; Jump over to the next address
+    ex_push       ; Jump over to the next address
 
     pop     hl      ; ( @XT -- ) Take de address, recover the XT
     ld      de, (hl)

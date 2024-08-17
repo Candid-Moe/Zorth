@@ -7,9 +7,11 @@
 init:
     ld      SP, _DATA_STACK
     ld      IX, _RETURN_STACK
-    ld      IY, _CONTROL_STACK
+    ld      IY, _EX_STACK
     ld      hl, _LEAVE_STACK
     ld      (_IX_LEAVE), hl
+    ld      hl, _CONTROL_STACK
+    ld      (_IX_CONTROL), hl
 
     fcall   clear_screen
     
@@ -22,11 +24,6 @@ init:
     ld      hl, boot_file
     push    hl
     fcall   load_fs
-
-    ld      hl, words
-    push    hl
-    fcall   print_line
-    fcall   code_words
 
 repl:
 ;
@@ -209,9 +206,7 @@ code_find:
     ;   If word is not found, return c-addr FALSE
     ;
 
-    pop hl
-    push hl
-    push hl
+    dup hl
     fcall code_to_r     ; ( : R -- c-addr )
 
     fcall dict_search
@@ -223,7 +218,7 @@ code_find:
     jr  nz, _code_find_found
 
     fcall code_r_from   ; Recover string address
-    ld  hl, 0           ; Rturn code
+    ld  hl, 0           ; Return code
     push hl
 
     fret 

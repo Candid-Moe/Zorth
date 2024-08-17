@@ -28,6 +28,12 @@ macro fret
     jp return
 endm
 
+macro   dup reg
+    pop reg
+    push reg
+    push reg
+endm
+
 ;
 ;   Copy DE to (HL), HL = HL + 2 
 ;   Implements ld (hl), de
@@ -43,7 +49,7 @@ endm
 macro leave_push
     push iy
     ld   iy, (_IX_LEAVE)
-    ctrl_push
+    ex_push
     ld   (_IX_LEAVE), iy
     pop  iy
 endm
@@ -51,30 +57,47 @@ endm
 macro leave_pop
     push iy
     ld   iy, (_IX_LEAVE)
-    ctrl_pop
+    ex_pop
     ld  (_IX_LEAVE), iy
     pop iy
 endm
 
-;   
-;   ctrl_push: push HL in the Control Stack    
-;
 macro ctrl_push
-    dec iy              ; push address into return stack
+    push iy
+    ld   iy, (_IX_CONTROL)
+    ex_push
+    ld   (_IX_CONTROL), iy
+    pop  iy
+endm
+
+macro ctrl_pop
+    push iy
+    ld   iy, (_IX_CONTROL)
+    ex_pop
+    ld  (_IX_CONTROL), iy
+    pop iy
+endm
+
+;   
+;   ex_push : push HL in the Execution Stack    
+;
+macro ex_push
+    dec iy              ; push address into execution stack
     ld  (iy), h
     dec iy
     ld  (iy), l    
 endm
 
 ;
-;   ctrl_pop: pop Control Stack into HL
+;   ex_pop: pop Execution Stack into HL
 ;
-macro ctrl_pop
+macro ex_pop
     ld  l, (iy)
     inc iy
     ld  h, (iy)
     inc iy
 endm
+
 macro counted_string text
 local start
 local end

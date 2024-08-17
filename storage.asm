@@ -47,13 +47,20 @@ err_unstructed:     counted_string "Error. Unstructed: "
 _LEAVE_STACK:
 _L_GUARD:   dw 0x5050
 _IX_LEAVE:  dw _LEAVE_STACK
+
 ;------ Forth Control Stack -----
-;   This stack is indexed by YX
 ;
             defs 128
 _CONTROL_STACK:
 _C_GUARD:   dw   0x5050
-            defs 10 
+_IX_CONTROL: dw _CONTROL_STACK
+
+;----- Forth Execution Stack ----
+;   This stack is indexed by YX
+;
+        defs 128
+_EX_STACK:
+_X_GUARD:   dw 0x5050
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX
 ;

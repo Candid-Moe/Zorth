@@ -20,13 +20,14 @@ code_execute:
     call   _ex_classify    ; HL = @
     jr     nz, _ex_colon_cycle
 
+    ;   It's a code word
+
     ld bc, (hl)
     ld (_ex_code_jp + 1), bc
     ld hl, _ex_end
 
 _ex_code_jp:    
     jp   0          ; dest. will be overwritten 
-
 
 _ex_colon_cycle:
     ;   Execute a colon word
@@ -39,7 +40,7 @@ _ex_colon_cycle:
     push    hl          ; Save it          ( -- @xt )
     inc     hl
     inc     hl
-    ctrl_push           ; Use ctrl stack to remember next step (can be modified by execute)
+    ex_push             ; Use execution stack to remember next step (can be modified by execute)
 
     pop     hl          ;                  ( @xt -- )
     ld      bc, (hl)    ; extract xt
@@ -70,12 +71,12 @@ _ex_colon_next:
 
     ;   Recover address next xt
 
-    ctrl_pop            ; HL = @xt+1
+    ex_pop            ; HL = @xt+1
     jr  _ex_colon_cycle
 
 _ex_cycle_end:
     
-    ctrl_pop
+    ex_pop
 
 _ex_end:
 

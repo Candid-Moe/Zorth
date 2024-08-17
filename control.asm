@@ -54,7 +54,7 @@ code_jz:
 ;
     fenter
 
-    ctrl_pop    ; extract pointer to next address
+    ex_pop    ; extract pointer to next address
 
     pop bc
     ld  a, c
@@ -79,7 +79,7 @@ _code_jz_non:
 
 _code_jz_end:
 
-    ctrl_push           ;   Now use this as address next instruction
+    ex_push           ;   Now use this as address next instruction
 
     fret
 
@@ -124,7 +124,7 @@ code_else:
     
     ;   Put the current address in the space following IF
 
-    ctrl_pop            ; HL = IF address + 1
+    ex_pop            ; HL = IF address + 1
     ld  bc, (_DP)       :
     ld  (hl), bc
 
@@ -135,7 +135,7 @@ code_else:
     dec hl
     dec hl
 
-    ctrl_push
+    ex_push
 
     fret
     
@@ -149,12 +149,12 @@ code_jp_runtime:
 ;
     fenter
 
-    ctrl_pop        ; Recover next cell address
+    ex_pop        ; Recover next cell address
     
     ld de, (hl)     ; Take de address
     ld hl, de
 
-    ctrl_push       ;
+    ex_push       ;
 
     fret
 
@@ -303,15 +303,11 @@ _code_until_runtime:
 
     ;   TOS != 0 -> end
 
-;    fcall _ex_pop
-;    pop hl
-    ctrl_pop
+    ex_pop
 
     inc hl
     inc hl
-;    push hl
-;    fcall _ex_push
-    ctrl_push
+    ex_push
 
 code_until_end:
 
@@ -447,7 +443,7 @@ _code_loop_next:
     jp  nz, _code_loop_error
     ld  a, do_sys
     cp  l
-    jr  nz, _code_loop_error
+    jp  nz, _code_loop_error
 
     ;   Write a LOOP XT
     ld      hl, (xt_loop)
@@ -486,10 +482,10 @@ _code_loop_exec:
     fcall   code_to_r   ; ( index+1 -- : R limit -- limit index+1 )
 
     ;   Replace next instruction address
-    ctrl_pop            ; Extract current next cell address
+    ex_pop            ; Extract current next cell address
     ld      de, (hl)    ; Take contains of next cell, an address
     ex      hl, de      
-    ctrl_push           ; Make it the new next cell
+    ex_push           ; Make it the new next cell
 
     pop     hl
     jp      (hl)
@@ -500,10 +496,10 @@ _code_loop_end:
 
     ; Skip next instruction (address)
 
-    ctrl_pop
+    ex_pop
     inc     hl
     inc     hl
-    ctrl_push
+    ex_push
 
     ; Recover return address
     pop hl
