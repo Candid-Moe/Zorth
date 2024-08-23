@@ -75,14 +75,12 @@ code_to_cs:
 ;
 ;   Move x to the control stack. 
 ;
-    pop bc
+    fenter
 
-    dec iy              ; push TOS into control stack
-    ld  (iy), b
-    dec iy
-    ld  (iy), c
+    pop hl
+    ctrl_push
 
-    jp  (hl)    
+    fret
 
 code_cs_from: 
 ;
@@ -96,14 +94,12 @@ code_cs_from:
 ;
 ;   Move x from the control stack to the data stack. 
 ;
-    ld      c, (iy)     ; pop value from control stack
-    inc     iy
-    ld      b, (iy)
-    inc     iy
+    fenter
 
-    push    bc
+    ctrl_pop
+    push    hl
 
-    jp      (hl)
+    fret
 
 code_cs_fetch:
 ;
@@ -117,10 +113,10 @@ code_cs_fetch:
 ;
 ;   Copy x from the control stack to the data stack. 
 ;
-    ld      c, (iy)     ; pop control address from control stack
-    ld      b, (iy + 1)
+    fenter
 
-    push    bc
+    ctrl_pop
+    push hl
+    ctrl_push
 
-    jp      (hl)
-
+    fret

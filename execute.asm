@@ -40,7 +40,7 @@ _ex_colon_cycle:
     push    hl          ; Save it          ( -- @xt )
     inc     hl
     inc     hl
-    ex_push             ; Use execution stack to remember next step (can be modified by execute)
+    ex_push             ; Use execution stack to remember next step (can be modified by others)
 
     pop     hl          ;                  ( @xt -- )
     ld      bc, (hl)    ; extract xt

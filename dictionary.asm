@@ -388,7 +388,9 @@ code_see:
     or  l
     jp  z, _error_not_found
 
-    ; TODO Restore base
+    ld  de, (_BASE)     ; Remember base
+    push de
+
     ld  de, 16
     ld  (_BASE), de
 
@@ -529,6 +531,8 @@ _see_end:
 
     fcall   code_r_from ; Discard counter
     pop de
+    pop de
+    ld  (_BASE), de
 
     fret
 
@@ -863,14 +867,6 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_literal), hl
 
-    mdict_add st_jz,        code_jz
-    ld  hl, (_DICT)
-    ld  (xt_jz), hl
-
-    mdict_add st_jump,      code_jp_runtime
-    ld  hl, (_DICT)
-    ld  (xt_jp), hl
-
     mdict_add st_address,       code_address
     ld  hl, (_DICT)
     ld  (xt_address), hl
@@ -884,8 +880,17 @@ dict_init:
     ld  hl, 0
     ld (_DICT), hl
 
+    mdict_add st_jz,        code_jz
+    ld  hl, (_DICT)
+    ld  (xt_jz), hl
+
+    mdict_add st_jump,      code_jp_runtime
+    ld  hl, (_DICT)
+    ld  (xt_jp), hl
+
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
+    mdict_add st_in,        code_in
     mdict_add st_refill,    code_refill
     mdict_add st_space,     code_space
     mdict_add st_negate,    code_negate
@@ -1063,7 +1068,7 @@ st_emit:        counted_string "emit"
 st_pick:        counted_string "pick"
 st_if:          counted_string "if"
 st_else:        counted_string "else"
-st_jump:        counted_string "jump"
+st_jump:        counted_string "jmp"
 st_then:        counted_string "then"
 st_see:         counted_string "see"
 st_rshift:      counted_string "rshift"
@@ -1107,5 +1112,5 @@ st_divide:      counted_string "divide"
 st_c_quote:     counted_string "c\""
 st_find:        counted_string "find"
 st_source_id:   counted_string "source-id"
-
+st_in:          counted_string ">in"
 

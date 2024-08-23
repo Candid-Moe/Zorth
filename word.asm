@@ -234,3 +234,16 @@ _code_parse_eol:
     push hl
 
     fret
+
+code_in:
+;
+;   Implements >IN to-in CORE
+;   ( -- a-addr )
+;
+;   a-addr is the address of a cell containing the offset in characters from
+;   the start of the input buffer to the start of the parse area. 
+;
+    ld bc, _gtIN
+    push bc
+
+    jp  (hl)

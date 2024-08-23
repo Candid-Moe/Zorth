@@ -124,7 +124,7 @@ code_else:
     
     ;   Put the current address in the space following IF
 
-    ex_pop            ; HL = IF address + 1
+    ctrl_pop            ; HL = IF address + 1
     ld  bc, (_DP)       :
     ld  (hl), bc
 
@@ -135,7 +135,7 @@ code_else:
     dec hl
     dec hl
 
-    ex_push
+    ctrl_push
 
     fret
     

@@ -142,12 +142,32 @@ _repl_failed:
     fcall code_cr
     
     ;   Discard rest of line and start again
+    ld  a, (_STATE)
+    cp  TRUE
+    jr  z, _search_semmicolon
+
+    ;   Interpreting mode, discard the rest of the line
     fcall   code_backslash
+    jr  _repl_failed_next
+
+_search_semmicolon:
+
+    fcall   search_semmicolon
+
+_repl_failed_next:
+
     ;   Back to INTERPRETER mode
+
     ld  a, FALSE
     ld  (_STATE), a
-    ;   Empty control stack
-    ld  IY, _CONTROL_STACK
+
+    ;   Empty all stacks except data stack/return stack
+
+    ld      IY, _EX_STACK
+    ld      hl, _LEAVE_STACK
+    ld      (_IX_LEAVE), hl
+    ld      hl, _CONTROL_STACK
+    ld      (_IX_CONTROL), hl
 
     jr  _repl_end
 
@@ -173,7 +193,48 @@ inner_interpreter:
 
     fcall   _repl_words ; This call never return.
 
+search_semmicolon:
+;
+;   Search thru multiple lines for the next semmicolon
+;
+    fenter
+
+_search_semmicolon_cycle:
+
+    ;   Read a word
+
+    ld  hl, ' '
+    push hl
+    fcall   code_word
+
+    ;   Good read ?
     
+    pop hl
+    ld  a, (hl)
+    cp  0
+    jr  z, _search_semmicolon_refill
+
+    ;   Compare
+
+    cp  1
+    jr  nz, _search_semmicolon_cycle    ; Not the same lenght
+
+    inc hl
+    ld  a, (hl)
+    cp  ';'
+    jr  nz, _search_semmicolon_cycle    ; Not a semmicolon
+        
+    ;   Found !
+
+    ld  hl, TRUE
+    push hl
+    fret
+
+_search_semmicolon_refill:
+    ;   Not Found
+    ld  hl, FALSE
+    push hl
+    fret
 return:
 ;
 ;   For routines called with fenter/fret, return is via

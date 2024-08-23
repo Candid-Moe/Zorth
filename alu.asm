@@ -249,20 +249,21 @@ code_f_m_slash_mod:
 
     fenter
 
-    pop bc
-    pop hl
-    pop de
+    pop     bc  ; dividend
+    pop     hl  ; high
+    pop     de  ; low
 
     push ix
     ld ix, de
 
     call div32_16
 
-    pop  bc
-    push de
-    push ix
+    pop     bc
 
-    ld ix, bc
+    push    de  ; remainder
+    push    ix  ; quotient
+
+    ld ix,  bc
     
     fret
 
