@@ -85,18 +85,18 @@ code_xor:
 ;
 ;   x3 is the bit-by-bit exclusive-or of x1 with x2. 
 ;
-    pop bc
-    pop de
+    pop     bc
+    pop     de
 
-    ld  a, b
-    xor  d
-    ld  b, a
+    ld      a, b
+    xor     d
+    ld      b, a
 
-    ld  a, c
-    xor  e
-    ld  a, c
+    ld      a, c
+    xor     e
+    ld      c, a
 
-    push bc
+    push    bc
 
     jp (hl)
 
@@ -109,18 +109,18 @@ code_and:
 ;
 ;   x3 is the bit-by-bit logical "and" of x1 with x2. 
 ;
-    pop bc
-    pop de
+    pop     bc
+    pop     de
 
-    ld  a, b
-    and d
-    ld  b, a
+    ld      a, b
+    and     d
+    ld      b, a
 
-    ld  a, c
-    and e
-    ld  c, a
+    ld      a, c
+    and     e
+    ld      c, a
 
-    push bc
+    push    bc
 
     jp  (hl)
 
@@ -189,15 +189,70 @@ code_star:
 ;
     fenter 
     
-    pop bc
+    pop hl
     pop de
 
-    call multiply16
+    call l_small_mul_16_16x16
 
     push hl
 
 	fret
 
+code_s_to_d:
+;
+;   Implements S>D
+;   ( n -- d )
+;
+;   Convert the number n to the double-cell number d with the same numerical val
+
+    fenter
+
+    pop     hl
+    push    hl
+
+    bit     0, h
+    jr      z, _code_s_to_d_pos
+    ;   Negative
+    ld      hl, $FFFF
+    jr      _code_s_to_d_end
+
+_code_s_to_d_pos:
+    ld      hl, 0
+
+_code_s_to_d_end:
+    push    hl
+    fret
+
+code_m_star:
+;
+;   Implements M* 
+;   ( n1 n2 -- d )
+;
+;   d is the signed product of n1 times n2. 
+;
+    fenter
+
+    pop     hl
+    ctrl_push    
+    fcall   code_s_to_d
+    ctrl_pop
+    push    hl
+    fcall   code_s_to_d
+
+    pop     de
+    pop     hl
+    exx
+    pop     de
+    pop     hl
+    exx
+    
+    call l_small_muls_32_32x32
+
+    push hl
+    push de
+
+    fret
+    
 code_u_m_star:
 ;
 ;   Implements UM* 
@@ -209,62 +264,93 @@ code_u_m_star:
 ;
     fenter 
 
-    pop bc
+    pop hl
     pop de
 
-    call multiply16
+    call l_small_mul_32_16x16
 
     push hl
     push de
 
     fret
 
-code_divide:
+code_s_m_slash_rem:
+;
+;   Implements SM/REM 
+;   ( d1 n1 -- n2 n3 )
+;
+;   Divide d1 by n1, giving the symmetric quotient n3 and the remainder n2.
+;   Input and output stack arguments are signed. 
+;   An ambiguous condition exists if n1 is zero or if the quotient lies outside 
+;   the range of a single-cell signed integer. 
+
+    fenter
+
+    pop hl
+
+    bit 0, h            ; Expand hl sign into de
+    jr  z, _zero_op
+    ld  de, $FFFF
+    jmp _code_s_m_slash_rem2
+
+_zero_op:
+    ld  de, 0       ; divisor
+
+_code_s_m_slash_rem2:
+    exx
+
+    pop de          ; dividend
+    pop hl
+    exx
+
+    call l_small_divs_32_32x32
+
+    exx
+    push hl     ; remainder
+    exx
+    push hl     ; quotient
+
+    fret
+
+code_slash_mod:
+;
+;   Implements /MOD 
+;   ( n1 n2 -- n3 n4 )
+;
+;   Divide n1 by n2, giving the single-cell remainder n3 and the single-cell quotient n4. 
+;   An ambiguous condition exists if n2 is zero. 
+;   If n1 and n2 differ in sign, the implementation-defined result returned will be the 
+;   same as that returned by either the phrase >R S>D R> FM/MOD or the 
+;   phrase >R S>D R> SM/REM.    
+;
+
+    fenter
+
+    pop     de  ; divisor
+    pop     hl  ; dividend
+
+    call    l_small_divs_16_16x16
+    
+    push    de  ; remainder
+    push    hl  ; quotient
+
+    fret
+
+code_divide:   
 ;
 ;   
-;   ( n1 n2 -- remainder quocient )
+;   ( n1 n2 -- remainder quotient )
 ;
     fenter
 
     pop de
-    pop bc
+    pop hl
 
-    call divide16
+    call l_small_divs_16_16x16
 
+    push de
     push hl
-    push bc
 
-    fret
-
-code_f_m_slash_mod:
-;
-;   Implements FM/MOD
-;   ( d1 n1 -- n2 n3 )
-;
-;   Divide d1 by n1, giving the floored quotient n3 and the remainder n2. 
-;   Input and output stack arguments are signed. 
-;   An ambiguous condition exists if n1 is zero or if the quotient lies 
-;   outside the range of a single-cell signed integer. 
-;
-
-    fenter
-
-    pop     bc  ; dividend
-    pop     hl  ; high
-    pop     de  ; low
-
-    push ix
-    ld ix, de
-
-    call div32_16
-
-    pop     bc
-
-    push    de  ; remainder
-    push    ix  ; quotient
-
-    ld ix,  bc
-    
     fret
 
 code_dup:

@@ -47,6 +47,15 @@ _repl_words:
     fcall   code_word
     pop     hl              ; Word address
 
+;   --- debugging ---
+;    push    hl
+;    push    hl
+;    fcall   code_count
+;    fcall   code_type
+;    fcall   code_space
+;    pop     hl
+;   --- debugging ---
+
     ld      a, (hl)         ; Count byte
     cp      0
     jp      z, _repl_return ;   Do we have a word to process?    

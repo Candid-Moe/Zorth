@@ -63,6 +63,15 @@ code_r_fetch:
 
     jp      (hl)
 
+code_rdrop:
+;
+;   Implements RDROP
+;   ( R: w -- )
+;
+    inc ix
+    inc ix
+    jp  (hl)
+
 code_to_cs:
 ;
 ;   Implements >CS
@@ -120,3 +129,5 @@ code_cs_fetch:
     ctrl_push
 
     fret
+
+

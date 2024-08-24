@@ -896,6 +896,7 @@ dict_init:
     mdict_add st_negate,    code_negate
     mdict_add st_tick,      code_tick
     mdict_add st_str_equals,code_str_equals
+    mdict_add st_word,      code_word
     mdict_add st_words,     code_words
     mdict_add st_pad,       code_pad
     mdict_add st_dot,       code_dot
@@ -904,15 +905,17 @@ dict_init:
     mdict_add st_minus,     code_minus
     mdict_add st_star,      code_star
 ;    mdict_add st_slash,     code_slash
-    mdict_add st_divide,    code_divide
+;    mdict_add st_divide,    code_divide
     mdict_add st_rshift,    code_rshift
     mdict_add st_lshift,    code_lshift
     mdict_add st_swap,      code_swap
-    mdict_add st_f_m_slash_mod, code_f_m_slash_mod
+;    mdict_add st_f_m_slash_mod, code_f_m_slash_mod
+    mdict_add st_s_m_slash_rem, code_s_m_slash_rem
     mdict_add st_immediate, code_immediate
     mdict_add st_to_r,      code_to_r
     mdict_add st_r_from,    code_r_from
     mdict_add st_r_fetch,   code_r_fetch
+    mdict_add st_rdrop,     code_rdrop
     mdict_add st_to_cs,     code_to_cs
     mdict_add st_cs_from,   code_cs_from
     mdict_add st_cs_fetch,  code_cs_fetch
@@ -957,7 +960,6 @@ dict_init:
     mdict_add st_again,     code_again
     fcall code_immediate
 
-    mdict_add st_word,      code_word_no_clobber
     mdict_add st_c_fetch,   code_c_fetch
     mdict_add st_c_store,   code_c_store
     mdict_add st_depth,     code_depth
@@ -997,7 +999,8 @@ dict_init:
 
     mdict_add st_two_slash, code_two_slash
 ;    mdict_add st_slash_mod, code_slash_mod
-;    mdict_add st_u_m_star,  code_u_m_star
+    mdict_add st_m_star,    code_m_star
+    mdict_add st_u_m_star,  code_u_m_star
     mdict_add st_itoa,      itoa
     mdict_add st_xor,       code_xor
     mdict_add st_source,    code_source
@@ -1014,6 +1017,7 @@ dict_init:
     fcall code_immediate
     mdict_add st_find,      code_find
     mdict_add st_source_id, code_source_id
+    mdict_add st_s_to_d,    code_s_to_d
 
     fret
 
@@ -1035,15 +1039,18 @@ st_and:         counted_string "and"
 st_or:          counted_string "or"
 st_dot:         counted_string "."
 st_star:        counted_string "*"
+st_m_star:      counted_string "m*"
 st_minus:       counted_string "-"
 st_slash:       counted_string "/"
 st_to_r:        counted_string ">r"
 st_r_from:      counted_string "r>"
 st_r_fetch:     counted_string "r@"
+st_rdrop:       counted_string "rdrop"
 st_to_cs:       counted_string  ">cs"
 st_cs_from:     counted_string  "cs>"
 st_cs_fetch:    counted_string "cs@"    
-st_f_m_slash_mod: counted_string "fm/mod"
+;st_f_m_slash_mod: counted_string "fm/mod"
+st_s_m_slash_rem: counted_string "sm/rem"
 st_cmove:       counted_string "cmove"
 st_align:       counted_string "align"
 st_aligned:     counted_string "aligned"
@@ -1094,7 +1101,7 @@ st_loop:        counted_string "loop"
 st_i:           counted_string "i"
 st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"
-st_slash_mod:   counted_string "/mod"
+;st_slash_mod:   counted_string "/mod"
 st_u_m_star:    counted_string "um*"
 st_itoa:        counted_string "itoa"
 st_xor:         counted_string "xor"
@@ -1113,4 +1120,5 @@ st_c_quote:     counted_string "c\""
 st_find:        counted_string "find"
 st_source_id:   counted_string "source-id"
 st_in:          counted_string ">in"
+st_s_to_d:      counted_string "s>d"
 
