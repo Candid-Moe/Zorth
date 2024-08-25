@@ -336,23 +336,6 @@ code_slash_mod:
 
     fret
 
-code_divide:   
-;
-;   
-;   ( n1 n2 -- remainder quotient )
-;
-    fenter
-
-    pop de
-    pop hl
-
-    call l_small_divs_16_16x16
-
-    push de
-    push hl
-
-    fret
-
 code_dup:
 ;
 ;   Implements DUP

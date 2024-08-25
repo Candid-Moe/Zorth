@@ -904,12 +904,9 @@ dict_init:
     mdict_add st_plus,      code_plus
     mdict_add st_minus,     code_minus
     mdict_add st_star,      code_star
-;    mdict_add st_slash,     code_slash
-;    mdict_add st_divide,    code_divide
     mdict_add st_rshift,    code_rshift
     mdict_add st_lshift,    code_lshift
     mdict_add st_swap,      code_swap
-;    mdict_add st_f_m_slash_mod, code_f_m_slash_mod
     mdict_add st_s_m_slash_rem, code_s_m_slash_rem
     mdict_add st_immediate, code_immediate
     mdict_add st_to_r,      code_to_r
@@ -998,7 +995,6 @@ dict_init:
     ld  (xt_leave), hl
 
     mdict_add st_two_slash, code_two_slash
-;    mdict_add st_slash_mod, code_slash_mod
     mdict_add st_m_star,    code_m_star
     mdict_add st_u_m_star,  code_u_m_star
     mdict_add st_itoa,      itoa
@@ -1049,7 +1045,6 @@ st_rdrop:       counted_string "rdrop"
 st_to_cs:       counted_string  ">cs"
 st_cs_from:     counted_string  "cs>"
 st_cs_fetch:    counted_string "cs@"    
-;st_f_m_slash_mod: counted_string "fm/mod"
 st_s_m_slash_rem: counted_string "sm/rem"
 st_cmove:       counted_string "cmove"
 st_align:       counted_string "align"
@@ -1101,7 +1096,6 @@ st_loop:        counted_string "loop"
 st_i:           counted_string "i"
 st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"
-;st_slash_mod:   counted_string "/mod"
 st_u_m_star:    counted_string "um*"
 st_itoa:        counted_string "itoa"
 st_xor:         counted_string "xor"
@@ -1115,7 +1109,6 @@ st_ioctl:       counted_string "ioctl"
 st_ioctl_set_xy: counted_string "ioctl_set_xy"
 st_ctrl_push:   counted_string ">ctrl"
 st_ctrl_pop:    counted_string "ctrl>"
-st_divide:      counted_string "divide"
 st_c_quote:     counted_string "c\""
 st_find:        counted_string "find"
 st_source_id:   counted_string "source-id"

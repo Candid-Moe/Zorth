@@ -63,6 +63,8 @@
 : /mod  >R S>D R> SM/REM ;
 : mod /mod drop ;
 : / /mod swap drop ;
+: */mod ( n1 n2 n3 -- n4 ) >r m* r> sm/rem ;
+: */ */mod swap drop ;
 : fm/mod ( d n -- rem quot )
   DUP >R
   SM/REM
