@@ -631,7 +631,7 @@ _dict_search_not_found:
     jr  nz, _dict_search_xt_value
 
     ld  hl, FALSE
-    jr _dict_search_end2
+    jr _dict_search_end     ; word not found, not a value
 
 _dict_search_xt_value:
     ;
@@ -655,7 +655,6 @@ _dict_search_xt_compile:
     ;
     fcall  code_literal
 
-;    ld  hl, (xt_literal)
     ;
     ;   The code has been written already, but
     ;   the caller expect a XT, so we return an
@@ -1014,6 +1013,7 @@ dict_init:
     mdict_add st_find,      code_find
     mdict_add st_source_id, code_source_id
     mdict_add st_s_to_d,    code_s_to_d
+    mdict_add st_cs_roll,   code_cs_roll
 
     fret
 
@@ -1114,4 +1114,4 @@ st_find:        counted_string "find"
 st_source_id:   counted_string "source-id"
 st_in:          counted_string ">in"
 st_s_to_d:      counted_string "s>d"
-
+st_cs_roll:     counted_string "cs-roll"

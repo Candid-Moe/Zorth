@@ -60,6 +60,28 @@ _repl_words:
     cp      0
     jp      z, _repl_return ;   Do we have a word to process?    
 
+    ;   See if we are discarting words
+
+    ld      a, (_DISCARD)
+    cp      FALSE
+    jr      z, _repl_words_xt
+
+    ;   Check for ';' to end discarting
+
+    ld      bc, (hl)
+    ld      a, 1
+    cp      c
+    jr      nz, _repl_words ;   Discard word
+    ld      a, b
+    cp      ';'
+    jr      nz, _repl_words ;   Discard word
+    
+    ld      a, FALSE
+    ld      (_DISCARD), a
+    jr      _repl_words
+
+_repl_words_xt:
+
     ;   Obtain the execution token for word
     push    hl
     fcall   code_find
@@ -142,33 +164,47 @@ _repl_failed:
 ;   Not a word, not a value
 ;
     pop     hl          ; Discard value
-    ld      hl, err_word_not_found
-    push    hl
-    fcall   print_line
-    ld hl,  _PAD
-    push hl
-    fcall print_line
-    fcall code_cr
-    
+
+    fcall   print_error_word_not_found
+   
     ;   Discard rest of line and start again
     ld  a, (_STATE)
     cp  TRUE
-    jr  z, _search_semmicolon
+    jr  z, _set_discard_mode
 
     ;   Interpreting mode, discard the rest of the line
     fcall   code_backslash
-    jr  _repl_failed_next
+    jr      _repl_failed_next
 
-_search_semmicolon:
+_set_discard_mode:
+    ;   
+    ;   Print the word name that failed
+    ;
+    ld      hl, err_in_word
+    push    hl
+    fcall   print_line
 
-    fcall   search_semmicolon
+    ld      hl, (_DICT)
+    inc     hl
+    inc     hl  ; # words
+    inc     hl  ; flags
+    inc     hl  ; name
+    ld      de, (hl)
+    push    de
+    fcall   print_line
+    
+    ld      a, TRUE
+    ld      (_DISCARD), a       ; Discard next words until semmicolon is found
+    fcall   dict_delete_last
 
 _repl_failed_next:
 
+    fcall   code_cr
+
     ;   Back to INTERPRETER mode
 
-    ld  a, FALSE
-    ld  (_STATE), a
+    ld      a, FALSE
+    ld      (_STATE), a
 
     ;   Empty all stacks except data stack/return stack
 
@@ -178,7 +214,7 @@ _repl_failed_next:
     ld      hl, _CONTROL_STACK
     ld      (_IX_CONTROL), hl
 
-    jr  _repl_end
+    jp  _repl_end
 
 _repl_return:
     
@@ -199,51 +235,9 @@ inner_interpreter:
     
     ld  hl, _repl_depth
     inc (hl)
-
+    
     fcall   _repl_words ; This call never return.
 
-search_semmicolon:
-;
-;   Search thru multiple lines for the next semmicolon
-;
-    fenter
-
-_search_semmicolon_cycle:
-
-    ;   Read a word
-
-    ld  hl, ' '
-    push hl
-    fcall   code_word
-
-    ;   Good read ?
-    
-    pop hl
-    ld  a, (hl)
-    cp  0
-    jr  z, _search_semmicolon_refill
-
-    ;   Compare
-
-    cp  1
-    jr  nz, _search_semmicolon_cycle    ; Not the same lenght
-
-    inc hl
-    ld  a, (hl)
-    cp  ';'
-    jr  nz, _search_semmicolon_cycle    ; Not a semmicolon
-        
-    ;   Found !
-
-    ld  hl, TRUE
-    push hl
-    fret
-
-_search_semmicolon_refill:
-    ;   Not Found
-    ld  hl, FALSE
-    push hl
-    fret
 return:
 ;
 ;   For routines called with fenter/fret, return is via
@@ -681,15 +675,22 @@ code_tick:
 ;
     fenter
 
-    ld    hl, ' '
-    push  hl
-    fcall code_word
-    pop hl                  ; origin
+    ld      hl, ' '
+    push    hl
+    fcall   code_word
+    pop     hl                  ; origin
             
     ;   Check word len
-    ld  a, (hl)             ; len
-    cp  0
-    jz  _code_tick_error
+    ld      a, (hl)             ; len
+    cp      0
+    jr      nz, _code_tick_search
+
+    ld      hl, err_missing_name
+    push    hl
+    fcall   print_line 
+    fret
+    
+_code_tick_search:
 
     push    hl
     fcall   dict_search
@@ -697,27 +698,28 @@ code_tick:
 
     ld      a, l
     or      h
-    jz      _code_tick_not_found
+    jr      nz, _code_tick_end
 
-
-    push    hl
-        
+    fcall print_error_word_not_found
     fret
 
-_code_tick_error:
+_code_tick_end:
 
-    ld  hl, err_missing_name
-    push hl
-    fcall   print_line
-
+    push    hl        
     fret
 
-_code_tick_not_found:
+print_error_word_not_found:
+    
+    fenter 
 
     ld      hl, err_word_not_found
     push    hl
     fcall   print_line
 
+    ld hl,  _PAD
+    push    hl
+    fcall   print_line
+    
     fret
 
 code_dot:

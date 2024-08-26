@@ -8,10 +8,12 @@
 : .( [char] ) parse type ; immediate
 : cells 2 * ;            \ ( n1 -- n2 )
 : , here ! 1 cells allot ; 
+: ahead here >cs ;
 
 .( Loading dictionary )
 
 : constant create , does> @ ;
+: value constant ;
 
 1 constant colon-sys
 2 constant do-sys
@@ -126,7 +128,7 @@
 
 : clear 0 6 0 ioctl ;                   \ Screen clear
 : unused $FFFF here - ;
-: while postpone jz here >cs ; immediate
+: /string  DUP >R - SWAP R> CHARS + SWAP ;
 
 : isspace? ( c -- f )
    BL 1+ U< ;
@@ -134,7 +136,17 @@
 : isnotspace? ( c -- f )
    isspace? 0= ; 
 
-: /string  DUP >R - SWAP R> CHARS + SWAP ;
+: while ( dest -- orig dest / flag -- )
+   \ conditional exit from loops
+   postpone if	          \ conditional forward brach
+    1 cs-roll	           \ keep dest on top
+; immediate
+
+: repeat ( orig dest -- / -- )
+   \ resolve a single WHILE and return to BEGIN
+   postpone again	       \ uncond. backward branch to dest
+   postpone then	       \ resolve forward branch from orig
+; immediate
 
 : xt-skip ( addr1 n1 xt -- addr2 n2 ) \ skip all characters satisfying xt ( c -- f )
    >R
@@ -153,13 +165,8 @@
    ['] isnotspace? xt-skip ( end-word restlen r: start-word )
    2DUP 1 MIN + SOURCE DROP - >IN !
    DROP R> TUCK - ; 
-
-
-: repeat >cs here 2 + ! postpone jmp >cs , ; immediate
 .( . )
         
-
-: value constant ;
 : ." postpone s" ['] type postpone , ; immediate
 
 : fac ( +n1 -- +n2)
@@ -181,7 +188,39 @@
             then
     again ;
 
-.( Type `bye` to leave, `clear` to clear screen, `words` for the word list)
-cr
-cr
+: ELSE2 ( orig1 -- orig2 / -- )
+   \ resolve IF supplying alternate execution
+   postpone AHEAD	       \ unconditional forward branch orig2
+   1 CS-ROLL	            \ put orig1 back on top
+    postpone THEN	       \ resolve forward branch from orig1
+; immediate
+
+\ --- case ---
+0 constant case immediate ( init count of OFs )
+
+: OF ( #of -- orig #of+1 / x -- )
+   1+	                   ( count OFs )
+   >R	                   ( move off the stack in case the control-flow )
+                         ( stack is the data stack. )
+   postpone over postpone = ( copy and test case value)
+   postpone if	          ( add orig to control flow stack )
+   postpone drop	        ( discards case value if = )
+    R>	                  ( we can bring count back now )
+; immediate
+
+: ENDOF ( orig1 #of -- orig2 #of )
+   >R	                   ( move off the stack in case the control-flow )
+                           ( stack is the data stack. )
+   postpone ELSE
+   R>	                   ( we can bring count back now )
+; immediate  
+
+: endcase ( orig1..orign #of -- )
+   postpone drop	        ( discard case value )
+   0 ?do
+   postpone then
+   loop
+; immediate
+\ --- case end ---
+
 

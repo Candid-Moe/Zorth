@@ -22,6 +22,7 @@ boot_file:  counted_string "forth.fs\000"
 
 _EXIT:      dw   0          ;
 _STATE:     dw   FALSE      ; True in compilation state, false otherwise
+_DISCARD:   dw   FALSE      ; Discard next words until ';'
 _BASE:      dw   10
 _SOURCE_ID: db   0          ; 0 = keyboard -1 = string
 _gTIB:      db   0          ; #TIB, len of string in _TIB
@@ -35,11 +36,12 @@ _PROMPT:    counted_string  "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
 
 err_word_not_found: counted_string "Error. Word not found: "
-err_underflow:      counted_string "Error. Data Stack underflow"
-err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name"
-err_mode_comp:      counted_string "Error. Already in compilation mode"
+err_underflow:      counted_string "Error. Data Stack underflow.\n"
+err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name.\n"
+err_mode_comp:      counted_string "Error. Already in compilation mode.\n"
 err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
-err_unstructed:     counted_string "Error. Unstructed: "
+err_unstructed:     counted_string "Error. Unstructed\n"
+err_in_word:        counted_string " in word "
 
 ;------ Forth Leave Stack ------
 ;
