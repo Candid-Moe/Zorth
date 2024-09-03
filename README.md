@@ -7,7 +7,7 @@ Currently execute most of the CORE words, plus some extensions.
 
 This repository contains:
 
-- zorth.bin and forth.fs, the two files needed to run Forth.
+- zorth.bin and forth.fs, the two files needed to run Forth or make your own os_with_romdisk.img
 - os_with_romdisk.img, for running on the real hardware.
 - assembler source files if you have interest in it.
 
@@ -15,7 +15,7 @@ This repository contains:
 
 You only need the files `zorth.bin` and `forth.fs`.
 
-In the emulator, type `cd h:/` and then select your PC directory where you copy the files.
+In the emulator, type `cd h:/` and then select the PC directory where you copied the files.
 Now you have access to your PC directory from the emulador.
 
 In the emulator, type `exec zorth.bin` and voila!
@@ -24,10 +24,9 @@ In the emulator, type `exec zorth.bin` and voila!
 
 
 ## How to run on the Zeal 8-bit board ##
+You can load `os_with_romdisk.img` onto your board. This contains the Zeal 8 bits OS plus zorth.bin and forth.fs on drive A:
 
-You can upload `os_with_romdisk.img` to your board. This contains the Operating System plus zorth.bin and forth.fs in the A: drive
-
-You can build your own image, packing zorth.bin and forth.fs in the romdisk while compiling the operating system, and then upload the image.
+You can create your own image, packaging zorth.bin and forth.fs onto the romdisk while compiling the OS and then loading the image.
 
 ## How compile source files ##
 
@@ -37,15 +36,12 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 ## Extensions ##
 
-**bye** ( -- ) The end the program.
-
 **clear** ( -- )  Clear screen
 
 **dict**  ( -- addr ) Address of dictionary pointer.
 
 ## Pending ##
 
-- Several unsigned arithmetic operations.
 - Most formating/editing words.
-- case, of, endof, endcase.
+- case, of, endof, endcase and other control structures
 - accept, key
