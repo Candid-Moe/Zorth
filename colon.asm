@@ -67,9 +67,14 @@ _colon_error:
     ;
     ;   Display error message and quit
     ;
-    ld hl, err_mode_comp
+    ld hl, err_mode_not_comp
     push hl
     fcall print_line
+
+    ld hl,  _PAD
+    push    hl
+    fcall   print_line    
+
     fret
 
 _colon_error_no_name:

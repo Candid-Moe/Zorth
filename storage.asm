@@ -15,6 +15,8 @@ defc TRUE  = -1
 defc FALSE = 0
 defc BIT_COLON  = 1
 defc BIT_IMMEDIATE = 2
+defc STACK_SIZE = 128       
+
 new_line:   counted_string '\n'
 space:      counted_string ' '
 words:      counted_string "words:\n"
@@ -45,35 +47,35 @@ err_in_word:        counted_string " in word "
 
 ;------ Forth Leave Stack ------
 ;
-        defs 128
+        defs    STACK_SIZE
 _LEAVE_STACK:
 _L_GUARD:   dw 0x5050
 _IX_LEAVE:  dw _LEAVE_STACK
 
 ;------ Forth Control Stack -----
 ;
-            defs 128
+        defs    STACK_SIZE
 _CONTROL_STACK:
 _C_GUARD:   dw   0x5050
 _IX_CONTROL: dw _CONTROL_STACK
 
 ;----- Forth Execution Stack ----
-;   This stack is indexed by YX
+;   This stack is indexed by IY
 ;
-        defs 128
+        defs    STACK_SIZE
 _EX_STACK:
 _X_GUARD:   dw 0x5050
 ;------ Forth Return Stack ------
 ;   This stack is indexed by IX
 ;
-            defs    128
+        defs    STACK_SIZE
 _RETURN_STACK:
 _R_GUARD:   dw   0x5050
             defs 10
 ;------ Forth Data Stack -----
 ;   This stack is indexed by SP
 ;
-            defs    128
+        defs    STACK_SIZE
 _DATA_STACK:
 _S_GUARD:   dw   0x5050
             defs 10

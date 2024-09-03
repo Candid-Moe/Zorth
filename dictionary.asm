@@ -618,6 +618,10 @@ _dict_search_cycle:
     jr  _dict_search_cycle
 
 _dict_search_not_found:   
+    
+    ld      hl, FALSE
+    jr      _dict_search_end
+
     ;
     ;   Word not found; try to convert to value
     ;   ( addr -- )
@@ -1014,6 +1018,10 @@ dict_init:
     mdict_add st_source_id, code_source_id
     mdict_add st_s_to_d,    code_s_to_d
     mdict_add st_cs_roll,   code_cs_roll
+    mdict_add st_t_open,    code_t_open
+    mdict_add st_rigth_arrow, code_right_arrow
+    mdict_add st_t_close,   code_t_close
+    mdict_add st_included,  code_included
 
     fret
 
@@ -1115,3 +1123,7 @@ st_source_id:   counted_string "source-id"
 st_in:          counted_string ">in"
 st_s_to_d:      counted_string "s>d"
 st_cs_roll:     counted_string "cs-roll"
+st_t_open:      counted_string "T{"
+st_rigth_arrow: counted_string "->"
+st_t_close:     counted_string "}T"
+st_included:    counted_string "included"

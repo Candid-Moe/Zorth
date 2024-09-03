@@ -208,9 +208,9 @@ code_s_to_d:
     fenter
 
     pop     hl
-    push    hl
+    push    hl                  ; low word
 
-    bit     0, h
+    bit     7, h
     jr      z, _code_s_to_d_pos
     ;   Negative
     ld      hl, $FFFF
@@ -220,7 +220,7 @@ _code_s_to_d_pos:
     ld      hl, 0
 
 _code_s_to_d_end:
-    push    hl
+    push    hl                  ; high word
     fret
 
 code_m_star:

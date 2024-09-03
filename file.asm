@@ -3,15 +3,37 @@
 ;   file: file operations
 ;
 
-load_fs:
-    ;
-    ;   Load and evaluate the file.
-    ;   ( c-addr -- )
-    ;
+code_included:
+;
+;   Implements INCLUDED 
+;   ( i * x c-addr u -- j * x )
+;
+;   Remove c-addr u from the stack. Save the current input source specification, 
+;   including the current value of SOURCE-ID. Open the file specified by c-addr u, 
+;   store the resulting fileid in SOURCE-ID, and make it the input source. 
+;   Store zero in BLK. Other stack effects are due to the words included.
+;
+;   Repeat until end of file: read a line from the file, fill the input buffer from 
+;   the contents of that line, set >IN to zero, and interpret.
+;
+;   Text interpretation begins at the start of the file.
+;
+;   When the end of the file is reached, close the file and restore the input source
+;   specification to its saved value.
+;
+;   An ambiguous condition exists if the named file can not be opened, if an I/O
+;   exception occurs reading the file, or if an I/O exception occurs while closing
+;   the file. When an ambiguous condition exists, the status (open or closed) of 
+;   any files that were being interpreted is implementation-defined.
+;
+;   INCLUDED may allocate memory in data space before it starts interpreting the file. 
+    
     fenter
-
-    pop     bc      ; File name
-    inc     bc      ; Discard count byte
+    
+    pop     hl      ; Discard count byte
+    pop     bc      ; File name address
+    add     hl, bc
+    ld      (hl), 0 ; make it an ASCIIZ string
     ld      de, (_DP)
     STAT
 

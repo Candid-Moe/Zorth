@@ -23,7 +23,8 @@ init:
 
     ld      hl, boot_file
     push    hl
-    fcall   load_fs
+    fcall   code_count
+    fcall   code_included
 
 repl:
 ;
@@ -83,6 +84,7 @@ _repl_words:
 _repl_words_xt:
 
     ;   Obtain the execution token for word
+
     push    hl
     fcall   code_find
     pop     bc             ; return code
@@ -90,7 +92,35 @@ _repl_words_xt:
 
     ld      a, b
     or      c        
-    jr      z, _repl_failed
+    jr      nz, _repl_word_found
+
+    ;   Not a word. Maybe a value?
+
+    push    hl
+    fcall ascii2bin
+
+    pop hl      ; Flag
+    ld  a, l
+    or  h       ; Failed? 
+    jr  z,      _repl_failed    
+    
+    ;   Success, value already in stack
+
+    ;
+    ;   A value was converted. Now actions depend on
+    ;   which state we are.
+    ;
+    ld  a, (_STATE)
+    cp  a, TRUE
+    jr  nz, _repl_words
+    :
+    ;   Mode compile
+    ;
+    fcall  code_literal
+
+    jr  _repl_words
+
+_repl_word_found:
 
     push    hl              ; xt
     ld      a, (_STATE)
@@ -144,7 +174,7 @@ _repl_end:
 ;
     ld  a, (_S_GUARD)
     cp  0x50
-    jr  z, _repl_words  ; Stack OK
+    jp  z, _repl_words  ; Stack OK
 
     ;   Restore stack
     ld  SP, _DATA_STACK
@@ -685,27 +715,34 @@ code_tick:
     cp      0
     jr      nz, _code_tick_search
 
+    ;   Zero length word
+
     ld      hl, err_missing_name
     push    hl
     fcall   print_line 
-    fret
+
+    jr      _code_tick_end
     
 _code_tick_search:
 
     push    hl
-    fcall   dict_search
-    pop     hl
+    fcall   code_find
+    pop     hl          ; rc: 0, 1, -1
 
     ld      a, l
     or      h
-    jr      nz, _code_tick_end
+    jr      z, _code_tick_not_found
 
-    fcall print_error_word_not_found
-    fret
+    ;   xt alredady at TOS
+    jr      _code_tick_end
+
+_code_tick_not_found:
+
+    fcall   print_error_word_not_found
+    pop     hl      ; discard name address
 
 _code_tick_end:
 
-    push    hl        
     fret
 
 print_error_word_not_found:

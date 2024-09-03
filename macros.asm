@@ -29,7 +29,7 @@ macro fret
 endm
 
 macro   dup reg
-    pop reg
+    pop  reg
     push reg
     push reg
 endm
