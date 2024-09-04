@@ -78,6 +78,7 @@ code_right_arrow:
     ld      hl, (stack_pointer_origin)
     set_carry_0    
     sbc     hl, de
+    jr      z, _code_right_arrow_end:
 
     ld      bc, hl      ; length (bytes)
     ld      (stack_depth), bc
@@ -86,8 +87,9 @@ code_right_arrow:
 
     ldir
 
-    ;   Restore stack
+_code_right_arrow_end:
 
+    ;   Restore stack
     ld      sp, (stack_pointer_origin)
 
     fret        
@@ -116,10 +118,15 @@ _compare_stacks:
     push    iy
     fcall   code_to_r           ; Save iy in the return stack
 
+    ld      bc, (stack_depth)
     ld      iy, stack_copy
     ld      hl, (stack_pointer_after)
 
 _code_t_close_cycle:
+    
+    xor     a
+    cp      c
+    jr      z, _code_restore
 
     ld      a, (hl)
     cp      (iy)
@@ -136,7 +143,7 @@ _code_t_close_cycle_next:
     inc     hl
     inc     iy
     dec     bc
-    jr      nz, _code_t_close_cycle
+    jr      _code_t_close_cycle
 
 _code_restore:
 

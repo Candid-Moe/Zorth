@@ -406,7 +406,7 @@ code_rshift:
 
 _code_rshift_cycle:
 
-    srl  h  ;   Shift high byte by 1
+    srl  h      ;   Shift high byte by 1
     
     ld  a, l    ;   Shift low byte by 1
     rra 

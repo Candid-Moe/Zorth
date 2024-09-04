@@ -108,12 +108,14 @@
 : defer ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
-: action-of state @ if
-        postpone ['] postpone defer@
-    else
-        ' defer@
-    then ; immediate
+: ACTION-OF
+   STATE @ IF
+     POSTPONE ['] POSTPONE DEFER@
+   ELSE
+     ' DEFER@
+   THEN ; IMMEDIATE
 : within ( test low high -- flag ) over - rot rot - u> ;
+
 .( . )
 
 : marker dict @ create , does> @ dict ! ; 
@@ -132,6 +134,12 @@
 : unused $FFFF here - ;
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
 : ." postpone s" ['] type postpone , ; immediate
+
+0 INVERT          CONSTANT  MAX-UINT
+0 INVERT 1 RSHIFT CONSTANT  MAX-INT
+0 INVERT 1 RSHIFT INVERT	CONSTANT MIN-INT
+0 INVERT 1 RSHIFT CONSTANT  MID-UINT
+0 INVERT 1 RSHIFT INVERT CONSTANT MID-UINT+1
 
 : fac ( +n1 -- +n2)
    dup 2 < if drop 1 exit then
