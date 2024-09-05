@@ -26,16 +26,16 @@
 : 1- 1 - ;
 : decimal 10 base ! ; 
 : hex 16 base ! ; 
-: 0= $0000 or  if false else true then ;
-: 0<> 0= invert ;
-: ?dup dup 0<> if dup then ;
-: 0< $8000 and if true else false then ;
-: 0> ?dup 0= if false else 0< if false else true then then ; \ ( n -- flag ) if n > 0
+
+( Comparations )
+: <> = invert ;
+: 0=  0 = ;
+: 0<> 0 <> ;
+: 0<  0 < ;
+: 0>  0 > ;
+
 .( . )
-: > - 0> ;
-: < - 0< ;
-: <> - 0<> ;
-: = - 0= ;
+: ?dup dup 0<> if dup then ;
 : over >r dup r> swap ;  \ ( x1 x2 -- x1 x2 x1 )
 : tuck swap over ;       \ ( x1 x2 -- x2 x1 x2 )
 : nip swap drop ;        \ ( x1 x2 -- x2 )
@@ -97,8 +97,6 @@
 .( . )
 
 : u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
-: u< - 0< ;
-: u> - 0> ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit 0 , ; immediate
 .( . )

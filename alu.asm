@@ -476,6 +476,153 @@ code_two_slash:
 
     jp  (hl)
 
+classify_signs:
+;
+;   Classify two values
+;   HL  First value
+;   DE  Second value
+;
+;   Result in A:
+;
+;   00  Both equal signs
+;   01  HL positive, DE negative
+;   10  HL negative, DE positive
+;
+    xor a
+
+    bit 7, h
+    jr  z, classify_second
+    or  2
+
+classify_second:
+    bit 7, d
+    jr  z, classify_both
+    or  1
+
+classify_both:
+    cp  3   ; both negative
+    jr  nz, classify_end
+    xor a   ; both equal signs
+classify_end:
+    ret
+
+code_less_than:
+;
+;   Implements < 
+;   ( n1 n2 -- flag )
+;
+;   flag is true if and only if n1 is less than n2. 
+;
+    fenter
+    
+    pop de      ; n2
+    pop hl      ; n1
+    call classify_signs
+
+    cp  1       ; +n1 > -n2
+    jr  nz, _code_less_2
+    ld  hl, FALSE
+    jr  code_less_than_end
+
+_code_less_2:
+    cp  2       ; -n1 < +n2
+    jr  nz, _code_less_3
+    ld  hl, TRUE
+    jr  code_less_than_end
+
+_code_less_3:       ; equal sign
+    set_carry_0
+    sbc hl, de      ;   hl - de
+    jp  p, _code_less_4
+    ld  hl, TRUE
+    jr  code_less_than_end
+
+_code_less_4:
+
+    ld  hl, FALSE
+
+code_less_than_end:
+    push    hl
+    
+    fret  
+    
+code_greater_than:
+;
+;   Implements > 
+;   ( n1 n2 -- flag )
+;
+;   flag is true if and only if n1 is greater than n2. 
+
+    fenter
+
+    fcall code_swap
+    fcall code_less_than
+
+    fret
+    
+code_equals:
+;
+;   Implements =
+;   ( x1 x2 -- flag )
+;
+;   flag is true if and only if x1 is bit-for-bit the same as x2. 
+;
+    fenter
+
+    pop hl
+    pop de
+
+    set_carry_0
+    sbc hl, de
+    ld  hl, FALSE
+    jr  nz, code_equals_end
+    ld  hl, TRUE
+
+code_equals_end:
+    
+    push    hl
+    
+    fret
+
+code_u_less_than:
+;
+;   Implements U< u-less-than
+;   ( u1 u2 -- flag )
+;
+;   flag is true if and only if u1 is less than u2. 
+
+    fenter
+
+    pop de
+    pop hl
+    set_carry_0
+    sbc hl, de
+    
+    jr  z, _code_u_less_false
+    jr  nc, _code_u_less_false
+    ld  hl, TRUE
+    jr  _code_u_less_end
+
+_code_u_less_false:
+    ld  hl, FALSE
+_code_u_less_end:
+    push    hl
+
+    fret
+
+code_u_greater_than:
+;   
+;   Implements U>
+;   ( u1 u2 -- flag )
+;
+;   flag is true if and only if u1 is greater than u2. 
+
+    fenter
+
+    fcall code_swap
+    fcall code_u_less_than
+
+    fret
 
 multiply_by_10:
 ;   ( n -- n * 10 )

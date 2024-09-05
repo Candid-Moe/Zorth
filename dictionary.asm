@@ -1023,7 +1023,20 @@ dict_init:
     mdict_add st_t_close,   code_t_close
     mdict_add st_included,  code_included
 
+    mdict_add st_less_than, code_less_than
+    mdict_add st_greater_than, code_greater_than
+    mdict_add st_equals,    code_equals
+    mdict_add st_u_less_than, code_u_less_than
+    mdict_add st_u_greater_than, code_u_greater_than
+    
+
     fret
+
+st_less_than:   counted_string "<"
+st_greater_than: counted_string ">"
+st_equals:      counted_string "="
+st_u_less_than: counted_string "u<"
+st_u_greater_than: counted_string "u>"
 
 st_address:     counted_string "address"
 st_nop:         counted_string ""
