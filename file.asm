@@ -38,7 +38,16 @@ code_included:
     STAT
 
     cp      ERR_SUCCESS
-    jr      nz, _load_fs_error
+    jr      z, _load_fs_open
+
+    ;   File not found
+    ld      hl, err_file_not_found
+    push    hl
+    fcall   print_line
+    fcall   code_cr
+    jr      _load_fs_end    
+
+_load_fs_open:
     
     ld      h, O_RDONLY
     OPEN
@@ -98,7 +107,7 @@ _load_fs_last:
     ld      a, (_device_number)
     CLOSE
 
-_load_fs_error:
+_load_fs_end:
     
     fret
 

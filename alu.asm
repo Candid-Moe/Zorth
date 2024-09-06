@@ -406,10 +406,9 @@ code_rshift:
 
 _code_rshift_cycle:
 
-    srl  h      ;   Shift high byte by 1
-    
-    ld  a, l    ;   Shift low byte by 1
-    rra 
+    srl  h      ;   Shift right high byte by 1, bit0 -> carry    
+    ld  a, l    
+    rra         ;   Shift low byte by 1, carry -> bit7
     ld  l, a
 
     djnz _code_rshift_cycle

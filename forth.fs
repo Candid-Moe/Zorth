@@ -44,9 +44,10 @@
 : 2swap >r rot r> rot ;  \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
 : 2dup over over ;
 : 2drop drop drop ;
-: 2>r swap >r >r ;       \ ( x1 x2 -- ) ( R: -- x1 x2 ) 
-: 2r> r> r> swap ;       \ ( -- x1 x2 ) ( R: x1 x2 -- ) 
-: 2r@ r> r> 2dup >r >r swap ; \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
+: 2>r swap >r >r ;              \ ( x1 x2 -- ) ( R: -- x1 x2 ) 
+: 2r> r> r> swap ;              \ ( -- x1 x2 ) ( R: x1 x2 -- ) 
+: 2r@ r> r> 2dup >r >r swap ;   \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
+
 .( . )
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : chars ;                \ ( n1 -- n2 )
@@ -99,6 +100,9 @@
 : u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit 0 , ; immediate
+: recurse dict @ , ; immediate
+: roll                          \ x0 i*x u.i -- i*x x0 )
+  dup if swap >r 1- recurse r> swap exit then  drop ;
 .( . )
 
 : >body 10 + ;
@@ -117,7 +121,6 @@
 .( . )
 
 : marker dict @ create , does> @ dict ! ; 
-: recurse dict @ , ; immediate
 : value constant ;
 : to ' >body ! ; 
 : is
@@ -132,6 +135,23 @@
 : unused $FFFF here - ;
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
 : ." postpone s" ['] type postpone , ; immediate
+: .s ." < " depth . ." > " depth if dup . depth 1 do i roll dup . loop then ;
+
+: while ( dest -- orig dest / flag -- )
+   \ conditional exit from loops
+   postpone if	          \ conditional forward brach
+    1 cs-roll	           \ keep dest on top
+; immediate
+
+: repeat ( orig dest -- / -- )
+   \ resolve a single WHILE and return to BEGIN
+   postpone again	       \ uncond. backward branch to dest
+   postpone then	       \ resolve forward branch from orig
+; immediate
+
+: clearstack               \ delete all items in data stack
+    begin depth 
+    while drop repeat ;
 
 0 INVERT          CONSTANT  MAX-UINT
 0 INVERT 1 RSHIFT CONSTANT  MAX-INT
@@ -158,3 +178,10 @@
             then
     again ;
 
+: fib 0 1
+    begin
+        dup >r rot dup r> > \ condition
+    while
+        rot rot dup rot + dup . \ body
+    repeat
+    drop drop drop ; \ after loop has executed

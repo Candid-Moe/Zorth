@@ -42,8 +42,9 @@ err_underflow:      counted_string "Error. Data Stack underflow.\n"
 err_missing_name:   counted_string "Error. Attempt to use zero-length string as a name.\n"
 err_mode_comp:      counted_string "Error. Already in compilation mode.\n"
 err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
-err_unstructed:     counted_string "Error. Unstructed\n"
+err_unstructed:     counted_string "Error. Unstructed.\n"
 err_in_word:        counted_string " in word "
+err_file_not_found: counted_string "Error. File not found."
 
 ;------ Forth Leave Stack ------
 ;

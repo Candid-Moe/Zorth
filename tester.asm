@@ -70,11 +70,13 @@ code_right_arrow:
 
     ;   Record stack pointer after test
 
-    ld      (stack_pointer_after), sp
+    ld      hl, 0
+    add     hl, sp
+    ld      (stack_pointer_after), hl   ; SP
+    ld      de, hl                      ; DE = SP
    
     ;   Copy data stack
 
-    ld      de, sp
     ld      hl, (stack_pointer_origin)
     set_carry_0    
     sbc     hl, de
@@ -82,7 +84,7 @@ code_right_arrow:
 
     ld      bc, hl      ; length (bytes)
     ld      (stack_depth), bc
-    ld      hl, sp
+    ld      hl, (stack_pointer_after)
     ld      de, stack_copy
 
     ldir
@@ -100,8 +102,12 @@ code_t_close:
 ;
     fenter
 
-    ld  hl, (stack_pointer_after)
-    ld  de, sp
+    ld      hl, 0
+    add     hl, sp
+
+    ld      de, (stack_pointer_after)
+    ex      hl, de
+
     set_carry_0
     sbc hl, de
 
@@ -182,6 +188,12 @@ _test_print:
     fcall   code_type
     fcall   code_space
 
+    ;   Values will printed in hex
+    ld      hl, (_BASE)
+    ld      (tester_base), hl
+    ld      hl, 16
+    ld      (_BASE), hl
+
     ld      hl, stack_copy
     ld      (stack_pointer), hl
 
@@ -207,6 +219,10 @@ _test_print_cycle:
     jr      _test_print_cycle
     
 _test_print_end:
-   
+
+    ld      hl, (tester_base)
+    ld      (_BASE), hl
+
     fret
 
+tester_base: dw 0

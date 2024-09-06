@@ -41,6 +41,7 @@ code_evaluate:
 
     pop     bc                  ; u
     ld      a, c
+
     ld      (eval_gTIB), a
     ld      bc, eval_gTIB
 
