@@ -97,12 +97,12 @@ _repl_words_xt:
     ;   Not a word. Maybe a value?
 
     push    hl
-    fcall ascii2bin
+    fcall   ascii2bin
 
-    pop hl      ; Flag
-    ld  a, l
-    or  h       ; Failed? 
-    jr  z,      _repl_failed    
+    pop     hl      ; Flag
+    ld      a, l
+    or      h       ; Failed? 
+    jr      z,      _repl_failed    
     
     ;   Success, value already in stack
 
@@ -194,57 +194,8 @@ _repl_failed:
 ;   Not a word, not a value
 ;
     pop     hl          ; Discard value
-
-    fcall   print_error_word_not_found
-   
-    ;   Discard rest of line and start again
-    ld  a, (_STATE)
-    cp  TRUE
-    jr  z, _set_discard_mode
-
-    ;   Interpreting mode, discard the rest of the line
-    fcall   code_backslash
-    jr      _repl_failed_next
-
-_set_discard_mode:
-    ;   
-    ;   Print the word name that failed
-    ;
-    ld      hl, err_in_word
-    push    hl
-    fcall   print_line
-
-    ld      hl, (_DICT)
-    inc     hl
-    inc     hl  ; # words
-    inc     hl  ; flags
-    inc     hl  ; name
-    ld      de, (hl)
-    push    de
-    fcall   print_line
-    
-    ld      a, TRUE
-    ld      (_DISCARD), a       ; Discard next words until semmicolon is found
-    fcall   dict_delete_last
-
-_repl_failed_next:
-
-    fcall   code_cr
-
-    ;   Back to INTERPRETER mode
-
-    ld      a, FALSE
-    ld      (_STATE), a
-
-    ;   Empty all stacks except data stack/return stack
-
-    ld      IY, _EX_STACK
-    ld      hl, _LEAVE_STACK
-    ld      (_IX_LEAVE), hl
-    ld      hl, _CONTROL_STACK
-    ld      (_IX_CONTROL), hl
-
-    jp  _repl_end
+    fcall   error_word_not_found
+    jr      _repl_end
 
 _repl_return:
     
@@ -960,9 +911,9 @@ _code_words_cycle:
 
 _code_words_end:
 
-    ld  hl, new_line
+    ld  hl, '\n'
     push hl
-    fcall print_line
+    fcall code_emit
 
     fret
 
@@ -975,10 +926,9 @@ code_space:
 ;
     fenter
 
-    ld      hl, space
+    ld      hl, ' '
     push    hl
-    fcall   code_count
-    fcall   code_type
+    fcall   code_emit
 
     fret
 
@@ -991,10 +941,9 @@ code_cr:
 ;
     fenter
 
-    ld  hl, new_line
-    push hl
-    fcall code_count
-    fcall code_type
+    ld      hl, '\n'
+    push    hl
+    fcall   code_emit
 
     fret
 
@@ -1029,17 +978,17 @@ code_emit:
     
     fenter
 
-    ld  hl, _PAD
-
-    pop bc
-    ld  (hl), c
-    push hl
+    pop de
+    ld  (_emit_buffer), de
+    ld  de, _emit_buffer
     ld  bc, 1
-    push bc
 
-    fcall code_type
-
+    ld  h, DEV_STDOUT
+    WRITE()   
+  
     fret
+
+_emit_buffer:   db 0
     
 _code_mode_error:
     
@@ -1101,3 +1050,52 @@ clear_screen:
     fcall code_ioctl
 
     fret
+
+error_word_not_found:    
+
+    fenter
+
+    fcall   print_error_word_not_found
+   
+    ;   Discard rest of line and start again
+    ld  a, (_STATE)
+    cp  TRUE
+    jr  z, _set_discard_mode
+
+    ;   Interpreting mode, discard the rest of the line
+    fcall   code_backslash
+    jr      _repl_failed_next
+
+_set_discard_mode:
+    ;   
+    ;   Print the word name that failed
+    ;
+    ld      hl, err_in_word
+    push    hl
+    fcall   print_line
+
+    ld      hl, (_DICT)
+    inc     hl
+    inc     hl  ; # words
+    inc     hl  ; flags
+    inc     hl  ; name
+    ld      de, (hl)
+    push    de
+    fcall   print_line
+    
+    ld      a, TRUE
+    ld      (_DISCARD), a       ; Discard next words until semmicolon is found
+    fcall   dict_delete_last
+
+_repl_failed_next:
+
+    fcall   code_cr
+
+    ;   Back to INTERPRETER mode
+
+    ld      a, FALSE
+    ld      (_STATE), a
+
+    fret
+
+

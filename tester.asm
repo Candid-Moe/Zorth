@@ -80,10 +80,10 @@ code_right_arrow:
     ld      hl, (stack_pointer_origin)
     set_carry_0    
     sbc     hl, de
+    ld      bc, hl      ; length (bytes)
+    ld      (stack_depth), hl
     jr      z, _code_right_arrow_end:
 
-    ld      bc, hl      ; length (bytes)
-    ld      (stack_depth), bc
     ld      hl, (stack_pointer_after)
     ld      de, stack_copy
 
@@ -220,6 +220,7 @@ _test_print_cycle:
     
 _test_print_end:
 
+    fcall   code_cr
     ld      hl, (tester_base)
     ld      (_BASE), hl
 

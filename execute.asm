@@ -100,3 +100,31 @@ _ex_classify:
     and BIT_COLON   ; Test the CODE/COLON flag
 
     ret
+
+check_immediate:
+;
+;   Check is a xt correspond to an immediate word
+;   ( xt -- flag )
+;
+;   Flag is TRUE when word is immediate.
+;
+    fenter
+
+    ld      bc, TRUE
+
+    pop     de
+    inc     de      
+    inc     de              ; # words
+    inc     de              ; flag
+    ld      a, (de) 
+    and     BIT_IMMEDIATE   ; mode immediate    
+    jr      nz, check_immediate_end
+    
+    ld      bc, FALSE
+
+check_immediate_end:
+    
+    push    bc
+    fret
+    
+

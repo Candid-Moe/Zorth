@@ -548,9 +548,9 @@ _error_not_found:
     ld hl,  _PAD
     push hl
     fcall print_line
-    ld hl, new_line
+    ld hl, '\n'
     push hl
-    fcall print_line
+    fcall code_emit
     
     fret
 
@@ -768,6 +768,26 @@ _code_literal_error:
     fcall   code_backslash       ; Forget the remaining words
     fret
 
+xt_compile_comma:   dw 0
+code_compile_comma:
+;
+;   Interprets COMPILE,
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( xt -- )
+;
+;   Append the execution semantics of the definition represented by xt
+;   to the execution semantics of the current definition. 
+;
+    fenter
+
+    fcall   add_cell
+
+    fret
+
 xt_postpone:    dw 0    
 code_postpone:
 ;
@@ -785,14 +805,74 @@ code_postpone:
 ;
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_postpone_error
+    ld      a, (_STATE)
+    cp      FALSE
+    jp      z, _code_postpone_error
 
     ld      hl, ' '
     push    hl
     fcall   code_word   ; ( ' ' -- c-addr )
     fcall   dict_search ; ( c-addr -- xt )
+
+    ;   
+;    dup     hl          ;   ( -- xt xt )
+    ld      a, h
+    or      l
+    jr      nz, _code_postpone_next
+
+    ;   Word not found
+
+    pop     hl          ; Discard value
+    fcall   error_word_not_found
+    fret
+
+_code_postpone_next:
+
+    ;   Immediate words must be executed now
+
+    dup     hl              ; ( xt -- xt xt )
+    fcall   check_immediate ; ( -- xt flag)
+    pop     bc              ; ( -- xt )
+    ld      a, b
+    or      c
+    jr      z, _code_postpone_save
+
+    ;   It's an immediate word
+
+    pop     hl              ; ( xt -- )
+    push    hl              ; ( -- xt )
+    call    _ex_classify
+    jr      nz, _code_postpone_execute_colon
+
+    ;   Execute a CODE works.
+    ;   Call the code directly
+
+    pop     bc              ; ( xt -- )
+    ld      (_code_postpone_jp + 1), bc
+    ld hl,  _code_postpone_execute_end
+
+_code_postpone_jp:    
+    jp   0                      ; dest. will be overwritten 
+
+_code_postpone_execute_colon:
+
+    ;   Execute a immediate COLON word
+
+    fcall   code_execute        ; execute immediate word
+
+_code_postpone_execute_end:
+
+    fcall   code_literal
+    fret
+
+_code_postpone_save:
+    
+    ;   Store xt as a literal (non immediate word)
+    
+    fcall   code_literal
+
+    ld      hl, (xt_compile_comma)
+    push    hl
     fcall   add_cell    ; ( xt -- )
 
     fret    
@@ -890,6 +970,10 @@ dict_init:
     mdict_add st_jump,      code_jp_runtime
     ld  hl, (_DICT)
     ld  (xt_jp), hl
+
+    mdict_add st_compile_comma, code_compile_comma
+    ld  hl, (_DICT)
+    ld  (xt_compile_comma), hl
 
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -1038,6 +1122,7 @@ st_equals:      counted_string "="
 st_u_less_than: counted_string "u<"
 st_u_greater_than: counted_string "u>"
 
+st_compile_comma: counted_string "compile,"
 st_address:     counted_string "address"
 st_nop:         counted_string ""
 st_pad:         counted_string "pad"
