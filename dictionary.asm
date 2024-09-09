@@ -975,6 +975,7 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_compile_comma), hl
 
+    mdict_add st_accept,    code_accept
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
     mdict_add st_in,        code_in
@@ -1122,6 +1123,7 @@ st_equals:      counted_string "="
 st_u_less_than: counted_string "u<"
 st_u_greater_than: counted_string "u>"
 
+st_accept:      counted_string "accept"
 st_compile_comma: counted_string "compile,"
 st_address:     counted_string "address"
 st_nop:         counted_string ""

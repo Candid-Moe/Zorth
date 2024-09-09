@@ -761,6 +761,55 @@ code_type:
     
     fret
 
+code_key:
+;
+;   KEY 
+;   ( -- char )
+;
+;   Receive one character char, a member of the implementation-defined character set.
+;   Keyboard events that do not correspond to such characters are discarded until a 
+;   valid character is received, and those events are subsequently unavailable.
+;
+;   All standard characters can be received. Characters received by KEY are not displayed.
+;
+;   Any standard character returned by KEY has the numeric value specified in 
+;   3.1.2.1 Graphic characters. Programs that require the ability to receive control
+;   characters have an environmental dependency. 
+;
+    fenter
+
+    fret
+
+code_accept:
+;
+;   ACCEPT 
+;   ( c-addr +n1 -- +n2 )
+;
+;   Receive a string of at most +n1 characters. An ambiguous condition exists
+;   if +n1 is zero or greater than 32,767. 
+;   Display graphic characters as they are received. A program that depends on 
+;   the presence or absence of non-graphic characters in the string has an 
+;   environmental dependency. 
+;   The editing functions, if any, that the system performs in order to construct
+;   the string are implementation-defined.
+;
+;   Input terminates when an implementation-defined line terminator is received.
+;   When input terminates, nothing is appended to the string, and the display is
+;   maintained in an implementation-defined way.
+;
+;   +n2 is the length of the string stored at c-addr. 
+;
+    fenter
+
+    pop bc              ; +n1
+    pop de              ; c-addr
+    ld  h, DEV_STDIN
+    READ   
+    
+    push bc
+    
+    fret
+
 code_refill:
 ;
 ;   Implement REFILL
