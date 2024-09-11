@@ -221,6 +221,91 @@ code_begin:
 
     fret
 
+code_while:
+;
+;   WHILE
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: dest -- orig dest )
+;
+;   Put the location of a new unresolved forward reference orig onto the control 
+;   flow stack, under the existing dest. 
+;   Append the run-time semantics given below to the current definition. 
+;   The semantics are incomplete until orig and dest are resolved (e.g., by REPEAT).
+;
+;   Run-time:
+;   ( x -- )
+;
+;   If all bits of x are zero, continue execution at the location specified by the
+;   resolution of orig. 
+;
+    fenter
+
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
+
+    ld      hl, (xt_jz)
+    push    hl
+    fcall   add_cell
+
+    ctrl_pop        ; dest
+    push    hl
+
+    ld      hl, (_DP)
+    ctrl_push       ; ( : C -- orig )
+    pop     hl
+    ctrl_push       ; ( : C orig -- orig dest )
+
+    ld      hl, 0
+    push    hl
+    fcall   add_cell ; Address to jump
+                
+    fret
+
+code_repeat:
+;
+;   Implements REPEAT
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: orig dest -- )
+;
+;   Append the run-time semantics given below to the current definition, 
+;   resolving the backward reference dest. 
+;   Resolve the forward reference orig using the location following the 
+;   appended run-time semantics.
+;
+;   Run-time:
+;   ( -- )
+;
+;   Continue execution at the location given by dest. 
+;
+    fenter
+
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
+
+    ld      hl, (xt_jp)
+    push    hl
+    fcall   add_cell
+
+    ctrl_pop            ; dest
+    push    hl
+    fcall   add_cell
+
+    ctrl_pop            ; orig
+    ld      de, (_DP)
+    ld      (hl), de    
+   
+    fret
+
 code_again:
 ;
 ;   Implements AGAIN 

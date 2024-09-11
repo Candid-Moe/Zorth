@@ -39,6 +39,12 @@ code_evaluate:
     push    bc
     fcall   code_to_r           ; old TIB to R
 
+    ld      a, (eval_gTIB)
+    ld      b, 0
+    ld      c, a
+    push    bc
+    fcall   code_to_r           ; old eval_gTIB to R
+
     pop     bc                  ; u
     ld      a, c
 
@@ -54,6 +60,11 @@ code_evaluate:
     ld      (_gtIN), a
 
     fcall   inner_interpreter
+
+    fcall   code_r_from
+    pop     hl
+    ld      a, l
+    ld      (eval_gTIB), a
 
     fcall   code_r_from
     pop     hl

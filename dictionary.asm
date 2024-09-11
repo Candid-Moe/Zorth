@@ -813,9 +813,10 @@ code_postpone:
     push    hl
     fcall   code_word   ; ( ' ' -- c-addr )
     fcall   dict_search ; ( c-addr -- xt )
-
+    
     ;   
-;    dup     hl          ;   ( -- xt xt )
+    pop     hl
+    push    hl
     ld      a, h
     or      l
     jr      nz, _code_postpone_next
@@ -828,8 +829,6 @@ code_postpone:
 
 _code_postpone_next:
 
-    ;   Immediate words must be executed now
-
     dup     hl              ; ( xt -- xt xt )
     fcall   check_immediate ; ( -- xt flag)
     pop     bc              ; ( -- xt )
@@ -839,30 +838,11 @@ _code_postpone_next:
 
     ;   It's an immediate word
 
-    pop     hl              ; ( xt -- )
-    push    hl              ; ( -- xt )
-    call    _ex_classify
-    jr      nz, _code_postpone_execute_colon
+    ld      hl, (xt_postpone)
+    push    hl              ; ( xt -- xt xt_postpone )
+    fcall   add_cell        ; ( -- xt )
+    fcall   add_cell        ; ( -- )
 
-    ;   Execute a CODE works.
-    ;   Call the code directly
-
-    pop     bc              ; ( xt -- )
-    ld      (_code_postpone_jp + 1), bc
-    ld hl,  _code_postpone_execute_end
-
-_code_postpone_jp:    
-    jp   0                      ; dest. will be overwritten 
-
-_code_postpone_execute_colon:
-
-    ;   Execute a immediate COLON word
-
-    fcall   code_execute        ; execute immediate word
-
-_code_postpone_execute_end:
-
-    fcall   code_literal
     fret
 
 _code_postpone_save:
@@ -898,10 +878,17 @@ _code_postpone_runtime:
     call    _ex_classify
     jr      nz, _code_postpone_execute
 
-    ;   Code words, just put the xt directly
+    ;   Execute a CODE works.
+    ;   Call the code directly
 
-    fcall   add_cell    ; ( XT -- )
-    jr      _code_postpone_end    
+    pop bc          ; ( xt -- ) discard XT
+    ld  bc, (hl)
+    ld (_postpone_jp + 1), bc   ; HL was filled by _ex_classify
+    ld hl, _code_postpone_end
+
+_postpone_jp:    
+    jp   0          ; dest. will be overwritten 
+
 
 _code_postpone_execute:
 
@@ -974,7 +961,13 @@ dict_init:
     mdict_add st_compile_comma, code_compile_comma
     ld  hl, (_DICT)
     ld  (xt_compile_comma), hl
-
+    
+    mdict_add st_begin,     code_begin
+    fcall code_immediate
+;    mdict_add st_while,     code_while
+;    fcall code_immediate
+;    mdict_add st_repeat,    code_repeat
+;    fcall code_immediate
     mdict_add st_accept,    code_accept
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -1038,8 +1031,6 @@ dict_init:
     mdict_add st_see,       code_see
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
-    mdict_add st_begin,     code_begin
-    fcall code_immediate
     mdict_add st_until,     code_until
     fcall code_immediate
     mdict_add st_again,     code_again
@@ -1123,6 +1114,8 @@ st_equals:      counted_string "="
 st_u_less_than: counted_string "u<"
 st_u_greater_than: counted_string "u>"
 
+st_while:       counted_string "while"
+st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"
 st_compile_comma: counted_string "compile,"
 st_address:     counted_string "address"

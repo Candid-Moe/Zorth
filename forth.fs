@@ -29,6 +29,12 @@
 4 constant case-sys
 5 constant case-of
 
+0                   CONSTANT 0S
+0 INVERT            CONSTANT 1S
+0S                  CONSTANT <FALSE>
+1S                  CONSTANT <TRUE> 
+1 1 RSHIFT INVERT   CONSTANT MSB
+
 ( Numeric constants )
 0 invert          constant          MAX-UINT
 0 invert 1 rshift constant          MAX-INT
@@ -144,16 +150,35 @@
    else
      ' defer!
    then ; immediate
+
 .( . ) 
 
 : clear 0 6 0 ioctl ;                   \ Screen clear
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
-\ : ." [char] " parse swap postpone literal postpone literal postpone type ; immediate
-\ : ." postpone s" postpone type ; immediate
-\ : .s ." < " depth . ." > " depth if dup . depth 1 do i roll dup . loop then ;
-0                   CONSTANT 0S
-0 INVERT            CONSTANT 1S
-0S                  CONSTANT <FALSE>
-1S                  CONSTANT <TRUE> 
-1 1 RSHIFT INVERT   CONSTANT MSB
+: ." postpone s" postpone type ; immediate
+: .s ." < " depth . ." > " depth if dup . depth 1 do i roll dup . loop then ;
 
+: while ( dest -- orig dest / flag -- )
+   \ conditional exit from loops
+   postpone if	          \ conditional forward brach
+    1 cs-roll	           \ keep dest on top
+; immediate
+
+: repeat ( orig dest -- / -- )
+   \ resolve a single WHILE and return to BEGIN
+   postpone again	       \ uncond. backward branch to dest
+   postpone then	       \ resolve forward branch from orig
+; immediate
+
+: dump ( addr u -- )                \   Dump memory
+    0 do dup c@ . 1 + loop ;
+
+: clearstack ( n ... -- )           \   Delete all items in data stack
+    begin 
+        depth 
+    while 
+        drop 
+    repeat ;
+
+cr
+.( Finished )
