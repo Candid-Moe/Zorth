@@ -968,6 +968,8 @@ dict_init:
 ;    fcall code_immediate
 ;    mdict_add st_repeat,    code_repeat
 ;    fcall code_immediate
+    mdict_add st_key,       code_key
+    mdict_add st_key_question, code_key_question
     mdict_add st_accept,    code_accept
     mdict_add st_count,     code_count
     mdict_add st_type,      code_type
@@ -1114,6 +1116,8 @@ st_equals:      counted_string "="
 st_u_less_than: counted_string "u<"
 st_u_greater_than: counted_string "u>"
 
+st_key:         counted_string "key"
+st_key_question: counted_string "key?"
 st_while:       counted_string "while"
 st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"

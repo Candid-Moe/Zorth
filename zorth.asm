@@ -5,6 +5,7 @@
 ;
 lstoff
 include "zos_sys.asm"
+include "zos_keyboard.asm"
 include "macros.asm"
 lston
 
@@ -23,8 +24,9 @@ include "itoa.asm"
 include "itoa_16.asm"
 include "file.asm"
 include "tester.asm"
-include "dictionary.asm"
 include "arithmetic/arith.asm"
+include "keyboard.asm"
+include "dictionary.asm"
 
 ;   Storage must be the last include
 

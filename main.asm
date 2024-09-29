@@ -761,25 +761,6 @@ code_type:
     
     fret
 
-code_key:
-;
-;   KEY 
-;   ( -- char )
-;
-;   Receive one character char, a member of the implementation-defined character set.
-;   Keyboard events that do not correspond to such characters are discarded until a 
-;   valid character is received, and those events are subsequently unavailable.
-;
-;   All standard characters can be received. Characters received by KEY are not displayed.
-;
-;   Any standard character returned by KEY has the numeric value specified in 
-;   3.1.2.1 Graphic characters. Programs that require the ability to receive control
-;   characters have an environmental dependency. 
-;
-    fenter
-
-    fret
-
 code_accept:
 ;
 ;   ACCEPT 
@@ -829,6 +810,8 @@ code_refill:
 ;   and perform no other action. 
 
     fenter
+
+    call    kbd_cooked_mode
 
     ld  a, 0
     ld  (_gtIN), a      ; Reset index >IN

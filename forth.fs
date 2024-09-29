@@ -156,7 +156,7 @@
 : clear 0 6 0 ioctl ;                   \ Screen clear
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
 : ." postpone s" postpone type ; immediate
-: .s ." < " depth . ." > " depth if dup . depth 1 do i roll dup . loop then ;
+: .s ." < " depth . ." > " depth if depth 0 do i pick . loop then ;
 
 : while ( dest -- orig dest / flag -- )
    \ conditional exit from loops
@@ -182,3 +182,4 @@
 
 cr
 .( Finished )
+: x 0 begin key? if 1 + dup . key emit then again ;
