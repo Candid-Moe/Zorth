@@ -3,10 +3,6 @@
 ;   control: words that control execution
 ;
 
-xt_if:  dw  0           ; IF runtime execution token.
-xt_jz:  dw  0
-xt_jp:  dw  0
-
 code_if:
 ;
 ;   Implements IF
@@ -140,7 +136,7 @@ code_else:
     fret
     
     
-code_jp_runtime:
+code_jp:
 ;
 ;   Implements JMP
 ;   ( -- )
@@ -398,7 +394,6 @@ code_until_end:
 
     fret
 
-xt_do:  dw  0
 code_do:
 ;
 ;   Implements DO
@@ -447,6 +442,9 @@ code_do:
     jp      (hl)        ; Return
     
 code_do_runtime:
+    ;
+    ;   Implement run-time semantic of DO
+    ;
 
     pop     bc          ; BC = Index
     pop     de          ; DE = Limit
@@ -459,7 +457,6 @@ code_do_runtime:
     pop     hl          ; return address 
     jp      (hl)        ; Return
 
-xt_loop:    dw  0
 code_loop:
 ;
 ;   Implements LOOP
@@ -536,7 +533,7 @@ _code_loop_next:
 
 code_loop_runtime:
     ;
-    ;   Execution state
+    ;   Implements run-time semantic for LOOP
     ;
     
     push    hl      ; Save return address
@@ -627,7 +624,6 @@ code_j:
 
     jp  (hl)
 
-xt_leave:    dw  0
 code_leave:
 ;
 ;   Implements LEAVE 
@@ -646,8 +642,8 @@ code_leave:
     push hl
 
     ld  a, (_STATE)
-    cp  TRUE      
-    jr  nz, _code_leave_exec
+    cp  FALSE
+    jp  z, _code_mode_error
 
     ld      hl, (xt_leave)     ; Insert a jmp
     push    hl
@@ -663,7 +659,9 @@ code_leave:
     pop hl
     jp  (hl)
 
-_code_leave_exec:
+code_leave_runtime:
+
+    push    hl
 
     ;   Discard control parameters in return stack
     fcall   code_unloop
@@ -701,52 +699,6 @@ code_unloop:
     pop     hl
     jp      (hl)
 
-code_case:
-;
-;   Implements CASE 
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: -- case-sys )
-;
-;   Mark the start of the CASE...OF...ENDOF...ENDCASE structure. 
-;   Append the run-time semantics given below to the current definition.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Continue execution. 
-    
-    fenter
-
-    ld  hl, case_sys
-    ctrl_push
-
-    fret
-
-code_of:
-;
-;   Implements OF
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: -- of-sys )
-;
-;   Put of-sys onto the control flow stack. 
-;   Append the run-time semantics given below to the current definition. 
-;   The semantics are incomplete until resolved by a consumer of of-sys such as ENDOF.
-;
-;   Run-time:
-;   ( x1 x2 -- | x1 )
-;
-;   If the two values on the stack are not equal, discard the top value and continue
-;   execution at the location specified by the consumer of of-sys, e.g., following 
-;   the next ENDOF. Otherwise, discard both values and continue execution in line. 
-;
 
 code_ctrl_push:
 ;

@@ -16,6 +16,14 @@
 ;   - bit 0: COLON (1) / CODE (0)
 ;   - bit 1: IMMEDIATE (1) / normal (0)
 
+;   Execution tokens for words with run-time semantic
+xt_if:      dw  0           ; IF runtime execution token.
+xt_jz:      dw  0           ; Jump if zero
+xt_jp:      dw  0           ; Jump
+xt_do:      dw  0           ; DO 
+xt_loop:    dw  0           ; LOOP
+xt_leave:   dw  0           ; LEAVE
+
 code_create:
 ;
 ;   Implements CREATE
@@ -953,6 +961,10 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_loop), hl
 
+    mdict_add st_leave,         code_leave_runtime
+    ld  hl, (_DICT)
+    ld  (xt_leave), hl
+
     ;   Previous entries are cut off from the list
 
     ld  hl, 0
@@ -962,13 +974,14 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jz), hl
 
-    mdict_add st_jump,      code_jp_runtime
+    mdict_add st_jump,      code_jp
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
     mdict_add st_compile_comma, code_compile_comma
     ld  hl, (_DICT)
     ld  (xt_compile_comma), hl
+
     
     mdict_add st_begin,     code_begin
     fcall code_immediate
@@ -1076,8 +1089,6 @@ dict_init:
 
     mdict_add st_leave,     code_leave
     fcall code_immediate
-    ld  hl, (_DICT)
-    ld  (xt_leave), hl
 
     mdict_add st_two_slash, code_two_slash
     mdict_add st_m_star,    code_m_star

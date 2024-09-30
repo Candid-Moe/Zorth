@@ -170,6 +170,38 @@
    postpone then	       \ resolve forward branch from orig
 ; immediate
 
+.( . ) 
+
+: case 0  ; IMMEDIATE ( init count of OFs )
+
+: of ( #of -- orig #of+1 / x -- )
+   1+	                   ( count OFs )
+   >R	                   ( move off the stack in case the control-flow )
+                           ( stack is the data stack. )
+   POSTPONE OVER POSTPONE = ( copy and test case value)
+   POSTPONE IF   	       ( add orig to control flow stack )
+   POSTPONE DROP	       ( discards case value if = )
+   R>	                   ( we can bring count back now )
+; IMMEDIATE
+
+: endof ( orig1 #of -- orig2 #of )
+   >R	                   ( move off the stack in case the control-flow )
+                           ( stack is the data stack. )
+   POSTPONE ELSE
+   R>	                   ( we can bring count back now )
+; IMMEDIATE
+
+: endcase ( orig1..orign #of -- )
+   POSTPONE DROP	        ( discard case value )
+   DUP IF
+     0 DO
+          POSTPONE THEN
+       LOOP
+   THEN
+; IMMEDIATE
+
+.( . ) 
+
 : dump ( addr u -- )                \   Dump memory
     0 do dup c@ . 1 + loop ;
 
@@ -182,4 +214,4 @@
 
 cr
 .( Finished )
-: x 0 begin key? if 1 + dup . key emit then again ;
+
