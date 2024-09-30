@@ -838,9 +838,9 @@ _code_postpone_next:
 
     ;   It's an immediate word
 
-    ld      hl, (xt_postpone)
-    push    hl              ; ( xt -- xt xt_postpone )
-    fcall   add_cell        ; ( -- xt )
+;    ld      hl, (xt_postpone)
+;    push    hl              ; ( xt -- xt xt_postpone )
+;    fcall   add_cell        ; ( -- xt )
     fcall   add_cell        ; ( -- )
 
     fret
