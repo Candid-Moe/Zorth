@@ -326,7 +326,7 @@ code_again:
 
     ld  a, (_STATE)
     cp  FALSE
-    jp  z, _code_until_runtime
+    jp  z, _code_mode_error
 
     ld  bc, (xt_jp)
     push bc
@@ -361,7 +361,7 @@ code_until:
     
     ld  a, (_STATE)
     cp  FALSE
-    jp  z, _code_until_runtime
+    jp  z, _code_mode_error
 
     ld      bc, (xt_jz)
     push    bc
@@ -371,27 +371,6 @@ code_until:
     push hl
     fcall   add_cell    ; Put the address for the jump.
     
-    fret
-
-_code_until_runtime:
-
-    fenter
-
-    pop bc
-    ld  a, c
-    cp  b
-    jr  z, code_until_end
-
-    ;   TOS != 0 -> end
-
-    ex_pop
-
-    inc hl
-    inc hl
-    ex_push
-
-code_until_end:
-
     fret
 
 code_do:
@@ -420,9 +399,13 @@ code_do:
 ;   Implementation: We don't use "fenter" in order to mantain control parameters on top
 ;   of stack.
 ;
+    fenter
+    
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
 
-
-    push    hl          ; Return address
+;    push    hl          ; Return address
 
     ;   Insert the load params instruction
     ld      hl, (xt_do)
@@ -438,12 +421,15 @@ code_do:
     ld      hl, 0
     leave_push          ; Mark a new frame start
 
-    pop     hl
-    jp      (hl)        ; Return
+;    pop     hl
+;    jp      (hl)        ; Return
+
+    fret
     
 code_do_runtime:
     ;
     ;   Implement run-time semantic of DO
+    ;   (Cannot use the return stack for calls)
     ;
 
     pop     bc          ; BC = Index
@@ -484,12 +470,15 @@ code_loop:
 ;   of stack.
 ;
 
-    push    hl      ; Save return address
+    fenter
+
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
+
+;    push    hl      ; Save return address
 
 _code_loop_comp:
-    ;
-    ;   Compilation state
-    ;
 
     ld  bc, (_DP)   ; BC = address after 2 cells
     inc bc
@@ -527,13 +516,16 @@ _code_loop_next:
     push    hl
     fcall   add_cell
 
-    pop hl          ; Return address
+;    pop hl          ; Return address
 
-    jp  (hl)
+;    jp  (hl)
+
+    fret
 
 code_loop_runtime:
     ;
     ;   Implements run-time semantic for LOOP
+    ;   (Cannot use the return stack for calls)
     ;
     
     push    hl      ; Save return address
@@ -639,7 +631,8 @@ code_leave:
 ;   Continue execution immediately following the innermost 
 ;   syntactically enclosing DO...LOOP or DO...+LOOP.
 ; 
-    push hl
+
+    fenter 
 
     ld  a, (_STATE)
     cp  FALSE
@@ -656,15 +649,14 @@ code_leave:
     push    hl
     fcall   add_cell
 
-    pop hl
-    jp  (hl)
+    fret
 
 code_leave_runtime:
 
     push    hl
 
     ;   Discard control parameters in return stack
-    fcall   code_unloop
+    fcall   code_unloop_runtime
 
     ;   Jump outside
     ctrl_pop
@@ -688,6 +680,23 @@ code_unloop:
 ;   Discard the loop-control parameters for the current nesting level. 
 ;   An UNLOOP is required for each nesting level before the definition may be EXITed. 
 ;   An ambiguous condition exists if the loop-control parameters are unavailable.
+;
+    fenter 
+
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
+
+    ld      hl, (xt_unloop) ; 
+    push    hl
+    fcall   add_cell    
+
+    fret
+
+code_unloop_runtime:
+;
+;   Implements run-time semantic for UNLOOP
+;   (Cannot use the return stack for calls)
 ;
     push    hl
 

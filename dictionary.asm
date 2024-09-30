@@ -21,8 +21,15 @@ xt_if:      dw  0           ; IF runtime execution token.
 xt_jz:      dw  0           ; Jump if zero
 xt_jp:      dw  0           ; Jump
 xt_do:      dw  0           ; DO 
+xt_does:    dw  0           ; DOES
 xt_loop:    dw  0           ; LOOP
+xt_unloop:  dw  0           ; UNLOOP
 xt_leave:   dw  0           ; LEAVE
+xt_literal: dw  0           ; LITERAL
+xt_compile_comma:   dw 0    ; COMPILE,
+xt_postpone: dw 0           ; POSTPONE
+
+xt_nop:     dw  0           ; No Operation
 
 code_create:
 ;
@@ -184,7 +191,6 @@ code_does:
                    
     fret       
 
-xt_does: dw 0
 _does_exec:
 
     fenter
@@ -686,7 +692,6 @@ _dict_search_end2:
 
 _dict_ptr:   dw 0
 
-xt_nop: dw 0
 code_nop:
 ;
 ;   Do nothing, return immediatly
@@ -740,7 +745,6 @@ code_literal:
     fret
 
 
-xt_literal: dw   0          ; code_literal_runtime XT  
 code_literal_runtime:
 
     fenter
@@ -776,7 +780,6 @@ _code_literal_error:
     fcall   code_backslash       ; Forget the remaining words
     fret
 
-xt_compile_comma:   dw 0
 code_compile_comma:
 ;
 ;   Interprets COMPILE,
@@ -796,7 +799,6 @@ code_compile_comma:
 
     fret
 
-xt_postpone:    dw 0    
 code_postpone:
 ;
 ;   Implements POSTPONE
@@ -929,6 +931,10 @@ macro mdict_add st, code
     fcall dict_add
 endm
 
+macro mdict_xt xt
+    ld hl, (_DICT)
+    ld (xt), hl
+endm
 
 dict_init:
     ;   
@@ -938,8 +944,7 @@ dict_init:
 
     mdict_add st_nop,       code_nop
     fcall code_immediate    
-    ld  hl, (_DICT)
-    ld  (xt_nop), hl    
+    mdict_xt xt_nop
 
     mdict_add st_literal,       code_literal_runtime
     ld  hl, (_DICT)
@@ -964,6 +969,10 @@ dict_init:
     mdict_add st_leave,         code_leave_runtime
     ld  hl, (_DICT)
     ld  (xt_leave), hl
+
+    mdict_add st_unloop,        code_loop_runtime
+    ld  hl, (_DICT)
+    ld  (xt_unloop), hl
 
     ;   Previous entries are cut off from the list
 

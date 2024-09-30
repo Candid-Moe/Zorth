@@ -127,7 +127,7 @@
 .( . ) 
 
 : >body 10 + ;
-: ['] ( compilation: "name" --; run-time: -- xt ) ' postpone literal ; immediate
+: ['] ( compilation: "name" --; run-time: -- xt ) ' literal ; immediate
 : defer  ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
