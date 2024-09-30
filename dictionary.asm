@@ -933,7 +933,7 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_nop), hl    
 
-    mdict_add st_literal,   code_literal_runtime
+    mdict_add st_literal,       code_literal_runtime
     ld  hl, (_DICT)
     ld  (xt_literal), hl
 
@@ -941,9 +941,17 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_address), hl
 
-    mdict_add st_postpone,       _code_postpone_runtime
+    mdict_add st_postpone,      _code_postpone_runtime
     ld  hl, (_DICT)
     ld (xt_postpone), hl
+
+    mdict_add st_do,            code_do_runtime
+    ld  hl, (_DICT)
+    ld  (xt_do), hl
+
+    mdict_add st_loop,          code_loop_runtime
+    ld  hl, (_DICT)
+    ld  (xt_loop), hl
 
     ;   Previous entries are cut off from the list
 
@@ -1058,13 +1066,9 @@ dict_init:
 
     mdict_add st_do,        code_do
     fcall code_immediate
-    ld  hl, (_DICT)
-    ld  (xt_do), hl
 
     mdict_add st_loop,      code_loop
     fcall code_immediate
-    ld  hl, (_DICT)
-    ld  (xt_loop), hl
 
     mdict_add st_i,         code_i
     mdict_add st_s_quote,   code_s_quote

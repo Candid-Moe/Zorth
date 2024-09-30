@@ -164,18 +164,8 @@ _repl_jp:
     jp   0          ; dest. will be overwritten 
 
 _repl_execute_colon:
-    ;
-    ;   We must switch STATE from COMPILING for the
-    ;   word to be properly executed.
-    ;
-    ld      a, FALSE
-    ld      (_STATE), a
 
     fcall   code_execute    
-
-    ld      a, TRUE
-    ld      (_STATE), a
-
     jr      _repl_end
        
 _repl_end:

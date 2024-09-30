@@ -426,11 +426,6 @@ code_do:
 ;   of stack.
 ;
 
-    ld      a, (_STATE)
-    cp      TRUE
-    jr      nz, _code_do_exec
-
-_code_do_comp:
 
     push    hl          ; Return address
 
@@ -451,7 +446,7 @@ _code_do_comp:
     pop     hl
     jp      (hl)        ; Return
     
-_code_do_exec:
+code_do_runtime:
 
     pop     bc          ; BC = Index
     pop     de          ; DE = Limit
@@ -493,10 +488,6 @@ code_loop:
 ;
 
     push    hl      ; Save return address
-
-    ld      a, (_STATE)
-    cp      TRUE
-    jr      nz, _code_loop_exec
 
 _code_loop_comp:
     ;
@@ -543,11 +534,13 @@ _code_loop_next:
 
     jp  (hl)
 
-_code_loop_exec:
+code_loop_runtime:
     ;
     ;   Execution state
     ;
     
+    push    hl      ; Save return address
+
     fcall   code_r_from ; Index ( -- index : R limit index -- limit )
     pop     hl
     inc     hl
