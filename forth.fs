@@ -15,7 +15,6 @@
 : cells 2 * ;            \ ( n1 -- n2 )
 : , here ! 1 cells allot ; 
 : ahead here >cs ;
-: unused $FFFF here - ;
 
 .( Loading dictionary )
 
@@ -118,7 +117,8 @@
 
 .( . ) 
 
-: u. dup 0< if 10000 swap over 5 0 do /mod $30 + emit swap 10 / swap over loop drop else . then ;
+: u. s>d <# #s #> type ;
+: unused $FFFF here - ;
 : .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit      0 , ; immediate
 : recurse   dict @ , ; immediate
@@ -131,7 +131,7 @@
 : defer  ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
-: ACTION-OF
+: action-of
    STATE @ IF
      POSTPONE ['] POSTPONE DEFER@
    ELSE
@@ -200,10 +200,12 @@
    THEN
 ; IMMEDIATE
 
+: holds ( addr u -- )
+   BEGIN DUP WHILE 1- 2DUP + C@ HOLD REPEAT 2DROP ; 
 .( . ) 
 
 : dump ( addr u -- )                \   Dump memory
-    0 do dup c@ . 1 + loop ;
+    0 do dup c@ s>d <# # # #> type 1 + loop ;
 
 : clearstack ( n ... -- )           \   Delete all items in data stack
     begin 
@@ -213,5 +215,8 @@
     repeat ;
 
 cr
-.( Finished )
+.( Finished ) cr
+unused u. .(  bytes free) cr
+
+
 

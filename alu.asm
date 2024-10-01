@@ -336,6 +336,44 @@ code_slash_mod:
 
     fret
 
+code_ud_slash_mod:
+;
+;   Implements ud/mod 
+;   ( ud1 u2 – urem udquot  ) gforth-0.2 “ud/mod”
+;
+;   Divide unsigned double ud1 by u2, resulting in a unsigned double
+;   quotient udquot and a single remainder urem. 
+;
+
+    fenter
+
+    pop hl
+
+    bit 0, h            ; Expand hl sign into de
+    jr  z, _code_ud_slash_mod_op
+    ld  de, $FFFF
+    jmp _code_ud_slash_mod2
+
+_code_ud_slash_mod_op:
+    ld  de, 0       ; divisor
+
+_code_ud_slash_mod2:
+
+    exx
+    pop de          ; dividend
+    pop hl
+    exx
+
+    call l_small_divu_32_32x32
+
+    exx    
+    push hl     ; remainder
+    exx
+    push hl     ; quotient
+    push de
+
+    fret
+
 code_dup:
 ;
 ;   Implements DUP

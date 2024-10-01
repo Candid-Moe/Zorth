@@ -15,7 +15,8 @@ defc TRUE  = -1
 defc FALSE = 0
 defc BIT_COLON  = 1
 defc BIT_IMMEDIATE = 2
-defc STACK_SIZE = 128       
+defc STACK_SIZE = 128    
+   
 
 words:      counted_string "words:\n"
 boot_file:  counted_string "forth.fs\000"

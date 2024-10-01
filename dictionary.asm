@@ -991,13 +991,15 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_compile_comma), hl
 
-    
+
+    mdict_add st_less_number_sign, code_less_number_sign
+    mdict_add st_number_sign, code_number_sign
+    mdict_add st_number_sign_greater, code_number_sign_greater
+    mdict_add st_hold,      code_hold   
+    mdict_add st_number_sign_s, code_number_sign_s
+
     mdict_add st_begin,     code_begin
     fcall code_immediate
-;    mdict_add st_while,     code_while
-;    fcall code_immediate
-;    mdict_add st_repeat,    code_repeat
-;    fcall code_immediate
     mdict_add st_key,       code_key
     mdict_add st_key_question, code_key_question
     mdict_add st_accept,    code_accept
@@ -1099,6 +1101,7 @@ dict_init:
     mdict_add st_leave,     code_leave
     fcall code_immediate
 
+    mdict_add st_ud_slash_mod, code_ud_slash_mod
     mdict_add st_two_slash, code_two_slash
     mdict_add st_m_star,    code_m_star
     mdict_add st_u_m_star,  code_u_m_star
@@ -1140,6 +1143,13 @@ st_equals:      counted_string "="
 st_u_less_than: counted_string "u<"
 st_u_greater_than: counted_string "u>"
 
+st_less_number_sign: counted_string "<#"
+st_number_sign: counted_string "#"
+st_number_sign_greater: counted_string "#>"
+st_hold:        counted_string "hold"
+st_number_sign_s: counted_string "#s"
+
+st_ud_slash_mod: counted_string "ud/mod"
 st_key:         counted_string "key"
 st_key_question: counted_string "key?"
 st_while:       counted_string "while"

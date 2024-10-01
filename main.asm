@@ -1011,7 +1011,8 @@ code_emit:
     fenter
 
     pop de
-    ld  (_emit_buffer), de
+    ld  a, e
+    ld  (_emit_buffer), a
     ld  de, _emit_buffer
     ld  bc, 1
 
