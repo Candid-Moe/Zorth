@@ -28,6 +28,19 @@ macro fret
     jp return
 endm
 
+
+;
+;   check_compile_mode
+;
+macro check_compile_mode
+    ld  a, (_STATE)
+    cp  FALSE
+    jp  z, _code_mode_error
+endm
+
+;
+;   dup: duplicate TOS thru reg
+;
 macro   dup reg
     pop  reg
     push reg

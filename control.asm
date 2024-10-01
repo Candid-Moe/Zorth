@@ -26,9 +26,7 @@ code_if:
 ;
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      bc, (xt_jz)
     push    bc
@@ -104,9 +102,7 @@ code_else:
 ;
     fenter 
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ;   Write a JMP after the IF code
 
@@ -175,9 +171,7 @@ code_then:
 
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ;   Put the current address in the space following IF
 
@@ -208,9 +202,7 @@ code_begin:
 
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld  hl, (_DP)
     ctrl_push
@@ -240,9 +232,7 @@ code_while:
 ;
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      hl, (xt_jz)
     push    hl
@@ -284,9 +274,7 @@ code_repeat:
 ;
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      hl, (xt_jp)
     push    hl
@@ -324,9 +312,7 @@ code_again:
 ;
     fenter 
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld  bc, (xt_jp)
     push bc
@@ -359,9 +345,7 @@ code_until:
 
     fenter
     
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      bc, (xt_jz)
     push    bc
@@ -401,9 +385,7 @@ code_do:
 ;
     fenter
     
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
 ;    push    hl          ; Return address
 
@@ -472,9 +454,7 @@ code_loop:
 
     fenter
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
 ;    push    hl      ; Save return address
 
@@ -634,9 +614,7 @@ code_leave:
 
     fenter 
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      hl, (xt_leave)     ; Insert a jmp
     push    hl
@@ -683,9 +661,7 @@ code_unloop:
 ;
     fenter 
 
-    ld  a, (_STATE)
-    cp  FALSE
-    jp  z, _code_mode_error
+    check_compile_mode
 
     ld      hl, (xt_unloop) ; 
     push    hl
