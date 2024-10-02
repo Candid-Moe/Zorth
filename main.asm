@@ -513,6 +513,8 @@ code_s_quote:
 ;
     fenter
 
+    check_compile_mode
+
     ld      hl, '"'
     push    hl
     fcall   code_parse

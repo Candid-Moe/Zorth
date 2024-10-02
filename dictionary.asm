@@ -1062,7 +1062,6 @@ dict_init:
     mdict_add st_then,      code_then
     fcall code_immediate
     
-    mdict_add st_see,       code_see
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
     mdict_add st_until,     code_until
@@ -1211,7 +1210,6 @@ st_if:          counted_string "if"
 st_else:        counted_string "else"
 st_jump:        counted_string "jmp"
 st_then:        counted_string "then"
-st_see:         counted_string "see"
 st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"

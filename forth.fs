@@ -214,6 +214,29 @@
         drop 
     repeat ;
 
+: 4hex ( print TOS as HHHH ) base @ >r hex s>d <# # # # # #> type r> base ! ;
+
+: see     
+    bl word dup ( -- name name )
+    find ( -- name xt flag ) 0= if drop count type ."  not found" exit then
+    dup 4hex space swap count type
+    2 + ( # of pgma steps ) dup c@ >r 
+    1+ ( flags ) dup c@ dup
+    1 and if ."  colon" then
+    2 and if ."  immediate" then
+    cr
+    1+  ( @name )
+    2 + ( @code )
+    r> 0 
+    do
+        dup 4hex space          ( address )
+        dup @ dup 4hex space    ( content )
+        4 + @ dup $4000 > if count type else drop then ( name )
+        cr
+        2 +
+    loop    
+;
+
 cr
 .( Finished ) cr
 unused u. .(  bytes free) cr
