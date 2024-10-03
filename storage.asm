@@ -17,7 +17,6 @@ defc BIT_COLON  = 1
 defc BIT_IMMEDIATE = 2
 defc STACK_SIZE = 128    
    
-
 words:      counted_string "words:\n"
 boot_file:  counted_string "forth.fs\000"
 
@@ -82,7 +81,7 @@ _S_GUARD:   dw   0x5050
 ; ---- HEAP -----
 ; Heap extend up to 0xFFFF
 ;
-_DICT:  dw 0        ; Pointer to last entry in Forth dictionary
+_DICT:          dw 0    ; Forth dictionary
     
 _DP:    dw $ + 2
 

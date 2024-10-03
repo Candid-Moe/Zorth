@@ -643,61 +643,6 @@ _code_backslash_end:
 
     fret 
 
-
-code_tick:
-;
-;   ' tick
-;   ( "<spaces>name" -- xt )
-;
-;   Skip leading space delimiters. Parse name delimited by a space. 
-;   Find name and return xt, the execution token for name. 
-;   An ambiguous condition exists if name is not found. 
-;   When interpreting, 
-;       ' xyz EXECUTE 
-;   is equivalent to xyz. 
-;
-    fenter
-
-    ld      hl, ' '
-    push    hl
-    fcall   code_word
-    pop     hl                  ; origin
-            
-    ;   Check word len
-    ld      a, (hl)             ; len
-    cp      0
-    jr      nz, _code_tick_search
-
-    ;   Zero length word
-
-    ld      hl, err_missing_name
-    push    hl
-    fcall   print_line 
-
-    jr      _code_tick_end
-    
-_code_tick_search:
-
-    push    hl
-    fcall   code_find
-    pop     hl          ; rc: 0, 1, -1
-
-    ld      a, l
-    or      h
-    jr      z, _code_tick_not_found
-
-    ;   xt alredady at TOS
-    jr      _code_tick_end
-
-_code_tick_not_found:
-
-    fcall   print_error_word_not_found
-    pop     hl      ; discard name address
-
-_code_tick_end:
-
-    fret
-
 print_error_word_not_found:
     
     fenter 
@@ -896,60 +841,6 @@ code_count:
 
     fret
 
-code_words:
-;
-;   Implements WORDS 
-;   ( -- )
-;
-;   List the definition names in the first word list of the search order. 
-;   The format of the display is implementation-dependent.
-;
-    fenter
-
-    ld  hl, (_DICT)       ; HL -> Dict Entry
-
-_code_words_cycle:
-    ;
-    ;   Check end of linked list (HL == 0)
-    ;
-    or a        ; clear carry flag
-    ld  bc, 0
-    sbc hl, bc
-    add hl, bc
-    jr  z,_code_words_end
-
-    push hl         ; Keep entry address
-
-    inc hl          ; # words
-    inc hl          ; flags
-    inc hl          ; Name address
-    inc hl
-
-    ld  e,  (hl)    ; Load name address in DE
-    inc hl
-    ld  d,  (hl)
-
-    push de
-    fcall    print_line
-
-    pop hl          ; Advance pointer to next entry 
-    ld  e, (hl)
-    inc hl
-    ld  d, (hl)
-    
-    push de         ; Remember next entry
-    fcall code_space    
-    pop hl          ; Recover next entry
-
-    jr  _code_words_cycle
-
-_code_words_end:
-
-    ld  hl, '\n'
-    push hl
-    fcall code_emit
-
-    fret
 
 code_space:
 ;

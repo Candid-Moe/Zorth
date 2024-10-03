@@ -28,8 +28,8 @@ xt_leave:   dw  0           ; LEAVE
 xt_literal: dw  0           ; LITERAL
 xt_compile_comma:   dw 0    ; COMPILE,
 xt_postpone: dw 0           ; POSTPONE
-
 xt_nop:     dw  0           ; No Operation
+
 
 code_create:
 ;
@@ -351,222 +351,6 @@ code_address:
 
     fret
 
-code_dot_quote:
-;
-;   Implements ."
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( "ccc<quote>" -- )
-;
-;   Parse ccc delimited by " (double-quote). 
-;   Append the run-time semantics given below to the current definition.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Display ccc. 
-
-    fenter
-
-    ld      hl, '"'
-    push    hl
-    fcall   code_parse
-    
-
-    fret
-
-code_see:
-;
-;   Implements SEE
-;   ( "<spaces>name" -- )
-;
-;   Display a human-readable representation of the named word's definition. 
-;   The source of the representation (object-code decompilation, source block, etc.)
-;   and the particular form of the display is implementation defined.
-;
-;   SEE may be implemented using pictured numeric output words. Consequently, its 
-;   use may corrupt the transient region identified by #>. 
-;
-    fenter
-
-    ld hl, ' '
-    push hl
-    fcall code_word
-    fcall dict_search    
-
-    pop hl
-    ld  a, h
-    or  l
-    jp  z, _error_not_found
-
-    ld  de, (_BASE)     ; Remember base
-    push de
-
-    ld  de, 16
-    ld  (_BASE), de
-
-    push hl
-    push hl             ; Dictionary entry address
-
-    fcall code_dot
-    fcall code_space    ; address
-
-    pop hl
-    inc hl
-    inc hl      ; # words
-    push hl
-    ld  a, (hl)
-    ld  d, 0
-    ld  e, a
-    inc de
-    push de
-    fcall code_to_r ; R: # words
-    pop hl
-    inc hl      ; flags
-    ld  a, (hl)
-    push af
-    inc hl      ; name
-
-    ld de, (hl)
-    inc hl
-    inc hl
-    push hl
-
-    push de
-    fcall print_line
-    fcall code_space
-    pop hl
-    pop af
-
-    push hl
-
-    push af
-    and BIT_COLON
-    jz  _see_code_def
-    ld  a, FALSE
-    ld  (_see_type_code), a
-    ld  hl, _see_colon
-    jr  _see_imm
-
-_see_code_def:
-    ld  hl, _see_code
-    ld  a, TRUE
-    ld (_see_type_code), a
-
-_see_imm:
-    push hl
-    fcall print_line
-    fcall code_space
-
-    pop af
-    and BIT_IMMEDIATE
-    jz  _see_next
-    ld  hl, _see_immediate
-    push hl
-    fcall print_line
-    fcall code_space
-
-_see_next:
-    fcall code_cr
-    pop hl
-    
-_see_cycle:
-
-    push hl   
-    ;   Check if end of colon definition
-    fcall code_r_from   ; Get counter # words
-    pop de          
-    dec de              ; 
-    push de
-    push de
-    fcall code_to_r     ; Store counter
-
-    pop de              ; Test end 
-    pop hl
-
-    ld  a, d 
-    or  e
-    jr  z, _see_end
-
-    ;   Print the address
-    push hl
-    push hl
-    fcall code_dot
-    fcall code_space
-
-    ;   Print the XT 
-    pop  hl
-    push hl
-
-    ld   de, (hl)       ; xt address
-    push de
-    push de
-    fcall code_dot
-    fcall code_space
-
-    ;   For code words, there only one entry to print.
-    ld  a, (_see_type_code)
-    cp  TRUE
-    jr  z, _see_end
-
-    ;   Print the name
-    pop  hl             ; xt address
-    inc  hl
-    inc  hl ; # words
-    inc  hl ; flags
-    inc  hl ; name    
-
-    ld   de, (hl)       ; is it an address?
-    ld   a, d
-    cp   0x40
-    jr   c, _see_cycle_next
-
-    ld   a, (de)        ; length
-    cp   10
-    jr  nc, _see_cycle_next
-
-    push de
-    fcall print_line
-
-_see_cycle_next:
-
-    fcall code_cr
-    ;   Next entry
-    pop hl        
-    inc hl
-    inc hl
-
-    jr  _see_cycle
-
-_see_end:
-
-    fcall   code_r_from ; Discard counter
-    pop de
-    pop de
-    ld  (_BASE), de
-
-    fret
-
-_see_type_code: db 0            ; TRUE -> code, FALSE -> colon
-_see_code:      counted_string "code"        
-_see_colon:     counted_string "colon"
-_see_immediate: counted_string "immediate"
-
-_error_not_found:
-    ld      hl, err_word_not_found
-    push    hl
-    fcall   print_line
-    ld hl,  _PAD
-    push hl
-    fcall print_line
-    ld hl, '\n'
-    push hl
-    fcall code_emit
-    
-    fret
 
 dict_search:
     ;
@@ -848,9 +632,6 @@ _code_postpone_next:
 
     ;   It's an immediate word
 
-;    ld      hl, (xt_postpone)
-;    push    hl              ; ( xt -- xt xt_postpone )
-;    fcall   add_cell        ; ( -- xt )
     fcall   add_cell        ; ( -- )
 
     fret
@@ -912,6 +693,22 @@ _code_postpone_error:
 
     jp  _code_mode_error
 
+code_hide:
+;
+;   Implement hide
+;   ( -- )
+;
+;   Take the word out of the dictionary
+;   xt remains valid
+;
+    fenter
+
+    ld  hl, (_DICT)     ; last entry 
+    ld  de, (hl)        ; next entry
+    ld  (_DICT), de     ; 
+   
+    fret
+
 code_dict:
 ;
 ;   Implements DICT
@@ -934,6 +731,7 @@ endm
 macro mdict_xt xt
     ld hl, (_DICT)
     ld (xt), hl
+    fcall code_hide
 endm
 
 dict_init:
@@ -947,37 +745,27 @@ dict_init:
     mdict_xt xt_nop
 
     mdict_add st_literal,       code_literal_runtime
-    ld  hl, (_DICT)
-    ld  (xt_literal), hl
+    mdict_xt xt_literal
 
     mdict_add st_address,       code_address
-    ld  hl, (_DICT)
-    ld  (xt_address), hl
+    mdict_xt xt_address
 
     mdict_add st_postpone,      _code_postpone_runtime
-    ld  hl, (_DICT)
-    ld (xt_postpone), hl
+    mdict_xt xt_postpone
 
     mdict_add st_do,            code_do_runtime
-    ld  hl, (_DICT)
-    ld  (xt_do), hl
+    mdict_xt xt_do
 
     mdict_add st_loop,          code_loop_runtime
-    ld  hl, (_DICT)
-    ld  (xt_loop), hl
+    mdict_xt xt_loop
 
     mdict_add st_leave,         code_leave_runtime
-    ld  hl, (_DICT)
-    ld  (xt_leave), hl
+    mdict_xt xt_leave
 
     mdict_add st_unloop,        code_loop_runtime
-    ld  hl, (_DICT)
-    ld  (xt_unloop), hl
+    mdict_xt xt_unloop
 
-    ;   Previous entries are cut off from the list
-
-    ld  hl, 0
-    ld (_DICT), hl
+    ;   Add visible words
 
     mdict_add st_jz,        code_jz
     ld  hl, (_DICT)
@@ -998,6 +786,7 @@ dict_init:
     mdict_add st_hold,      code_hold   
     mdict_add st_number_sign_s, code_number_sign_s
 
+    mdict_add st_hide,      code_hide
     mdict_add st_begin,     code_begin
     fcall code_immediate
     mdict_add st_key,       code_key
@@ -1009,10 +798,8 @@ dict_init:
     mdict_add st_refill,    code_refill
     mdict_add st_space,     code_space
     mdict_add st_negate,    code_negate
-    mdict_add st_tick,      code_tick
     mdict_add st_str_equals,code_str_equals
     mdict_add st_word,      code_word
-    mdict_add st_words,     code_words
     mdict_add st_pad,       code_pad
     mdict_add st_dot,       code_dot
     mdict_add st_dup,       code_dup
@@ -1131,8 +918,7 @@ dict_init:
     mdict_add st_greater_than, code_greater_than
     mdict_add st_equals,    code_equals
     mdict_add st_u_less_than, code_u_less_than
-    mdict_add st_u_greater_than, code_u_greater_than
-    
+    mdict_add st_u_greater_than, code_u_greater_than    
 
     fret
 
@@ -1148,6 +934,7 @@ st_number_sign_greater: counted_string "#>"
 st_hold:        counted_string "hold"
 st_number_sign_s: counted_string "#s"
 
+st_hide:        counted_string "hide"
 st_ud_slash_mod: counted_string "ud/mod"
 st_key:         counted_string "key"
 st_key_question: counted_string "key?"
@@ -1163,10 +950,8 @@ st_type:        counted_string "type"
 st_refill:      counted_string "refill"
 st_plus:        counted_string "+"
 st_word:        counted_string "word"
-st_words:       counted_string "words"
 st_space:       counted_string "space"
 st_negate:      counted_string "negate"
-st_tick:        counted_string "'"
 st_str_equals:  counted_string "str="
 st_dup:         counted_string "dup"
 st_and:         counted_string "and"
@@ -1256,3 +1041,4 @@ st_t_open:      counted_string "T{"
 st_rigth_arrow: counted_string "->"
 st_t_close:     counted_string "}T"
 st_included:    counted_string "included"
+

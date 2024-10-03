@@ -16,7 +16,7 @@
 : , here ! 1 cells allot ; 
 : ahead here >cs ;
 
-.( Loading dictionary )
+.( Loading dictionary ) cr
 
 : constant create , does> @ ;
 : value constant ;
@@ -127,6 +127,8 @@
 .( . ) 
 
 : >body 10 + ;
+: ." postpone s" postpone type ; immediate
+: ' bl word find 0= if ." Error. Word not found: " count type 0 then ;
 : ['] ( compilation: "name" --; run-time: -- xt ) ' literal ; immediate
 : defer  ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
@@ -155,7 +157,6 @@
 
 : clear 0 6 0 ioctl ;                   \ Screen clear
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
-: ." postpone s" postpone type ; immediate
 : .s ." < " depth . ." > " depth if depth 0 do i pick . loop then ;
 
 : while ( dest -- orig dest / flag -- )
@@ -204,6 +205,8 @@
    BEGIN DUP WHILE 1- 2DUP + C@ HOLD REPEAT 2DROP ; 
 .( . ) 
 
+: :noname s" : noname" evaluate dict @ hide ;
+
 : dump ( addr u -- )                \   Dump memory
     0 do dup c@ s>d <# # # #> type 1 + loop ;
 
@@ -213,6 +216,14 @@
     while 
         drop 
     repeat ;
+
+: words
+    dict @ 
+    begin
+        dup 4 + @ count type space
+        @ dup 0=
+    until
+;                
 
 : 4hex ( print TOS as HHHH ) base @ >r hex s>d <# # # # # #> type r> base ! ;
 
