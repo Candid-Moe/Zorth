@@ -35,6 +35,7 @@ code_colon:
     fenter
 
     ;   Check MODE_EXECUTION
+
     ld  a, (_STATE)
     cp  FALSE
     jr  nz, _colon_error

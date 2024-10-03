@@ -115,7 +115,7 @@
 : [ false state ! ; immediate
 : spaces 0 do space loop ;
 
-.( . ) 
+.( . )
 
 : u. s>d <# #s #> type ;
 : unused $FFFF here - ;
@@ -128,8 +128,8 @@
 
 : >body 10 + ;
 : ." postpone s" postpone type ; immediate
-: ' bl word find 0= if ." Error. Word not found: " count type 0 then ;
-: ['] ( compilation: "name" --; run-time: -- xt ) ' literal ; immediate
+: ' bl word find 0= if ." Error. Word not found: " count type 0 then ; 
+: ['] ( compilation: "name" --; run-time: -- xt ) postpone ' ; immediate
 : defer  ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
@@ -205,7 +205,20 @@
    BEGIN DUP WHILE 1- 2DUP + C@ HOLD REPEAT 2DROP ; 
 .( . ) 
 
+: 4hex ( print TOS as HHHH ) base @ >r hex s>d <# # # # # #> type r> base ! ;
+
 : :noname s" : noname" evaluate dict @ hide ;
+: synonym ( "newname" "oldname" -- )
+    create      ( Make a new empty dict entry)
+    bl word
+    find ( -- name xt flag ) 0= if drop count type ."  not found" exit then
+    dup
+    2 + @ ( Flags and length )
+    dict @ 2 + !
+    6 + @ ( Code address )
+    dict @ 6 + !
+;
+synonym s= str=
 
 : dump ( addr u -- )                \   Dump memory
     0 do dup c@ s>d <# # # #> type 1 + loop ;
@@ -225,7 +238,6 @@
     until
 ;                
 
-: 4hex ( print TOS as HHHH ) base @ >r hex s>d <# # # # # #> type r> base ! ;
 
 : see     
     bl word dup ( -- name name )
