@@ -448,9 +448,6 @@ code_loop:
 ;   discard the loop parameters and continue execution immediately following the loop.
 ;   Otherwise continue execution at the beginning of the loop. 
 ;
-;   Implementation: We don't use "fenter" in order to save control parameters on top
-;   of stack.
-;
 
     fenter
 
@@ -470,7 +467,7 @@ _code_loop_comp_leave:
     ;   First, process all LEAVE for this DO
     leave_pop
     ld  a, h
-    cp  l
+    or  l
     jr  z, _code_loop_next
 
     ld  (hl), bc
@@ -495,10 +492,6 @@ _code_loop_next:
     ctrl_pop        ; Extract address    
     push    hl
     fcall   add_cell
-
-;    pop hl          ; Return address
-
-;    jp  (hl)
 
     fret
 
@@ -529,10 +522,10 @@ code_loop_runtime:
     fcall   code_to_r   ; ( index+1 -- : R limit -- limit index+1 )
 
     ;   Replace next instruction address
-    ex_pop            ; Extract current next cell address
+    ex_pop              ; Extract current next cell address
     ld      de, (hl)    ; Take contains of next cell, an address
     ex      hl, de      
-    ex_push           ; Make it the new next cell
+    ex_push             ; Make it the new next cell
 
     pop     hl
     jp      (hl)
