@@ -86,6 +86,7 @@
 : /     /mod swap drop ;
 : */mod >r m* r> sm/rem ; \ ( n1 n2 n3 -- n4 ) 
 : */    */mod swap drop ;
+: um/mod ( ud u1 -- u2 u3) ud/mod drop ;
 : fm/mod ( d n -- rem quot )
     DUP >R
     SM/REM
@@ -205,6 +206,7 @@
    BEGIN DUP WHILE 1- 2DUP + C@ HOLD REPEAT 2DROP ; 
 .( . ) 
 
+: 2hex ( print low TOS byte as HH ) base @ >r hex s>d <# # # #> type r> base ! ;
 : 4hex ( print TOS as HHHH ) base @ >r hex s>d <# # # # # #> type r> base ! ;
 
 : :noname s" : noname" evaluate dict @ hide ;
@@ -221,7 +223,7 @@
 synonym s= str=
 
 : dump ( addr u -- )                \   Dump memory
-    0 do dup c@ s>d <# # # #> type 1 + loop ;
+    0 do space dup c@ 2hex 1 + loop ;
 
 : clearstack ( n ... -- )           \   Delete all items in data stack
     begin 
