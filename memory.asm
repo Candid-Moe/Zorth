@@ -36,12 +36,10 @@ code_here:
 ;
 ;   addr is the data-space pointer. 
 ;
-    fenter
+    ld  de, (_DP)
+    push de
 
-    ld  hl, (_DP)
-    push hl
-
-    fret
+    jp (hl)
 
 code_align:
 ;
@@ -105,6 +103,7 @@ code_allot:
     ld  (_DP), hl
 
     fret
+
 
 code_fetch:
 ;
@@ -197,3 +196,18 @@ code_depth:
     fcall code_rshift
 
     fret
+
+code_heap:
+;
+;   Implements HEAP
+;   ( -- addr )
+;
+;   Return the HEAP address, which contains the address of last allocated byte
+;   Space below that address is free
+;
+    ld  de, _HEAP
+    push de
+
+    jp (hl)
+
+

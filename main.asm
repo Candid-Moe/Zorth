@@ -12,6 +12,9 @@ init:
     ld      (_IX_LEAVE), hl
     ld      hl, _CONTROL_STACK
     ld      (_IX_CONTROL), hl
+    ld      hl, (_HEAP)
+    ld      de, 0
+    ld      (hl), de
 
     fcall   clear_screen
     

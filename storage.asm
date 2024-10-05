@@ -31,6 +31,7 @@ gTIB:       dw  _gTIB
 TIB:        dw  _TIB
 _gtIN:      db   0          ; >IN, Index into TIB
 _PAD:       defs 80         ; PAD is a counted string.
+_HEAP:      dw  $FFFD       ; Pointer to heap, grows downward.
 
 _PROMPT:    counted_string  "\n>"
 _BOOT_MSG:  counted_string  "Zorth 0.1, Copyright (c) 2024 Candid Moe\n"
