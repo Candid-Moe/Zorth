@@ -17,17 +17,11 @@ code_evaluate:
 ;
     fenter
 
-    ld      a, (_SOURCE_ID)
-    ld      b, 0
-    ld      c, a
+    ld      bc, (_SOURCE_ID)
     push    bc
     fcall   code_to_r           ; old source-id to R
-    ld      a, -1
-    ld      (_SOURCE_ID), a
 
-    ld      a, (_gtIN)
-    ld      b, 0
-    ld      c, a
+    ld      bc, (_gtIN)
     push    bc
     fcall   code_to_r           ; old >IN to R
     
@@ -39,32 +33,30 @@ code_evaluate:
     push    bc
     fcall   code_to_r           ; old TIB to R
 
-    ld      a, (eval_gTIB)
-    ld      b, 0
-    ld      c, a
+    ld      bc, (eval_gTIB)
     push    bc
     fcall   code_to_r           ; old eval_gTIB to R
 
     pop     bc                  ; u
-    ld      a, c
+    ld      (eval_gTIB), bc
 
-    ld      (eval_gTIB), a
     ld      bc, eval_gTIB
-
     ld      (gTIB), bc
 
     pop     hl
     ld      (TIB), hl
 
-    xor     a
-    ld      (_gtIN), a
+    ld      hl, 0
+    ld      (_gtIN), hl
+
+    ld      hl, -1
+    ld      (_SOURCE_ID), hl
 
     fcall   inner_interpreter
 
     fcall   code_r_from
     pop     hl
-    ld      a, l
-    ld      (eval_gTIB), a
+    ld      (eval_gTIB), hl
 
     fcall   code_r_from
     pop     hl
@@ -76,15 +68,13 @@ code_evaluate:
 
     fcall   code_r_from
     pop     hl
-    ld      a, l
-    ld      (_gtIN),a
+    ld      (_gtIN), hl
 
     fcall   code_r_from
     pop     hl
-    ld      a, l
-    ld      (_SOURCE_ID), a
+    ld      (_SOURCE_ID), hl
 
     fret
 
-eval_gTIB:  db 0
+eval_gTIB:  dw 0
 

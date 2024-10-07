@@ -24,10 +24,11 @@ init:
 
     fcall   dict_init
 
-    ld      hl, boot_file
-    push    hl
-    fcall   code_count
-    fcall   code_included
+    ld hl, _src_start
+    push hl
+    ld hl, (_SRC_SIZE)
+    push hl
+    fcall   code_evaluate
 
 repl:
 ;
@@ -301,14 +302,10 @@ code_source_id:
 ;   -1 	String (via EVALUATE)
 ;    0 	User input device
 ;
-    fenter
-
-    ld  a, (_SOURCE_ID)
-    ld  b, 0
-    ld  c, a
+    ld  bc, (_SOURCE_ID)
     push bc
 
-    fret
+    jp (hl)
 
 code_bye:
 ;
@@ -345,9 +342,9 @@ code_quit:
     ld      IX, _RETURN_STACK
     ld      IY, _CONTROL_STACK
 
-    xor     a
-    ld      (_SOURCE_ID), a
-    ld      (_gtIN), a
+    ld      bc, 0
+    ld      (_SOURCE_ID), bc
+    ld      (_gtIN), bc
 
     ld      a, FALSE
     ld      (_STATE), a    
@@ -620,9 +617,7 @@ code_backslash:
     fenter
 
     ;   Get next char in input area
-    ld      a, (_gtIN)
-    ld      d, 0
-    ld      e, a
+    ld      de, (_gtIN)
     ld      hl, (TIB)
     add     hl, de
 
@@ -761,16 +756,21 @@ code_refill:
 
     fenter
 
+    ld      bc, (_SOURCE_ID)
+    ld      a, b
+    or      c
+    jr      nz, _refill_bad_source
+
     call    kbd_cooked_mode
 
-    ld  a, 0
-    ld  (_gtIN), a      ; Reset index >IN
+    ld  hl, 0
+    ld  (_gtIN), hl      ; Reset index >IN
     ;
     ;   Read a line from device into TIB
     ;
     ld  h,   DEV_STDIN
-    ld  de,  (TIB)
-    ld  bc,  80
+    ld  de,  (TIB)      ;   Buffer address
+    ld  bc,  80         ;   Buffer length
     READ   
 
     cp  a, ERR_SUCCESS    
@@ -780,17 +780,10 @@ code_refill:
 
 _refill_true:
 
-    ;   move count
-    ld  hl, (gTIB)
-    ld  a, c
-    ld  (hl), a
-
-    ;   replace ending '\n' with space
-    ld  hl, (TIB)
-
-    ld  b,  0       ; BC is the count
-    dec bc
+    ld  (_gTIB), bc     ;   move count
+    ld  hl, (TIB)       ;   replace ending '\n' with space
     add hl, bc
+    dec hl
     
     ld  a, (hl)     ; B is the last char 
     cp  '\n'
@@ -807,6 +800,19 @@ _refill_ret:
 
     fret
 
+_refill_bad_source:
+    
+    ld  hl, err_bad_source
+    push hl
+    fcall print_line
+    fcall code_backslash
+    fcall code_cr
+    
+    ld  hl, FALSE
+    push hl
+
+    fret
+       
 code_pad:
 ;
 ;   Implements PAD

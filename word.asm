@@ -21,22 +21,27 @@ code_word:
 
     fenter
 
-    ld  hl, (TIB)            ; entry buffer
+    pop bc
+    ld  a, c
+    ld  (_code_word_compare + 1), a
+    ld  (_code_word_compare2 + 1), a
 
-    ld  b,  0
-    ld  a,  (_gtIN)         ; current position in entry buffer
-    ld  c,  a 
-    add hl, bc              ; HL -> next char in entry buffer
+    ;   Calculate size of remaining buffer
+    set_carry_0
+    ld  hl, (gTIB)
+    ld  de, (hl)
+    ld  hl, de
 
-    pop bc                  ; C contains delimiting char
+    ld  de, (_gtIN)
+    sbc hl, de
+    ld  bc, hl              ; BC -> bytes remaining in entry buffer
 
-    ld  a, (_gtIN)
-    ld  b, a
-    ld  de, (gTIB)
-    ld  a, (de)          
-    sub b                   
-    ld  b, a                ; B contains length remaining in entry buffer
+    ;   Calculate address first unprocessed char.
+    ld  hl, (TIB)           ; entry buffer
+    ld  de, (_gtIN)         ; current position in entry buffer
+    add hl, de              ; HL -> next char in entry buffer
 
+    ;   Initialize PAD
     ld  de, _PAD            ; DE -> destination (pad)
     inc de                  ; Skip count byte
 
@@ -45,20 +50,25 @@ code_word:
 
 _code_word_cycle:
     ;   Check how many bytes to examine 
-    xor a   
-    cp  b                   ; remaining == 0?
+    ld  a, b                   ; remaining == 0?
+    or  c
     jz  _code_word_exit
 
     ;   Look at the byte in entry buffer
     call _read_translate  
-    cp  c                   ; A == char?
-    jr  nz, _code_word_found
-    
-    ;   
-    inc hl                  ; Next char in entry buffer
-    dec b                   ; Decrement count of remaining bytes
 
-    inc_byte _gtIN          ; Move input index
+_code_word_compare:
+    cp  0                   ; The actual value will be written in run-time.
+    jr  nz, _code_word_found    
+       
+    inc hl                  ; Next char in entry buffer
+    dec bc                  ; Decrement count of remaining bytes
+
+    push bc
+    ld bc, (_gtIN)
+    inc bc
+    ld (_gtIN), bc
+    pop bc
 
     jp  _code_word_cycle
     
@@ -68,17 +78,28 @@ _code_word_found:
     inc hl                  ; Pointer to next char (entry)
     inc de                  ; Pointer to next free position (PAD)
 
-    inc_byte _gtIN          ; Increment index on _TIB
+    push bc
+    ld  bc, (_gtIN)
+    inc bc
+    ld (_gtIN), bc          ; Increment index on _TIB
+    pop bc
+
     inc_byte _PAD           ; Increment word length
     
-    xor a
-    dec b                   ; 
-    cp  b                   ; End of entry buffer?
+    dec bc                   ; 
+    ld  a, b     
+    or  c                    ; End of entry buffer?
     jz  _code_word_exit
 
     call _read_translate
-    cp  c
-    jr  nz, _code_word_found     
+
+_code_word_compare2:
+    cp  0                   ; Value will be written in the machine code
+    jr  z, _code_word_exit     
+    cp '\n'
+    jr  z, _code_word_exit
+
+    jr  _code_word_found
     
 _code_word_exit:
     ld  hl, _PAD
@@ -104,18 +125,19 @@ _read_translate_end:
 
 code_word_no_clobber:
 ;
-;   Implements WORD copying word to second area,
+;   Implements WORD copying word to second PAD area,
 ;   not to clobber with REPL in main.
 ;
     fenter
 
     fcall   code_word
+
     pop     hl
     push    hl      ; origin
-    ld      b, 0
     ld      a, (hl)
-    inc     a
-    ld      c, a
+    ld      b, 0
+    ld      c, a    ; string length
+    inc     bc
     
     ld      hl, _PAD_NO_CLOBBER
     push    hl      ; destination
@@ -158,9 +180,8 @@ code_source:
 ;
     ld      bc, (TIB)
     push    bc
-    ld      b, 0
-    ld      a, (gTIB)
-    ld      c, a
+    ld      hl, (gTIB)
+    ld      bc, (hl)
     push    bc
 
     jp      (hl)
@@ -178,10 +199,7 @@ code_parse:
 ;
     fenter
 
-    ld      b, 0
-    ld      a, (_gtIN)      ; >IN
-    ld      c, a
-
+    ld      bc, (_gtIN)     ; >IN
     ld      hl, (TIB)       
     add     hl, bc          ; HL = current position in the input area
     inc     hl              ; skip the white space between words
@@ -189,13 +207,14 @@ code_parse:
     push    hl              ; Working copy
 
     ld      hl, (gTIB)      ; Calculating # chars left in input area
-    ld      a,  (hl)        ; String total length
-    sub     c
-    dec     a               ; Count the white space just skipped
+    ld      de, (hl)        ; String total length
+    ld      hl, de
+    ld      de, bc          ; >IN
+    set_carry_0
+    sbc     hl, de
+    ld      bc, hl          ; BC -> chars left    
+    dec     bc              ; Count the white space just skipped
     jr      z, _code_parse_eol:
-
-    ld      c, a
-    ld      b, 0            ; BC = # chars left
     
     pop     hl              ;
     pop     de              ; Char to search for
@@ -207,19 +226,16 @@ code_parse:
     dec     hl              ; HL -> char founded
     pop     de              ; Starting address
     push    de
-    or  a
+    set_carry_0
     sbc hl, de
 
     push hl                 ; String len
 
-    ld  a, (_gtIN)          ; 
-    ld  d,  0
-    ld  e,  a
+    ld  de, (_gtIN)          ; 
     add hl, de
     inc hl                  ; One for the skipped char at begining
     inc hl                  ; One for the char found
-    ld  a, l
-    ld  (_gtIN), a          ; Move >IN over the string
+    ld  (_gtIN), hl          ; Move >IN over the string
     
     fret
 

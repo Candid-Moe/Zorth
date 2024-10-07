@@ -32,7 +32,7 @@ stack_depth:            dw  0
 stack_copy:             defs 128
 stack_pointer:          dw  stack_copy
 test_str:               dw  0
-test_start:             db  0
+test_start:             dw  0
 err_depth_differ:   counted_string "\nDepths not equal. "
 err_content_differ: counted_string "\nContents differ. "
 ;
@@ -47,14 +47,13 @@ code_t_open:
     ld  (stack_pointer_origin), sp
     
     ;   Record source start position
-    ld      a, (_gtIN)      ; current position in buffer
-    dec     a
-    dec     a
-    ld      (test_start), a ; not yet the length
+    ld      bc, (_gtIN)      ; current position in buffer
+    dec     bc
+    dec     bc
+    ld      (test_start), bc ; not yet the length
 
-    ld      b, 0
-    ld      c, a
-
+    inc     bc
+    inc     bc
     ld      hl, (TIB)       ; Buffer address
     add     hl, bc
 
@@ -176,14 +175,12 @@ _test_print:
 
     ;   Calculate length
 
-    ld      a, (test_start)
-    ld      b, a
-    ld      a, (_gtIN)    
-    sub     b
+    set_carry_0
+    ld      hl, (_gtIN)    
+    ld      de, (test_start)
+    sbc     hl, de
 
-    ld      b, 0
-    ld      c, a
-    push    bc
+    push    hl
 
     fcall   code_type
     fcall   code_space

@@ -24,12 +24,12 @@ _EXIT:      dw   0          ;
 _STATE:     dw   FALSE      ; True in compilation state, false otherwise
 _DISCARD:   dw   FALSE      ; Discard next words until ';'
 _BASE:      dw   10
-_SOURCE_ID: db   0          ; 0 = keyboard -1 = string
-_gTIB:      db   0          ; #TIB, len of string in _TIB
+_SOURCE_ID: dw   0          ; 0 = keyboard -1 = string
+_gTIB:      dw   0          ; #TIB, len of string in _TIB
 _TIB:       defs 80         ; Input line
 gTIB:       dw  _gTIB
 TIB:        dw  _TIB
-_gtIN:      db   0          ; >IN, Index into TIB
+_gtIN:      dw   0          ; >IN, Index into TIB
 _PAD:       defs 80         ; PAD is a counted string.
 _HEAP:      dw  $FFFD       ; Pointer to heap, grows downward.
 
@@ -44,6 +44,7 @@ err_mode_not_comp:  counted_string "Error. Not valid in interpreter mode: "
 err_unstructed:     counted_string "Error. Unstructed.\n"
 err_in_word:        counted_string " in word "
 err_file_not_found: counted_string "Error. File not found."
+err_bad_source:     counted_string "Bad SOURCE-ID for refill."
 
 ;------ Forth Leave Stack ------
 ;
@@ -86,4 +87,11 @@ _DICT:          dw 0    ; Forth dictionary
     
 _DP:    dw $ + 2
 
+        defs 4096
 
+lstoff
+defc _src_start = $
+binary "forth.fs"
+defc _src_end = $
+_SRC_SIZE: dw _src_end - _src_start
+lston
