@@ -661,6 +661,30 @@ code_u_greater_than:
 
     fret
 
+code_z80_syscall:
+;
+;   Implements Z80-CALL
+;   ( hl de bc a -- a' bc' de' hl' )
+;
+    fenter
+    
+    pop hl
+    ld  a, l
+    pop bc
+    pop de
+    pop hl
+
+    SYSCALL
+
+    push hl
+    push de
+    push bc
+    ld  b, 0
+    ld  c, a
+    push bc
+    
+    fret
+
 multiply_by_10:
 ;   ( n -- n * 10 )
 ;

@@ -786,6 +786,7 @@ dict_init:
     mdict_add st_hold,      code_hold   
     mdict_add st_number_sign_s, code_number_sign_s
 
+    mdict_add st_z80_syscall,   code_z80_syscall
     mdict_add st_heap,      code_heap
     mdict_add st_hide,      code_hide
     mdict_add st_begin,     code_begin
@@ -935,6 +936,7 @@ st_number_sign_greater: counted_string "#>"
 st_hold:        counted_string "hold"
 st_number_sign_s: counted_string "#s"
 
+st_z80_syscall: counted_string "z80-syscall"
 st_heap:        counted_string "heap"
 st_hide:        counted_string "hide"
 st_ud_slash_mod: counted_string "ud/mod"
