@@ -817,6 +817,8 @@ dict_init:
     mdict_add st_r_from,    code_r_from
     mdict_add st_r_fetch,   code_r_fetch
     mdict_add st_rdrop,     code_rdrop
+    mdict_add st_two_to_r,  code_two_to_r
+    mdict_add st_two_r_from, code_two_r_from
     mdict_add st_to_cs,     code_to_cs
     mdict_add st_cs_from,   code_cs_from
     mdict_add st_cs_fetch,  code_cs_fetch
@@ -969,6 +971,8 @@ st_to_r:        counted_string ">r"
 st_r_from:      counted_string "r>"
 st_r_fetch:     counted_string "r@"
 st_rdrop:       counted_string "rdrop"
+st_two_to_r:    counted_string "2>r"
+st_two_r_from:  counted_string "2r>"
 st_to_cs:       counted_string  ">cs"
 st_cs_from:     counted_string  "cs>"
 st_cs_fetch:    counted_string "cs@"    

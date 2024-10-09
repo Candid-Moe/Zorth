@@ -72,6 +72,63 @@ code_rdrop:
     inc ix
     jp  (hl)
 
+code_two_to_r:
+;
+;   Implements 2>R
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( x1 x2 -- ) ( R: -- x1 x2 )
+;
+;   Transfer cell pair x1 x2 to the return stack. 
+;   Semantically equivalent to SWAP >R >R. 
+;
+
+    pop bc
+    pop de
+
+    dec ix              ; push TOS into return stack
+    ld  (ix), d
+    dec ix
+    ld  (ix), e
+
+    dec ix              ; push TOS into return stack
+    ld  (ix), b
+    dec ix
+    ld  (ix), c
+
+    jp  (hl)    
+
+code_two_r_from:
+;
+;   Implements 2R>
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( -- x1 x2 ) ( R: x1 x2 -- )
+;
+;   Transfer cell pair x1 x2 from the return stack.
+;   Semantically equivalent to R> R> SWAP.
+
+    ld      c, (ix)     ; pop value from return stack
+    inc     ix
+    ld      b, (ix)
+    inc     ix
+
+    ld      e, (ix)     ; pop value from return stack
+    inc     ix
+    ld      d, (ix)
+    inc     ix
+
+    push    de
+    push    bc
+
+    jp  (hl)
+
 code_to_cs:
 ;
 ;   Implements >CS

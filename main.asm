@@ -513,8 +513,6 @@ code_s_quote:
 ;
     fenter
 
-    check_compile_mode
-
     ld      hl, '"'
     push    hl
     fcall   code_parse
@@ -727,6 +725,7 @@ code_accept:
 ;
     fenter
 
+    call kbd_cooked_mode
     pop bc              ; +n1
     pop de              ; c-addr
     ld  h, DEV_STDIN

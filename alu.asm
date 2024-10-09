@@ -663,7 +663,7 @@ code_u_greater_than:
 
 code_z80_syscall:
 ;
-;   Implements Z80-CALL
+;   Implements Z80-SYSCALL
 ;   ( hl de bc a -- a' bc' de' hl' )
 ;
     fenter
