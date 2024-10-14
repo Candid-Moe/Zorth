@@ -203,6 +203,7 @@ code_parse:
     ld      hl, (TIB)       
     add     hl, bc          ; HL = current position in the input area
     inc     hl              ; skip the white space between words
+    inc     bc
 
     push    hl              ; Working copy
 
@@ -213,7 +214,6 @@ code_parse:
     set_carry_0
     sbc     hl, de
     ld      bc, hl          ; BC -> chars left    
-    dec     bc              ; Count the white space just skipped
     jr      z, _code_parse_eol:
     
     pop     hl              ;
@@ -263,3 +263,35 @@ code_in:
     push bc
 
     jp  (hl)
+
+code_scan:
+;
+;   Implements SCAN
+;   ( c-addr1 u1 c -- c-addr2 u2 )
+;
+;   Search character c in area pointed by c-addr1, of length u1.
+;   On success, c-addr2 is the address after the found character and
+;   u2 is the remaining length
+;
+    fenter
+
+    pop bc
+    ld  a, c
+    pop bc
+    pop hl
+
+    cpir
+    jr  nz, _code_scan_not_found
+
+    dec hl      ;   Make results compatible with scan
+    inc bc 
+
+_code_scan_not_found:
+
+    push hl
+    push bc
+
+    fret
+
+
+   

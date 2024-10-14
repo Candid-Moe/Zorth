@@ -34,12 +34,6 @@ code_colon:
 ;
     fenter
 
-    ;   Check MODE_EXECUTION
-
-    ld  a, (_STATE)
-    cp  FALSE
-    jr  nz, _colon_error
-
     ;   Create dictionary entry
 
     fcall   code_create
@@ -61,20 +55,6 @@ code_colon:
     ld (_DP), hl
 
 _colon_end:
-
-    fret
-
-_colon_error:
-    ;
-    ;   Display error message and quit
-    ;
-    ld hl, err_mode_not_comp
-    push hl
-    fcall print_line
-
-    ld hl,  _PAD
-    push    hl
-    fcall   print_line    
 
     fret
 
@@ -112,7 +92,7 @@ code_semmicolon:
     ;   Check MODE
     ld  a, (_STATE)
     cp  TRUE
-    jr  nz, _colon_error
+    jp  nz, _code_mode_error
 
     ;   Back to execution mode
     ld  a, FALSE
