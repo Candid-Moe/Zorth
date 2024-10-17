@@ -731,6 +731,7 @@ code_accept:
     ld  h, DEV_STDIN
     READ   
     
+    dec bc              ; Discount the '\n'
     push bc
     
     fret
@@ -1032,4 +1033,10 @@ _repl_failed_next:
 
     fret
 
+code_test:
+
+    ld  bc, 42
+    push bc
+    
+    jp  (hl)
 
