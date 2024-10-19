@@ -9,15 +9,19 @@ Zorth follows the ![Forth Standard](https://forth-standard.org/standard/core) sp
 
 This repository contains:
 
-- prod/zorth.bin and prod/forth.fs, the two files needed to run Forth or make your own os_with_romdisk.img
+- prod/zorth.bin, the file needed to run Forth or make your own os_with_romdisk.img
 - prod/os_with_romdisk.img, for running on the real hardware.
 - assembler source files if you have interest in it.
 
+## Status ##
+
+This project is in beta. It runs in my machine, but needs users to fully test it.
+
 ## How to run it in the emulator ##
 
-You only need the files `prod/zorth.bin` and `prod/forth.fs`.
+You only need the file `prod/zorth.bin`.
 
-In the emulator, type `cd h:/` and then select the PC directory where you copied the files.
+In the emulator, type `cd h:/` and then select the PC directory where you copied the file.
 Now you have access to your PC directory from the emulador.
 
 In the emulator, type `exec zorth.bin` and voila!
@@ -28,7 +32,7 @@ In the emulator, type `exec zorth.bin` and voila!
 ## How to run on the Zeal 8-bit board ##
 You can load `prod/os_with_romdisk.img` onto your board. This contains the Zeal 8 bits OS plus zorth.bin and forth.fs on drive A:
 
-You can create your own image, packaging zorth.bin and forth.fs onto the romdisk while compiling the OS and then loading the image.
+You can create your own image, packaging zorth.bin onto the romdisk while compiling the OS and then loading the image.
 
 ## How compile source files ##
 
@@ -38,20 +42,32 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 ## Extensions ##
 
-**2hex** ( x -- ) Display x as two hex digit.
+**asciiz ( c-addr1 u c-addr2 -- c-addr2 ) \ Converts text c-addr1 u to asciiz in c-addr2 
+    
+**2hex** ( x -- ) Displays x as two hex digit.
 
-**4hex**  ( x -- ) Display x as four hex digit.
+**4hex**  ( x -- ) Displays x as four hex digit.
 
-**clear** ( -- )  Clear screen
+**clear** ( -- )  Clears the screen.
 
-**clearstack** ( -- ) Clear de data stack
+**clearstack** ( i * x -- ) Clears the data stack
 
-**dict**  ( -- addr ) Address of last entry in dictionary.
+**dict**  ( -- addr ) Address of dictionary pointer (to last entry).
 
-**hide** ( -- ) Take the last word of the dictionary, but keep xt valid.
+**hide** ( -- ) Remove the last word of the dictionary, but keeps xt valid. 
 
 **jz** ( x -- ) If x is zero, jump to the address in the next cell.
 
 **jmp** ( -- ) Jump to the address in the next cell.
+
+**>cs** ( x -- : C -- x ) Push TOS to the control stack
+
+**cs>** ( -- x : C x -- ) Pops x from control stack and pushes it into the data stack.
+
+**unused** ( -- x ) RAM free space (in bytes)
+
+**-rot** ( w1 w2 w3 – w3 w1 w2 ) \ gforth
+
+**same-page** ( x -- ) guarantees that the next n bytes will be on the same page in memory
 
 
