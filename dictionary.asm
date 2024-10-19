@@ -779,6 +779,10 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_compile_comma), hl
 
+    mdict_add st_does,      _does_exec
+    ld hl, (_DICT)
+    ld (xt_does), hl
+
 
     mdict_add st_less_number_sign, code_less_number_sign
     mdict_add st_number_sign, code_number_sign
@@ -872,9 +876,6 @@ dict_init:
     mdict_add st_abort,     code_abort
     mdict_add st_quit,      code_quit
     mdict_add st_parse,     code_parse
-    mdict_add st_does,      _does_exec
-    ld hl, (_DICT)
-    ld (xt_does), hl
     mdict_add st_does,      code_does
     
 
