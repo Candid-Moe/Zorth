@@ -150,27 +150,6 @@ code_word_no_clobber:
 
 _PAD_NO_CLOBBER:    db 80
 
-code_tib:
-;
-;   Implements TIB
-;   ( -- addr )
-;
-;   Put the address of the current Text Input Buffer in the stack
-;
-    ld      bc, (TIB)
-    push    bc
-    jp      (hl)
-
-code_gtib:
-;
-;   Implements #TIB
-;
-;   Put the address of the TIB length in the stack
-;
-    ld      bc, (gTIB)
-    push    bc
-    jp      (hl)
-
 code_source:
 ;
 ;   Implements SOURCE
@@ -178,13 +157,15 @@ code_source:
 ;
 ;   c-addr is the address of, and u is the number of characters in, the input buffer. 
 ;
+    fenter 
+
     ld      bc, (TIB)
     push    bc
     ld      hl, (gTIB)
     ld      bc, (hl)
     push    bc
 
-    jp      (hl)
+    fret
 
 code_parse:
 ;

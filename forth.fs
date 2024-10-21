@@ -442,7 +442,18 @@ $a line-terminator !
     then          
     ;
 
+: repl
+    begin
+        ." >" refill
+        if
+            source evaluate
+        else
+            exit
+        then
+    again    
+    ;
+
 cr
 .( Finished ) cr
 unused u. .(  bytes free) cr    
-
+repl
