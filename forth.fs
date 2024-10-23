@@ -13,7 +13,7 @@
 
 : cell+ 2 + ;
 : cells 2 * ;            \ ( n1 -- n2 )
-: , here ! 1 cells allot ; 
+: compile, , ; 
 : ahead here >cs ;
 
 .( Loading dictionary ) cr

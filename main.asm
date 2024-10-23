@@ -143,7 +143,7 @@ _repl_word_found:
     ;   Mode compilation, not immediate
     ;   Add the xt to the last word in dictionary
 
-    fcall   add_cell
+    fcall   code_comma
 
     jr      _repl_end
 
@@ -447,19 +447,19 @@ code_c_quote:
 
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for string address
+    fcall   code_comma        ; add a load for string address
 
     ld      hl, (_DP)
     ld      de, 6
     add     hl, de
     push    hl
-    fcall   add_cell        ; string address to load
+    fcall   code_comma        ; string address to load
 
     ;   Add a jmp over the string
 
     ld      hl, (xt_jp)
     push    hl
-    fcall   add_cell        ; jmp
+    fcall   code_comma        ; jmp
 
     ld      hl, (_DP)
     pop     bc
@@ -471,7 +471,7 @@ code_c_quote:
 
     push    hl
     fcall   code_aligned    ;
-    fcall   add_cell        ; address
+    fcall   code_comma        ; address
     
     ;   Move the text
     pop     bc              ; length
@@ -531,28 +531,28 @@ _code_s_quote_comp:
     ;   The final string address
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for address
+    fcall   code_comma        ; add a load for address
 
     ld      hl, (_DP)
     ld      de, 10
     add     hl, de
     push    hl
-    fcall   add_cell        ; address to load
+    fcall   code_comma        ; address to load
 
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for length
+    fcall   code_comma        ; add a load for length
 
     pop     hl
     push    hl
     push    hl
-    fcall   add_cell        ; length to load
+    fcall   code_comma        ; length to load
 
     ;   Add a jmp over the string
 
     ld      hl, (xt_jp)
     push    hl
-    fcall   add_cell        ; jmp
+    fcall   code_comma        ; jmp
 
     ld      hl, (_DP)
 
@@ -563,7 +563,7 @@ _code_s_quote_comp:
     inc     hl              ; One cell for the address
 
     push    hl
-    fcall   add_cell        ; address
+    fcall   code_comma        ; address
 
     ;   Move the text
     pop     bc              ; length

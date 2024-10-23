@@ -30,14 +30,14 @@ code_if:
 
     ld      bc, (xt_jz)
     push    bc
-    fcall   add_cell    ; Add IF xt to word in formation.
+    fcall   code_comma    ; Add IF xt to word in formation.
 
     ld  hl, (_DP)
     ctrl_push           ; Put the cell address to patch
 
     ld      bc, 0
     push    bc
-    fcall   add_cell    ; Leave a cell for the destination address
+    fcall   code_comma    ; Leave a cell for the destination address
 
     fret    
    
@@ -108,11 +108,11 @@ code_else:
 
     ld  bc, (xt_jp)
     push    bc
-    fcall   add_cell    ; Add jump to address after "then"
+    fcall   code_comma    ; Add jump to address after "then"
 
     ld      bc, 0 
     push    bc
-    fcall   add_cell    ; Reserve a cell for the jump destination
+    fcall   code_comma    ; Reserve a cell for the jump destination
     
     ;   Put the current address in the space following IF
 
@@ -236,7 +236,7 @@ code_while:
 
     ld      hl, (xt_jz)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ctrl_pop        ; dest
     push    hl
@@ -248,7 +248,7 @@ code_while:
 
     ld      hl, 0
     push    hl
-    fcall   add_cell ; Address to jump
+    fcall   code_comma ; Address to jump
                 
     fret
 
@@ -278,11 +278,11 @@ code_repeat:
 
     ld      hl, (xt_jp)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ctrl_pop            ; dest
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ctrl_pop            ; orig
     ld      de, (_DP)
@@ -316,11 +316,11 @@ code_again:
 
     ld  bc, (xt_jp)
     push bc
-    fcall add_cell      ; Add jump to word in after "begin"
+    fcall code_comma      ; Add jump to word in after "begin"
 
     ctrl_pop
     push hl
-    fcall add_cell      ; Put the address for the jump.
+    fcall code_comma      ; Put the address for the jump.
     
     fret
 
@@ -349,11 +349,11 @@ code_until:
 
     ld      bc, (xt_jz)
     push    bc
-    fcall   add_cell    ; Add jump to word in after "begin"
+    fcall   code_comma    ; Add jump to word in after "begin"
 
     ctrl_pop
     push hl
-    fcall   add_cell    ; Put the address for the jump.
+    fcall   code_comma    ; Put the address for the jump.
     
     fret
 
@@ -392,7 +392,7 @@ code_do:
     ;   Insert the load params instruction
     ld      hl, (xt_do)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ld      hl, (_DP)   ; Put a do-sys in control stack: address first
     ctrl_push   
@@ -487,11 +487,11 @@ _code_loop_next:
     ;   Write a LOOP XT
     ld      hl, (xt_loop)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ctrl_pop        ; Extract address    
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     fret
 
@@ -611,14 +611,14 @@ code_leave:
 
     ld      hl, (xt_leave)     ; Insert a jmp
     push    hl
-    fcall   add_cell    
+    fcall   code_comma    
 
     ld      hl, (_DP)       ; Remember address location
     leave_push
 
     ld      hl, 0
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     fret
 
@@ -658,7 +658,7 @@ code_unloop:
 
     ld      hl, (xt_unloop) ; 
     push    hl
-    fcall   add_cell    
+    fcall   code_comma    
 
     fret
 

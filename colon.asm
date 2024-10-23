@@ -138,7 +138,7 @@ code_semmicolon:
 
     ld  hl, 0
     push hl
-    fcall   add_cell
+    fcall   code_comma
     
     fret
 

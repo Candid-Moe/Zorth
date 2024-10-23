@@ -26,7 +26,7 @@ xt_loop:    dw  0           ; LOOP
 xt_unloop:  dw  0           ; UNLOOP
 xt_leave:   dw  0           ; LEAVE
 xt_literal: dw  0           ; LITERAL
-xt_compile_comma:   dw 0    ; COMPILE,
+xt_comma:   dw  0           ; ,
 xt_postpone: dw 0           ; POSTPONE
 xt_nop:     dw  0           ; No Operation
 
@@ -92,7 +92,7 @@ code_create:
     
     ld      hl, (xt_address)
     push    hl
-    fcall   add_cell    ; 
+    fcall   code_comma    ; 
 
     ;   Make it a colon definition
 
@@ -261,23 +261,6 @@ save_to_DP:
     fcall   code_allot  ; total len already in stack        ( -- name_addr )
 
     fret
-
-add_cell:
-;
-;   Add TOS to _DP
-;   ( x -- )
-;
-    fenter
-    
-    pop de
-    ld  hl, (_DP)
-    ld  (hl), e
-    inc hl
-    ld  (hl), d
-    inc hl
-    ld  (_DP), hl
-
-    fret    
 
 dict_add:
     ;
@@ -564,25 +547,6 @@ _code_literal_error:
     fcall   code_backslash       ; Forget the remaining words
     fret
 
-code_compile_comma:
-;
-;   Interprets COMPILE,
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Execution:
-;   ( xt -- )
-;
-;   Append the execution semantics of the definition represented by xt
-;   to the execution semantics of the current definition. 
-;
-    fenter
-
-    fcall   add_cell
-
-    fret
-
 code_postpone:
 ;
 ;   Implements POSTPONE
@@ -632,7 +596,7 @@ _code_postpone_next:
 
     ;   It's an immediate word
 
-    fcall   add_cell        ; ( -- )
+    fcall   code_comma        ; ( -- )
 
     fret
 
@@ -642,9 +606,9 @@ _code_postpone_save:
     
     fcall   code_literal
 
-    ld      hl, (xt_compile_comma)
+    ld      hl, (xt_comma)
     push    hl
-    fcall   add_cell    ; ( xt -- )
+    fcall   code_comma    ; ( xt -- )
 
     fret    
     
@@ -692,6 +656,29 @@ _code_postpone_end:
 _code_postpone_error:
 
     jp  _code_mode_error
+
+code_comma:
+;
+;   Implements , 
+;   ( x -- )
+;
+;   Reserve one cell of data space and store x in the cell. 
+;   If the data-space pointer is aligned when , begins execution, 
+;   it will remain aligned when , finishes execution. 
+;   An ambiguous condition exists if the data-space pointer is not 
+;   aligned prior to execution of ,. 
+
+    fenter
+    
+    pop de
+    ld  hl, (_DP)
+    ld  (hl), e
+    inc hl
+    ld  (hl), d
+    inc hl
+    ld  (_DP), hl
+
+    fret    
 
 code_hide:
 ;
@@ -775,9 +762,9 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
-    mdict_add st_compile_comma, code_compile_comma
+    mdict_add st_comma, code_comma
     ld  hl, (_DICT)
-    ld  (xt_compile_comma), hl
+    ld  (xt_comma), hl
 
     mdict_add st_does,      _does_exec
     ld hl, (_DICT)
@@ -952,7 +939,7 @@ st_key_question: counted_string "key?"
 st_while:       counted_string "while"
 st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"
-st_compile_comma: counted_string "compile,"
+st_comma:       counted_string ","
 st_address:     counted_string "address"
 st_nop:         counted_string ""
 st_pad:         counted_string "pad"
