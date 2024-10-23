@@ -232,35 +232,6 @@ code_immediate:
 
     fret
 
-save_to_DP:
-;
-;   Copy a counted-string to DP
-;   ( c-string -- )
-;
-    fenter
-
-    pop     hl
-    ld      a, (hl) ; String len
-    ld      d, 0
-    ld      e, a    ; de = len
-
-    ld      de, (_DP)  
-    push    de         ; destination   ( -- name_addr )
-
-    ;   Calculate total len and save it onto the stack
-    inc  de         ; total len
-    push de         ;               ( -- name_addr len )
-
-    ;   Prepare moving the name
-    push hl         ; origin        ( -- name_addr len origin)
-    ld   hl, (_DP)  
-    push hl         ; destination   ( -- name_addr len origin dest )
-    push de         ; length        ( -- name_addr len origin dest len )
-
-    fcall   code_move   ; copy name from input area to heap ( -- name_addr len )
-    fcall   code_allot  ; total len already in stack        ( -- name_addr )
-
-    fret
 
 dict_add:
     ;
@@ -510,7 +481,6 @@ code_literal:
     ld  (_DP), hl
 
     fret
-
 
 code_literal_runtime:
 
@@ -772,10 +742,11 @@ dict_init:
 
 
     mdict_add st_less_number_sign, code_less_number_sign
-    mdict_add st_number_sign, code_number_sign
+    mdict_add st_number_sign,   code_number_sign
     mdict_add st_number_sign_greater, code_number_sign_greater
-    mdict_add st_hold,      code_hold   
+    mdict_add st_hold,          code_hold   
     mdict_add st_number_sign_s, code_number_sign_s
+    mdict_add st_sign,          code_sign
 
     mdict_add st_test,      code_test
     mdict_add st_scan,      code_scan
@@ -796,7 +767,6 @@ dict_init:
     mdict_add st_str_equals,code_str_equals
     mdict_add st_word,      code_word
     mdict_add st_pad,       code_pad
-    mdict_add st_dot,       code_dot
     mdict_add st_dup,       code_dup
     mdict_add st_plus,      code_plus
     mdict_add st_minus,     code_minus
@@ -885,7 +855,6 @@ dict_init:
     mdict_add st_two_slash, code_two_slash
     mdict_add st_m_star,    code_m_star
     mdict_add st_u_m_star,  code_u_m_star
-    mdict_add st_itoa,      itoa
     mdict_add st_xor,       code_xor
     mdict_add st_source,    code_source
     mdict_add st_unloop,    code_unloop
@@ -927,6 +896,7 @@ st_number_sign: counted_string "#"
 st_number_sign_greater: counted_string "#>"
 st_hold:        counted_string "hold"
 st_number_sign_s: counted_string "#s"
+st_sign:        counted_string "sign"
 
 st_test:        counted_string "test"
 st_scan:        counted_string "scan"
@@ -954,7 +924,6 @@ st_str_equals:  counted_string "str="
 st_dup:         counted_string "dup"
 st_and:         counted_string "and"
 st_or:          counted_string "or"
-st_dot:         counted_string "."
 st_star:        counted_string "*"
 st_m_star:      counted_string "m*"
 st_minus:       counted_string "-"
@@ -1019,7 +988,6 @@ st_i:           counted_string "i"
 st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"
 st_u_m_star:    counted_string "um*"
-st_itoa:        counted_string "itoa"
 st_xor:         counted_string "xor"
 st_source:      counted_string "source"
 st_unloop:      counted_string "unloop"

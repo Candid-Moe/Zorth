@@ -75,6 +75,8 @@
 : abs   dup 0< if negate then ;
 : max   2dup < if swap drop else drop then ;
 : min   2dup < if drop else swap drop then ;
+: . ( n -- ) 
+    dup abs 0 <# #s rot sign #> type space ;
 
 .( . ) 
 
@@ -96,7 +98,9 @@
         RDROP
     THEN
 ;
+
 .( . ) 
+
 : c,        here c! 1 allot ; immediate
 : fill      rot rot 0 do 2dup ! 1 + loop ; \ ( c-addr u char -- ) 
 : erase     0 fill ;

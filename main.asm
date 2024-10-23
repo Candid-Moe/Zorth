@@ -653,32 +653,7 @@ print_error_word_not_found:
     
     fret
 
-code_dot:
-;
-;   Implements .
-;   ( n -- )
-;
-;   Display n in free field format
-;
-    fenter
-
-    ld  bc, (_BASE)
-    ld  a, c
-    cp  16
-    jr  z, _code_dot_hex
-    fcall itoa
-    jr  _code_dot_print
-
-_code_dot_hex:
-    fcall htoa
-
-_code_dot_print:
-    fcall code_count
-    fcall code_type
-    fcall code_space
-    
-    fret 
-    
+   
 code_type:
 ;
 ;   Implements TYPE
