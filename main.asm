@@ -1015,3 +1015,5 @@ code_test:
     
     jp  (hl)
 
+    fcall i2c_send_byte
+

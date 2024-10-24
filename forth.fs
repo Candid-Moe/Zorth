@@ -109,6 +109,7 @@
 : variable  align here 0 , constant ;
 : parse-name bl word count ;
 : include   parse-name included  ; ( i*x "name" -- j*x ) 
+: blank     bl fill ; ( c-addr u -- )
 
 .( . )  
 
@@ -446,18 +447,7 @@ $a line-terminator !
     then          
     ;
 
-: repl
-    begin
-        ." >" refill
-        if
-            source evaluate
-        else
-            exit
-        then
-    again    
-    ;
-
 cr
 .( Finished ) cr
 unused u. .(  bytes free) cr    
-repl
+
