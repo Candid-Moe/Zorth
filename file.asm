@@ -3,7 +3,7 @@
 ;   file: file operations
 ;
 
-code_included:
+code_xincluded:
 ;
 ;   Implements INCLUDED 
 ;   ( i * x c-addr u -- j * x )
