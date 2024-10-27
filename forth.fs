@@ -3,7 +3,7 @@
 \
 \ : compile, , ;
 
-: bl 32 ;                \ ( -- 0x20 )
+: bl #32 ;               \ ( -- 0x20 )
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
 : char bl word char+ c@ ; 
 : [char] char literal ; immediate
@@ -42,10 +42,11 @@
 0 invert 1 rshift invert constant   MID-UINT+1
 
 .( . ) 
+
 : 1+    1 + ;
 : 1-    1 - ;
-: decimal 10 base ! ; 
-: hex   16 base ! ; 
+: decimal #10 base ! ; 
+: hex     #16 base ! ; 
 
 ( Comparations )
 : <>    = invert ;
@@ -54,8 +55,40 @@
 : 0<    0 < ;
 : 0>    0 > ;
 
-(   Stack operations )
-.( . ) 
+: ." postpone s" postpone type ; immediate
+
+: ahead
+    postpone jmp
+    here >cs 0 ,
+    ; immediate
+
+: abort" ( "ccc<quote>" -- ) 
+    postpone jz
+    here >cs 0 ,
+    postpone ."
+    postpone abort
+    here cs> !
+    ; immediate
+
+: check-compile-mode ( -- )
+    state @ invert
+    abort" Error. Not valid in interpreter mode. "
+    ; 
+
+: if 
+    postpone jz 
+    here >cs 0 ,
+    ; immediate
+
+: else postpone jmp 0 ,     \ jmp after the 'then' part
+        here cs> !          \ patch the if
+        here 2 - >cs        \ save the address for the patch
+    ; immediate       
+
+: then here cs> ! 
+    ; immediate
+
+.( . )  
 : ?dup  dup 0<> if dup then ;
 : over  >r dup r> swap ;    \ ( x1 x2 -- x1 x2 x1 )
 : tuck  swap over ;         \ ( x1 x2 -- x2 x1 x2 )
@@ -69,16 +102,21 @@
 : 2!    swap over ! cell+ ! ;  \ ( x1 x2 a-addr -- ) 
 : 2over 3 pick 3 pick ;
 
-.( . ) 
+.( . )  
 
 : +!    dup >r @ + r> ! ;
 : abs   dup 0< if negate then ;
 : max   2dup < if swap drop else drop then ;
 : min   2dup < if drop else swap drop then ;
 : . ( n -- ) 
-    dup abs 0 <# #s rot sign #> type space ;
-
-.( . ) 
+    base @ #10 =
+    if
+        dup abs 0 <# #s rot sign #> 
+    else
+        s>d <# #s #>
+    then
+    type space
+    ;
 
 : 2*    1 lshift ;
 : /mod  >R S>D R> SM/REM ;
@@ -99,31 +137,21 @@
     THEN
 ;
 
-.( . ) 
+.( . )  
 
 : c,        here c! 1 allot ; immediate
-: fill      rot rot 0 do 2dup ! 1 + loop ; \ ( c-addr u char -- ) 
-: erase     0 fill ;
 : compile,  , ; immediate
 : buffer:   create allot ;
 : variable  align here 0 , constant ;
 : parse-name bl word count ;
-: include   parse-name included  ; ( i*x "name" -- j*x ) 
-: blank     bl fill ; ( c-addr u -- )
 
-.( . )  
-
-: lit ( -- x ) ( R: addr1 -- addr2 ) r> dup cell+ >r @ ;
-: lit, ( x -- ) postpone literal ;
-: ] true  state ! ; immediate
-: [ false state ! ; immediate
-: spaces 0 do space loop ;
+: ] true    state ! ; immediate
+: [ false   state ! ; immediate
 
 .( . )
 
 : u. s>d <# #s #> type ;
 : unused $FFFF here - ;
-: .r ( n1 n2 -- ) swap dup itoa c@ rot swap - ?dup 0> if spaces then itoa count type ;
 : exit      0 , ; immediate
 : recurse   dict @ , ; immediate
 : roll                          \ x0 i*x u.i -- i*x x0 )
@@ -133,9 +161,9 @@
 .( . ) 
 
 : >body 10 + ;
-: ." postpone s" postpone type ; immediate
 : ' bl word find 0= if ." Error. Word not found: " count type 0 then ; 
-: ['] ( compilation: "name" --; run-time: -- xt ) postpone ' ; immediate
+: ['] ( compilation: "name" --; run-time: -- xt ) 
+    ' literal ; immediate
 : defer  ( "name" -- ) create 0 , does> ( ... -- ... ) @ execute ;
 : defer@ ( xt1 -- xt2 ) >body @ ;
 : defer! ( xt2 xt1 -- ) >body ! ;
@@ -159,11 +187,46 @@
      ' defer!
    then ; immediate
 
-.( . ) 
-
 : clear 0 6 0 ioctl ;                   \ Screen clear
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
-: .s ." < " depth . ." > " depth if depth 0 do i pick . loop then ;
+
+.( . )
+
+: then, ( orig -- ) postpone then ;
+
+: ?do ( -- do-sys )
+  postpone 2dup  postpone =
+  postpone if    postpone 2drop
+  postpone else
+  postpone do  ['] then,
+; immediate
+
+: do ( -- do-sys )
+  postpone do  ['] noop
+; immediate
+
+: loop ( do-sys -- )
+  >r postpone loop  r> execute
+; immediate
+
+: +loop ( do-sys -- )
+  >r postpone +loop r> execute
+; immediate
+
+: .s ." < " depth . ." > " depth 0 ?do i pick . loop ;
+: spaces ( n -- ) 0 ?do space loop ;
+: .r   ( n1 n2 -- ) >r s>d <# #S #> dup r> swap - spaces type ;
+: fill ( c-addr u char -- )  rot rot 0 ?do 2dup ! 1 + loop ; 
+: erase ( c-addr u -- )    0 fill ;
+: blank ( c-addr u -- )   bl fill ; 
+
+.( . )
+
+: begin here >cs ; immediate
+
+: again postpone jmp cs> , ; immediate
+
+: until postpone jz cs> , ; immediate
 
 : while ( dest -- orig dest / flag -- )
    \ conditional exit from loops
@@ -176,6 +239,7 @@
    postpone again	       \ uncond. backward branch to dest
    postpone then	       \ resolve forward branch from orig
 ; immediate
+
 
 .( . ) 
 
@@ -250,6 +314,10 @@ synonym s= str=
     then
 ;
 
+: resize ( a-addr1 u -- a-addr2 ior ) \ Not implemented
+    drop false
+    ;
+
 .( . ) 
 
 : asciiz \ Convert text c-addr1 u to asciiz in c-addr2 
@@ -262,7 +330,7 @@ synonym s= str=
     ;
 
 : dump ( addr u -- )                \   Dump memory
-    0 do space dup c@ 2hex 1 + loop drop ;
+    0 ?do space dup c@ 2hex 1 + loop drop ;
 
 : clearstack ( n ... -- )           \   Delete all items in data stack
     begin 
@@ -291,12 +359,11 @@ synonym s= str=
     cr
     1+  ( @name )
     2 + ( @code )
-    r> 0 
-    do
-        dup 4hex space          ( address )
-        dup @ dup 4hex space    ( content )
-        4 + @ dup $4000 > if count type else drop then ( name )
-        cr
+    r> 0 ?do
+        dup 4hex space          ( -- addr )
+        dup @ dup 4hex space    ( -- addr xt )
+        4 + @ count #16 min
+        type cr
         2 +
     loop    
 ;
@@ -447,7 +514,56 @@ $a line-terminator !
     then          
     ;
 
+.( . )
+
+: include-file
+    ( i * x fileid -- j * x ) 
+
+    255 allocate        ( -- fileid a-addr ior )
+    ?dup if
+        ." Error getting buffer " 2hex 2drop cr
+        exit
+    then
+
+    swap >r                  ( a-addr fileid -- a-addr : R -- fileid )
+    begin
+        dup 253 r@ read-line ( -- a-addr u flag ior )
+        ?dup if
+            2drop drop
+            1                   ( -- a-addr 1 )
+        else
+            if                  ( a-addr u flag -- a-addr u )
+                over >r
+                2dup type
+                evaluate        ( -- )
+                r>              ( -- a-addr )
+                0                   
+            else
+                drop 
+                1    
+            then
+        then
+    until        
+    free drop 
+    r> close-file drop
+    ;
+
+: included 
+    ( i * x c-addr u -- j * x )
+    r/o open-file
+    ?dup if 
+        ." Error opening file " 2hex drop cr
+    else
+        include-file
+    then
+    ;
+
+: include ( i*x "name" -- j*x ) 
+    parse-name included  
+    ; 
+
 cr
 .( Finished ) cr
 unused u. .(  bytes free) cr    
+: x s" hola" type ;
 

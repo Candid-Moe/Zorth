@@ -324,6 +324,60 @@ code_abort:
         ld      SP, _DATA_STACK
         jr      code_quit
 
+code_save_quote:
+;
+;   Implements SAVE"
+;   ( "ccc<quote>" -- c-addr2 u )
+;
+;   Copy the u bytes at c-addr1 to c-addr2, where c-addr2 is a permanent location
+;   in the data stack
+;
+
+    fenter
+
+    ld      hl, '"'
+    push    hl
+    fcall   code_parse      ; ( -- c-addr1 u ) Message text
+
+    pop     bc          ; Count
+
+    ;   Insert a jump around the text
+    ld      hl, xt_jp
+    push    hl
+    fcall   code_comma
+    ;   The jump destination
+    ld      hl, (_DP)
+    add     hl, bc      ;
+    inc     hl
+    inc     hl          ; for the len cell
+    push    hl
+    fcall   code_comma
+
+    ;   Copy the text
+    ld      hl, (_DP)   ; Dest
+    ld      (hl), bc    ; Store count in first cell
+    inc     hl
+
+    pop     de          ; Origin
+    ex      hl, de
+
+    ldir
+
+    ld      (_DP), de   ; Update DP with string+len
+
+    ; This is the DOES> part
+
+    pop     bc
+    ld      a, b
+    or      c
+    jr      z, _code_abort_quote_end
+
+            
+
+_code_abort_quote_end:
+
+    fret
+     
 code_quit:
 ;
 ;   Implements QUIT
@@ -1014,6 +1068,4 @@ code_test:
     push bc
     
     jp  (hl)
-
-    fcall i2c_send_byte
 

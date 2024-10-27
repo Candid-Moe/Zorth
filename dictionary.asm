@@ -28,7 +28,7 @@ xt_leave:   dw  0           ; LEAVE
 xt_literal: dw  0           ; LITERAL
 xt_comma:   dw  0           ; ,
 xt_postpone: dw 0           ; POSTPONE
-xt_nop:     dw  0           ; No Operation
+xt_noop:     dw  0           ; No Operation
 
 
 code_create:
@@ -85,7 +85,7 @@ code_create:
 
     ;   Args for dict_add
     ;   We need cells for address/does> ops
-    ld      de, (xt_nop)
+    ld      de, (xt_noop)
     push    de          ; ( -- name_addr code_addr )
     fcall   code_swap   ; ( -- code_addr name_addr )
     fcall   dict_add
@@ -402,7 +402,7 @@ _dict_search_xt_value:
     ;   Value alredady into the stack
     ;   Return a NOP xt
 
-    ld   hl, (xt_nop)
+    ld   hl, (xt_noop)
     jr  _dict_search_end2
 
 _dict_search_xt_compile:
@@ -416,7 +416,7 @@ _dict_search_xt_compile:
     ;   the caller expect a XT, so we return an
     ;   immediate NOP that not change anything.
 
-    ld  hl, (xt_nop)   
+    ld  hl, (xt_noop)   
     jr  _dict_search_end2
 
 _dict_search_found:
@@ -430,7 +430,10 @@ _dict_search_end2:
 
 _dict_ptr:   dw 0
 
-code_nop:
+code_noop:
+;
+;   Implements NOOP
+;   ( -- )
 ;
 ;   Do nothing, return immediatly
 ;
@@ -697,10 +700,6 @@ dict_init:
     ;
     fenter
 
-    mdict_add st_nop,       code_nop
-    fcall code_immediate    
-    mdict_xt xt_nop
-
     mdict_add st_literal,       code_literal_runtime
     mdict_xt xt_literal
 
@@ -724,6 +723,11 @@ dict_init:
 
     ;   Add visible words
 
+    mdict_add st_noop,      code_noop
+    fcall code_immediate    
+    ld  hl, (_DICT)
+    ld  (xt_noop), hl
+
     mdict_add st_jz,        code_jz
     ld  hl, (_DICT)
     ld  (xt_jz), hl
@@ -732,7 +736,7 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
-    mdict_add st_comma, code_comma
+    mdict_add st_comma,     code_comma
     ld  hl, (_DICT)
     ld  (xt_comma), hl
 
@@ -753,8 +757,6 @@ dict_init:
     mdict_add st_z80_syscall,   code_z80_syscall
     mdict_add st_heap,      code_heap
     mdict_add st_hide,      code_hide
-    mdict_add st_begin,     code_begin
-    fcall code_immediate
     mdict_add st_key,       code_key
     mdict_add st_key_question, code_key_question
     mdict_add st_accept,    code_accept
@@ -809,19 +811,9 @@ dict_init:
     mdict_add st_drop,      code_drop
     mdict_add st_emit,      code_emit
     mdict_add st_pick,      code_pick
-    mdict_add st_if,        code_if
-    fcall code_immediate
-    mdict_add st_else,      code_else
-    fcall code_immediate
-    mdict_add st_then,      code_then
-    fcall code_immediate
     
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
-    mdict_add st_until,     code_until
-    fcall code_immediate
-    mdict_add st_again,     code_again
-    fcall code_immediate
 
     mdict_add st_c_fetch,   code_c_fetch
     mdict_add st_c_store,   code_c_store
@@ -864,8 +856,6 @@ dict_init:
     mdict_add st_move,      code_move
     mdict_add st_ioctl,     code_ioctl
     mdict_add st_ioctl_set_xy, code_ioctl_set_xy
-    mdict_add st_ctrl_pop,  code_ctrl_pop
-    mdict_add st_ctrl_push, code_ctrl_push
     mdict_add st_c_quote,   code_c_quote
     fcall code_immediate
     mdict_add st_find,      code_find
@@ -875,7 +865,6 @@ dict_init:
     mdict_add st_t_open,    code_t_open
     mdict_add st_rigth_arrow, code_right_arrow
     mdict_add st_t_close,   code_t_close
-    mdict_add st_included,  code_included
 
     mdict_add st_less_than, code_less_than
     mdict_add st_greater_than, code_greater_than
@@ -911,7 +900,7 @@ st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"
 st_comma:       counted_string ","
 st_address:     counted_string "address"
-st_nop:         counted_string ""
+st_noop:        counted_string "noop"
 st_pad:         counted_string "pad"
 st_count:       counted_string "count"
 st_type:        counted_string "type"
@@ -960,18 +949,12 @@ st_false:       counted_string "false"
 st_drop:        counted_string "drop"
 st_emit:        counted_string "emit"
 st_pick:        counted_string "pick"
-st_if:          counted_string "if"
-st_else:        counted_string "else"
 st_jump:        counted_string "jmp"
-st_then:        counted_string "then"
 st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
 st_invert:      counted_string "invert"
-st_begin:       counted_string "begin"
-st_until:       counted_string "until"
 st_jz:          counted_string "jz"
-st_again:       counted_string "again"
 st_c_fetch:     counted_string "c@"
 st_c_store:     counted_string "c!"
 st_depth:       counted_string "depth"
@@ -1008,5 +991,4 @@ st_cs_roll:     counted_string "cs-roll"
 st_t_open:      counted_string "T{"
 st_rigth_arrow: counted_string "->"
 st_t_close:     counted_string "}T"
-st_included:    counted_string "included"
 
