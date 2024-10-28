@@ -16,7 +16,7 @@ init:
     ld      de, 0
     ld      (hl), de
 
-    fcall   clear_screen
+    fcall   code_page
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -324,59 +324,6 @@ code_abort:
         ld      SP, _DATA_STACK
         jr      code_quit
 
-code_save_quote:
-;
-;   Implements SAVE"
-;   ( "ccc<quote>" -- c-addr2 u )
-;
-;   Copy the u bytes at c-addr1 to c-addr2, where c-addr2 is a permanent location
-;   in the data stack
-;
-
-    fenter
-
-    ld      hl, '"'
-    push    hl
-    fcall   code_parse      ; ( -- c-addr1 u ) Message text
-
-    pop     bc          ; Count
-
-    ;   Insert a jump around the text
-    ld      hl, xt_jp
-    push    hl
-    fcall   code_comma
-    ;   The jump destination
-    ld      hl, (_DP)
-    add     hl, bc      ;
-    inc     hl
-    inc     hl          ; for the len cell
-    push    hl
-    fcall   code_comma
-
-    ;   Copy the text
-    ld      hl, (_DP)   ; Dest
-    ld      (hl), bc    ; Store count in first cell
-    inc     hl
-
-    pop     de          ; Origin
-    ex      hl, de
-
-    ldir
-
-    ld      (_DP), de   ; Update DP with string+len
-
-    ; This is the DOES> part
-
-    pop     bc
-    ld      a, b
-    or      c
-    jr      z, _code_abort_quote_end
-
-            
-
-_code_abort_quote_end:
-
-    fret
      
 code_quit:
 ;
@@ -984,37 +931,70 @@ code_ioctl:
 
     fret
 
-code_ioctl_set_xy:
+code_at_xy:
 ;
-;   Implements IOCTL_SET_XY
-;   ( x y -- )
+;   Implements AT-XY
+;   ( u1 u2 -- )
+;
+;   Perform implementation-dependent steps so that the next character 
+;   displayed will appear in column u1, row u2 of the user output device, 
+;   the upper left corner of which is column zero, row zero. 
+;
+;   An ambiguous condition exists if the operation cannot be performed on 
+;   the user output device with the specified parameters. 
 ;
     fenter
 
-    pop     bc
-    ld  e, c
-    pop     bc
+    pop de      ; u2
+    pop bc      ; u1
     ld  d, c
 
-    fcall   code_ioctl
+    ld  c, CMD_SET_CURSOR_XY
+    ld  h, DEV_STDOUT
+    
+    IOCTL
 
     fret
 
-clear_screen:
-
+code_page:
+;
+;   Implements PAGE 
+;   ( -- )
+;
+;   Move to another page for output. 
+;   Actual function depends on the output device. On a terminal, PAGE 
+;   clears the screen and resets the cursor position to the upper left corner. 
+;   On a printer, PAGE performs a form feed. 
+;
     fenter
 
-    ld hl, 0
-    push hl
-    ld hl, 6
-    push hl
-    ld hl, 0
-    push hl
+    ld  h, DEV_STDOUT
+    ld  c, CMD_CLEAR_SCREEN
 
-    fcall code_ioctl
-
+    IOCTL
+ 
     fret
 
+code_colors:
+;
+;   Implements COLORS
+;   ( n1 n2 -- )
+;
+;   Set terminal background/foreground colors, where n1 is background color
+;   and n2 is foreground.
+;
+    fenter
+
+    pop de
+    pop hl
+    ld  d, l
+    
+    ld  h, DEV_STDOUT
+    ld  c, CMD_SET_COLORS
+
+    IOCTL
+
+    fret
 error_word_not_found:    
 
     fenter

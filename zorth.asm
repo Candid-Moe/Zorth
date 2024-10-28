@@ -6,6 +6,7 @@
 lstoff
 include "zos_sys.asm"
 include "zos_keyboard.asm"
+include "zos_video.asm"
 include "macros.asm"
 lston
 

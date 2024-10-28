@@ -855,7 +855,9 @@ dict_init:
     mdict_add st_dict,      code_dict
     mdict_add st_move,      code_move
     mdict_add st_ioctl,     code_ioctl
-    mdict_add st_ioctl_set_xy, code_ioctl_set_xy
+    mdict_add st_at_xy,     code_at_xy
+    mdict_add st_page,      code_page
+    mdict_add st_colors,    code_colors
     mdict_add st_c_quote,   code_c_quote
     fcall code_immediate
     mdict_add st_find,      code_find
@@ -895,8 +897,6 @@ st_hide:        counted_string "hide"
 st_ud_slash_mod: counted_string "ud/mod"
 st_key:         counted_string "key"
 st_key_question: counted_string "key?"
-st_while:       counted_string "while"
-st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"
 st_comma:       counted_string ","
 st_address:     counted_string "address"
@@ -979,7 +979,9 @@ st_execute:     counted_string "execute"
 st_dict:        counted_string "dict"
 st_move:        counted_string "move"
 st_ioctl:       counted_string "ioctl"
-st_ioctl_set_xy: counted_string "ioctl_set_xy"
+st_at_xy:       counted_string "at-xy"
+st_page:        counted_string "page"
+st_colors:      counted_string "colors"
 st_ctrl_push:   counted_string ">ctrl"
 st_ctrl_pop:    counted_string "ctrl>"
 st_c_quote:     counted_string "c\""

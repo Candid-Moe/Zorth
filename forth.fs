@@ -14,7 +14,6 @@
 : cell+ 2 + ;
 : cells 2 * ;            \ ( n1 -- n2 )
 : compile, , ; 
-: ahead here >cs ;
 
 .( Loading dictionary ) cr
 
@@ -41,6 +40,23 @@
 0 invert 1 rshift constant          MID-UINT
 0 invert 1 rshift invert constant   MID-UINT+1
 
+$0 constant TEXT-COLOR-BLACK
+$1 constant TEXT-COLOR-DARK-BLUE
+$2 constant TEXT-COLOR-DARK-GREEN
+$3 constant TEXT-COLOR-DARK-CYAN 
+$4 constant TEXT-COLOR-DARK-RED  
+$5 constant TEXT-COLOR-DARK-MAGENTA
+$6 constant TEXT-COLOR-BROWN       
+$7 constant TEXT-COLOR-LIGHT-GRAY  
+$8 constant TEXT-COLOR-DARK-GRAY   
+$9 constant TEXT-COLOR-BLUE        
+$a constant TEXT-COLOR-GREEN       
+$b constant TEXT-COLOR-CYAN        
+$c constant TEXT-COLOR-RED         
+$d constant TEXT-COLOR-MAGENTA     
+$e constant TEXT-COLOR-YELLOW      
+$f constant TEXT-COLOR-WHITE       
+
 .( . ) 
 
 : 1+    1 + ;
@@ -55,12 +71,25 @@
 : 0<    0 < ;
 : 0>    0 > ;
 
-: ." postpone s" postpone type ; immediate
+.( . )  
+: over  >r dup r> swap ;    \ ( x1 x2 -- x1 x2 x1 )
+: tuck  swap over ;         \ ( x1 x2 -- x2 x1 x2 )
+: nip   swap drop ;         \ ( x1 x2 -- x2 )
+: rot   >r swap r> swap ;   \ ( x1 x2 x3 -- x2 x3 x1 ) 
+: 2swap >r rot r> rot ;     \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
+: 2dup  over over ;
+: 2drop drop drop ;
+: 2r@   r> r> 2dup >r >r swap ;   \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
+: 2@    dup cell+ @ swap @ ;   \ ( a-addr -- x1 x2 ) 
+: 2!    swap over ! cell+ ! ;  \ ( x1 x2 a-addr -- ) 
+: 2over 3 pick 3 pick ;
 
 : ahead
     postpone jmp
     here >cs 0 ,
     ; immediate
+
+: ." postpone s" postpone type ; immediate
 
 : abort" ( "ccc<quote>" -- ) 
     postpone jz
@@ -89,21 +118,8 @@
     ; immediate
 
 .( . )  
+
 : ?dup  dup 0<> if dup then ;
-: over  >r dup r> swap ;    \ ( x1 x2 -- x1 x2 x1 )
-: tuck  swap over ;         \ ( x1 x2 -- x2 x1 x2 )
-: nip   swap drop ;         \ ( x1 x2 -- x2 )
-: rot   >r swap r> swap ;   \ ( x1 x2 x3 -- x2 x3 x1 ) 
-: 2swap >r rot r> rot ;     \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
-: 2dup  over over ;
-: 2drop drop drop ;
-: 2r@   r> r> 2dup >r >r swap ;   \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
-: 2@    dup cell+ @ swap @ ;   \ ( a-addr -- x1 x2 ) 
-: 2!    swap over ! cell+ ! ;  \ ( x1 x2 a-addr -- ) 
-: 2over 3 pick 3 pick ;
-
-.( . )  
-
 : +!    dup >r @ + r> ! ;
 : abs   dup 0< if negate then ;
 : max   2dup < if swap drop else drop then ;
@@ -187,7 +203,6 @@
      ' defer!
    then ; immediate
 
-: clear 0 6 0 ioctl ;                   \ Screen clear
 : /string  DUP >R - SWAP R> CHARS + SWAP ;
 
 .( . )
@@ -202,7 +217,7 @@
 ; immediate
 
 : do ( -- do-sys )
-  postpone do  ['] noop
+  postpone do ['] noop
 ; immediate
 
 : loop ( do-sys -- )
@@ -379,21 +394,21 @@ synonym s= str=
 
 .( . )
 \ The values for these constant are dictated by Zeal-8 OS
-\ FAM constants. See zos_sys.asm
+\ FAM constants. See zos-sys.asm
 
 $000  constant r/o 
 $100  constant w/o 
 $200  constant r/w
-$1000 constant o_create
+$1000 constant o-create
 
-16    constant FILENAME_LEN_MAX
+16    constant FILENAME-LEN-MAX
 
-0     constant SEEK_SET
-1     constant SEEK_CUR
-2     constant SEEK_END
+0     constant SEEK-SET
+1     constant SEEK-CUR
+2     constant SEEK-END
 
 300 same-page
-256 buffer: in_buf
+256 buffer: in-buf
 17  buffer: namez
 variable line-terminator
 $a line-terminator !
@@ -410,23 +425,23 @@ $a line-terminator !
     ;    
 
 : file-size ( fileid -- ud ior )
-    8 lshift 4 + in_buf 0 0
+    8 lshift 4 + in-buf 0 0
     z80-syscall
     >r drop drop drop
-    in_buf @ 
-    in_buf 2 + @
+    in-buf @ 
+    in-buf 2 + @
     r>
     ;
 
 : file-status ( c-addr u -- x ior )
     namez asciiz 5 swap         
-    in_buf swap 0
+    in-buf swap 0
     z80-syscall
     nip nip nip
     ;
 
 : file-position ( fileid -- ud ior ) 
-    >r 0 0 SEEK_CUR r>
+    >r 0 0 SEEK-CUR r>
     file-seek
     ;
     
@@ -447,7 +462,7 @@ $a line-terminator !
     ;
 
 : create-file ( c-addr u fam -- fileid ior )
-    o_create or
+    o-create or
     open-file
     ;
 
@@ -472,7 +487,7 @@ $a line-terminator !
     ;
 
 : reposition-file ( ud fileid -- ior )
-    SEEK_SET swap 
+    SEEK-SET swap 
     file-seek
     nip nip
     ;
@@ -488,7 +503,7 @@ $a line-terminator !
     ?dup if                    
         dup >r - 1+ r>         ( -- u2-u3 u3 )
         1- negate s>d       ( -- u2-u3 ud )
-        SEEK_CUR r> file-seek 2drop drop ( -- u2-u3 )
+        SEEK-CUR r> file-seek 2drop drop ( -- u2-u3 )
         true 0       
     else
         2drop 2drop drop rdrop
