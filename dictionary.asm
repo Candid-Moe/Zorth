@@ -23,6 +23,7 @@ xt_jp:      dw  0           ; Jump
 xt_do:      dw  0           ; DO 
 xt_does:    dw  0           ; DOES
 xt_loop:    dw  0           ; LOOP
+xt_plus_loop: dw 0          ; +LOOP
 xt_unloop:  dw  0           ; UNLOOP
 xt_leave:   dw  0           ; LEAVE
 xt_literal: dw  0           ; LITERAL
@@ -715,6 +716,9 @@ dict_init:
     mdict_add st_loop,          code_loop_runtime
     mdict_xt xt_loop
 
+    mdict_add st_plus_loop,     code_plus_loop_runtime
+    mdict_xt xt_plus_loop
+    
     mdict_add st_leave,         code_leave_runtime
     mdict_xt xt_leave
 
@@ -834,6 +838,9 @@ dict_init:
     fcall code_immediate
 
     mdict_add st_loop,      code_loop
+    fcall code_immediate
+
+    mdict_add st_plus_loop, code_plus_loop
     fcall code_immediate
 
     mdict_add st_i,         code_i
@@ -967,6 +974,7 @@ st_does:        counted_string "does>"
 st_state:       counted_string "state"
 st_do:          counted_string "do"
 st_loop:        counted_string "loop"
+st_plus_loop:   counted_string "+loop"
 st_i:           counted_string "i"
 st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"

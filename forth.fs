@@ -224,9 +224,9 @@ $f constant TEXT-COLOR-WHITE
   >r postpone loop  r> execute
 ; immediate
 
-: +loop ( do-sys -- )
-  >r postpone +loop r> execute
-; immediate
+\ : +loop ( do-sys -- )
+\   >r postpone +loop r> execute
+\ ; immediate
 
 : .s ." < " depth . ." > " depth 0 ?do i pick . loop ;
 : spaces ( n -- ) 0 ?do space loop ;
@@ -580,5 +580,5 @@ $a line-terminator !
 cr
 .( Finished ) cr
 unused u. .(  bytes free) cr    
-: x s" hola" type ;
+: x do i . key emit 2 +loop ;
 

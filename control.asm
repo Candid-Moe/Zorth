@@ -125,6 +125,7 @@ code_do_runtime:
     pop     hl          ; return address 
     jp      (hl)        ; Return
 
+xt_xloop:   dw 0        ; xt (loop/+loop) to use 
 code_loop:
 ;
 ;   Implements LOOP
@@ -148,12 +149,55 @@ code_loop:
 ;   discard the loop parameters and continue execution immediately following the loop.
 ;   Otherwise continue execution at the beginning of the loop. 
 ;
+    fenter
+
+    ld  hl, (xt_loop)
+    ld  (xt_xloop), hl
+
+    fcall code_xloop_compile
+
+    fret
+
+code_plus_loop:
+;
+;   Implements +LOOP
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: do-sys -- )
+;
+;   Append the run-time semantics given below to the current definition. 
+;   Resolve the destination of all unresolved occurrences of LEAVE between 
+;   the location given by do-sys and the next location for a transfer of
+;   control, to execute the words following +LOOP.
+;
+;   Run-time:
+;   ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
+;
+;   An ambiguous condition exists if the loop control parameters are unavailable.
+;   Add n to the loop index. If the loop index did not cross the boundary between
+;   the loop limit minus one and the loop limit, continue execution at the beginning
+;   of the loop. Otherwise, discard the current loop control parameters and continue
+;   execution immediately following the loop. 
+;
+
+
+    fenter
+
+    ld  hl, (xt_plus_loop)
+    ld  (xt_xloop), hl
+
+    fcall code_xloop_compile
+
+    fret
+
+code_xloop_compile:
 
     fenter
 
     check_compile_mode
-
-;    push    hl      ; Save return address
 
 _code_loop_comp:
 
@@ -184,8 +228,8 @@ _code_loop_next:
     cp  l
     jp  nz, _code_loop_error
 
-    ;   Write a LOOP XT
-    ld      hl, (xt_loop)
+    ;   Write a LOOP/+LOOP XT
+    ld      hl, (xt_xloop)
     push    hl
     fcall   code_comma
 
@@ -199,9 +243,9 @@ code_loop_runtime:
     ;
     ;   Implements run-time semantic for LOOP
     ;   (Cannot use the return stack for calls)
-    ;
+    ;   ( -- )
     
-    push    hl      ; Save return address
+    push    hl          ; Save return address
 
     fcall   code_r_from ; Index ( -- index : R limit index -- limit )
     pop     hl
@@ -215,7 +259,7 @@ code_loop_runtime:
 
     set_carry_0         ; Compare for Index = Limit
     sbc     hl, de      ; HL = index - limit
-    jr      z, _code_loop_end
+    jz      _code_loop_end
 
     push    de          ; ( index+1 -- index+1 limit )
     fcall   code_to_r   ; ( index+1 limit -- index+1 : R -- limit )
@@ -230,9 +274,56 @@ code_loop_runtime:
     pop     hl
     jp      (hl)
 
+
+code_plus_loop_runtime:
+    ;
+    ;   Implements run-time semantic for +LOOP
+    ;   (Cannot use the return stack for calls)
+    ;   ( n -- )
+    ;
+
+    push    hl                  ; ( n -- n ret ) Save return address
+    fcall   code_swap           ; ( -- ret n )
+
+    fcall   code_r_fetch    ; Index ( n -- n index : R limit index -- limit index )
+    fcall   code_plus           ; ( -- index+n )
+
+    fcall   code_r_from     ; Limit ( index+n -- index+n index : R limit index -- limit )
+    fcall   code_r_fetch        ; ( -- index+n index limit : R limit -- limit )
+    fcall   code_less_than      ; ( -- index+n index<limit : R limit -- limit )
+    fcall   code_swap           ; ( -- index<limit index+n : R limit -- limit )
+    fcall   code_dup            ; ( -- index<limit index+n index+n : R limit -- limit )
+    fcall   code_r_fetch        ; ( -- index<limit index+n index+n limit : R limit -- limit )
+    fcall   code_swap           ; ( -- index<limit index+n limit index+n : R limit -- limit )
+    fcall   code_to_r           ; ( -- index<limit index+n limit : R limit -- limit index+n )
+    fcall   code_less_than      ; ( -- index<limit index+n<limit : R limit -- limit index+n )
+    fcall   code_xor            ; ( -- flag : R limit -- limit index+n )
+
+    pop     bc
+    ld      a, b
+    or      c
+    jr      nz, _code_plus_loop_end
+
+    ;   Replace next instruction address
+    ex_pop              ; Extract current next cell address
+    ld      de, (hl)    ; Take contains of next cell, an address
+    ex      hl, de      
+    ex_push             ; Make it the new next cell
+
+    ; Recover return address
+    pop     hl
+    jp      (hl)
+    
+
+_code_plus_loop_end:
+
+    fcall   code_rdrop      ; ( : R limit index -- limit )
+    fcall   code_rdrop      ; ( : R limit -- )
+    push    hl              ; doesn't matter
+
 _code_loop_end:
 
-    pop hl      ; ( index+1 -- )
+    pop hl                  ; ( index+1 -- )
 
     ; Skip next instruction (address)
 
@@ -248,7 +339,6 @@ _code_loop_end:
 _code_loop_error:
 
     jp  (hl)
-    
     
 code_i:
 ;
