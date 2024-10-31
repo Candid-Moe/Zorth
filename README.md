@@ -42,7 +42,7 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 ## Extensions ##
 
-**asciiz ( c-addr1 u c-addr2 -- c-addr2 ) \ Converts text c-addr1 u to asciiz in c-addr2 
+**asciiz** ( c-addr1 u c-addr2 -- c-addr2 ) \ Converts text c-addr1 u to asciiz in c-addr2 
     
 **2hex** ( x -- ) Displays x as two hex digit.
 
@@ -54,7 +54,11 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 **dict**  ( -- addr ) Address of dictionary pointer (to last entry).
 
+**heap** ( -- addr ) Address of heap pointer.
+
 **hide** ( -- ) Remove the last word of the dictionary, but keeps xt valid. 
+
+**ioctl** ( device_number command_number param -- flag ) Execute a IOCTL.
 
 **jz** ( x -- ) If x is zero, jump to the address in the next cell.
 
@@ -64,10 +68,14 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 **cs>** ( -- x : C x -- ) Pops x from control stack and pushes it into the data stack.
 
+**cs@** ( -- x : C x -- x ) Fetch x from control stack and pushes into the data stack.
+
+**noop** ( -- ) No operation
+
 **unused** ( -- x ) RAM free space (in bytes)
 
 **-rot** ( w1 w2 w3 – w3 w1 w2 ) \ gforth
 
 **same-page** ( x -- ) guarantees that the next n bytes will be on the same page in memory
 
-
+Check the assembler files in *include/* sudirectory for system/hardware parameters-

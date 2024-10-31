@@ -3,44 +3,6 @@
 ;   control: words that control execution
 ;
 
-code_if:
-;
-;   Implements IF
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: -- orig )
-;
-;   Put the location of a new unresolved forward reference orig onto the
-;   control flow stack. 
-;   Append the run-time semantics given below to the current definition. 
-;   The semantics are incomplete until orig is resolved, e.g., by THEN or ELSE.
-;
-;   Run-time:
-;   ( x -- )
-;
-;   If all bits of x are zero, continue execution at the location specified by 
-;   the resolution of orig. 
-;
-    fenter
-
-    check_compile_mode
-
-    ld      bc, (xt_jz)
-    push    bc
-    fcall   add_cell    ; Add IF xt to word in formation.
-
-    ld  hl, (_DP)
-    ctrl_push           ; Put the cell address to patch
-
-    ld      bc, 0
-    push    bc
-    fcall   add_cell    ; Leave a cell for the destination address
-
-    fret    
-   
 code_jz:
 ;
 ;   Implement Jump if Zero
@@ -76,62 +38,7 @@ _code_jz_end:
     ex_push           ;   Now use this as address next instruction
 
     fret
-
-    
-code_else:
-;
-;   Implements ELSE
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: orig1 -- orig2 )
-;
-;   Put the location of a new unresolved forward reference orig2 onto the 
-;   control flow stack. 
-;   Append the run-time semantics given below to the current definition. 
-;   The semantics will be incomplete until orig2 is resolved (e.g., by THEN). 
-;   Resolve the forward reference orig1 using the location following the 
-;   appended run-time semantics.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Continue execution at the location given by the resolution of orig2. 
-;
-    fenter 
-
-    check_compile_mode
-
-    ;   Write a JMP after the IF code
-
-    ld  bc, (xt_jp)
-    push    bc
-    fcall   add_cell    ; Add jump to address after "then"
-
-    ld      bc, 0 
-    push    bc
-    fcall   add_cell    ; Reserve a cell for the jump destination
-    
-    ;   Put the current address in the space following IF
-
-    ctrl_pop            ; HL = IF address + 1
-    ld  bc, (_DP)       :
-    ld  (hl), bc
-
-    ;   Remember the previous cell, the address to jump over the 
-    ;   then part.
-
-    ld  hl, bc      ; 
-    dec hl
-    dec hl
-
-    ctrl_push
-
-    fret
-    
-    
+        
 code_jp:
 ;
 ;   Implements JMP
@@ -148,213 +55,6 @@ code_jp:
 
     ex_push       ;
 
-    fret
-
-code_then:
-;
-;   Implements THEN 
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: orig -- )
-;
-;   Append the run-time semantics given below to the current definition. 
-;   Resolve the forward reference orig using the location of the appended 
-;   run-time semantics.
-;
-;    Run-time:
-;   ( -- )
-;
-;   Continue execution. 
-
-    fenter
-
-    check_compile_mode
-
-    ;   Put the current address in the space following IF
-
-    ctrl_pop        ; 
-
-    ld  bc, (_DP)
-    ld  (hl), bc
-    
-    fret
-
-code_begin:
-;
-;   Implements BEGIN
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: -- dest )
-;
-;   Put the next location for a transfer of control, dest, onto the control flow stack. 
-;   Append the run-time semantics given below to the current definition.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Continue execution. 
-
-    fenter
-
-    check_compile_mode
-
-    ld  hl, (_DP)
-    ctrl_push
-
-    fret
-
-code_while:
-;
-;   WHILE
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: dest -- orig dest )
-;
-;   Put the location of a new unresolved forward reference orig onto the control 
-;   flow stack, under the existing dest. 
-;   Append the run-time semantics given below to the current definition. 
-;   The semantics are incomplete until orig and dest are resolved (e.g., by REPEAT).
-;
-;   Run-time:
-;   ( x -- )
-;
-;   If all bits of x are zero, continue execution at the location specified by the
-;   resolution of orig. 
-;
-    fenter
-
-    check_compile_mode
-
-    ld      hl, (xt_jz)
-    push    hl
-    fcall   add_cell
-
-    ctrl_pop        ; dest
-    push    hl
-
-    ld      hl, (_DP)
-    ctrl_push       ; ( : C -- orig )
-    pop     hl
-    ctrl_push       ; ( : C orig -- orig dest )
-
-    ld      hl, 0
-    push    hl
-    fcall   add_cell ; Address to jump
-                
-    fret
-
-code_repeat:
-;
-;   Implements REPEAT
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: orig dest -- )
-;
-;   Append the run-time semantics given below to the current definition, 
-;   resolving the backward reference dest. 
-;   Resolve the forward reference orig using the location following the 
-;   appended run-time semantics.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Continue execution at the location given by dest. 
-;
-    fenter
-
-    check_compile_mode
-
-    ld      hl, (xt_jp)
-    push    hl
-    fcall   add_cell
-
-    ctrl_pop            ; dest
-    push    hl
-    fcall   add_cell
-
-    ctrl_pop            ; orig
-    ld      de, (_DP)
-    ld      (hl), de    
-   
-    fret
-
-code_again:
-;
-;   Implements AGAIN 
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: dest -- )
-;
-;   Append the run-time semantics given below to the current definition, 
-;   resolving the backward reference dest.
-;
-;   Run-time:
-;   ( -- )
-;
-;   Continue execution at the location specified by dest. 
-;   If no other control flow words are used, any program code after AGAIN
-;   will not be executed. 
-;
-    fenter 
-
-    check_compile_mode
-
-    ld  bc, (xt_jp)
-    push bc
-    fcall add_cell      ; Add jump to word in after "begin"
-
-    ctrl_pop
-    push hl
-    fcall add_cell      ; Put the address for the jump.
-    
-    fret
-
-
-code_until:
-;
-;   Implements UNTIL
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Compilation:
-;   ( C: dest -- )
-;
-;   Append the run-time semantics given below to the current definition, 
-;   resolving the backward reference dest.
-;
-;   Run-time:
-;   ( x -- )
-;
-;   If all bits of x are zero, continue execution at the location specified by dest. 
-
-    fenter
-    
-    check_compile_mode
-
-    ld      bc, (xt_jz)
-    push    bc
-    fcall   add_cell    ; Add jump to word in after "begin"
-
-    ctrl_pop
-    push hl
-    fcall   add_cell    ; Put the address for the jump.
-    
     fret
 
 code_do:
@@ -392,7 +92,7 @@ code_do:
     ;   Insert the load params instruction
     ld      hl, (xt_do)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ld      hl, (_DP)   ; Put a do-sys in control stack: address first
     ctrl_push   
@@ -425,6 +125,7 @@ code_do_runtime:
     pop     hl          ; return address 
     jp      (hl)        ; Return
 
+xt_xloop:   dw 0        ; xt (loop/+loop) to use 
 code_loop:
 ;
 ;   Implements LOOP
@@ -448,12 +149,55 @@ code_loop:
 ;   discard the loop parameters and continue execution immediately following the loop.
 ;   Otherwise continue execution at the beginning of the loop. 
 ;
+    fenter
+
+    ld  hl, (xt_loop)
+    ld  (xt_xloop), hl
+
+    fcall code_xloop_compile
+
+    fret
+
+code_plus_loop:
+;
+;   Implements +LOOP
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Compilation:
+;   ( C: do-sys -- )
+;
+;   Append the run-time semantics given below to the current definition. 
+;   Resolve the destination of all unresolved occurrences of LEAVE between 
+;   the location given by do-sys and the next location for a transfer of
+;   control, to execute the words following +LOOP.
+;
+;   Run-time:
+;   ( n -- ) ( R: loop-sys1 -- | loop-sys2 )
+;
+;   An ambiguous condition exists if the loop control parameters are unavailable.
+;   Add n to the loop index. If the loop index did not cross the boundary between
+;   the loop limit minus one and the loop limit, continue execution at the beginning
+;   of the loop. Otherwise, discard the current loop control parameters and continue
+;   execution immediately following the loop. 
+;
+
+
+    fenter
+
+    ld  hl, (xt_plus_loop)
+    ld  (xt_xloop), hl
+
+    fcall code_xloop_compile
+
+    fret
+
+code_xloop_compile:
 
     fenter
 
     check_compile_mode
-
-;    push    hl      ; Save return address
 
 _code_loop_comp:
 
@@ -484,14 +228,14 @@ _code_loop_next:
     cp  l
     jp  nz, _code_loop_error
 
-    ;   Write a LOOP XT
-    ld      hl, (xt_loop)
+    ;   Write a LOOP/+LOOP XT
+    ld      hl, (xt_xloop)
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     ctrl_pop        ; Extract address    
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     fret
 
@@ -499,9 +243,9 @@ code_loop_runtime:
     ;
     ;   Implements run-time semantic for LOOP
     ;   (Cannot use the return stack for calls)
-    ;
+    ;   ( -- )
     
-    push    hl      ; Save return address
+    push    hl          ; Save return address
 
     fcall   code_r_from ; Index ( -- index : R limit index -- limit )
     pop     hl
@@ -515,7 +259,7 @@ code_loop_runtime:
 
     set_carry_0         ; Compare for Index = Limit
     sbc     hl, de      ; HL = index - limit
-    jr      z, _code_loop_end
+    jz      _code_loop_end
 
     push    de          ; ( index+1 -- index+1 limit )
     fcall   code_to_r   ; ( index+1 limit -- index+1 : R -- limit )
@@ -530,9 +274,56 @@ code_loop_runtime:
     pop     hl
     jp      (hl)
 
+
+code_plus_loop_runtime:
+    ;
+    ;   Implements run-time semantic for +LOOP
+    ;   (Cannot use the return stack for calls)
+    ;   ( n -- )
+    ;
+
+    push    hl                  ; ( n -- n ret ) Save return address
+    fcall   code_swap           ; ( -- ret n )
+
+    fcall   code_r_fetch    ; Index ( n -- n index : R limit index -- limit index )
+    fcall   code_plus           ; ( -- index+n )
+
+    fcall   code_r_from     ; Limit ( index+n -- index+n index : R limit index -- limit )
+    fcall   code_r_fetch        ; ( -- index+n index limit : R limit -- limit )
+    fcall   code_less_than      ; ( -- index+n index<limit : R limit -- limit )
+    fcall   code_swap           ; ( -- index<limit index+n : R limit -- limit )
+    fcall   code_dup            ; ( -- index<limit index+n index+n : R limit -- limit )
+    fcall   code_r_fetch        ; ( -- index<limit index+n index+n limit : R limit -- limit )
+    fcall   code_swap           ; ( -- index<limit index+n limit index+n : R limit -- limit )
+    fcall   code_to_r           ; ( -- index<limit index+n limit : R limit -- limit index+n )
+    fcall   code_less_than      ; ( -- index<limit index+n<limit : R limit -- limit index+n )
+    fcall   code_xor            ; ( -- flag : R limit -- limit index+n )
+
+    pop     bc
+    ld      a, b
+    or      c
+    jr      nz, _code_plus_loop_end
+
+    ;   Replace next instruction address
+    ex_pop              ; Extract current next cell address
+    ld      de, (hl)    ; Take contains of next cell, an address
+    ex      hl, de      
+    ex_push             ; Make it the new next cell
+
+    ; Recover return address
+    pop     hl
+    jp      (hl)
+    
+
+_code_plus_loop_end:
+
+    fcall   code_rdrop      ; ( : R limit index -- limit )
+    fcall   code_rdrop      ; ( : R limit -- )
+    push    hl              ; doesn't matter
+
 _code_loop_end:
 
-    pop hl      ; ( index+1 -- )
+    pop hl                  ; ( index+1 -- )
 
     ; Skip next instruction (address)
 
@@ -548,7 +339,6 @@ _code_loop_end:
 _code_loop_error:
 
     jp  (hl)
-    
     
 code_i:
 ;
@@ -611,14 +401,14 @@ code_leave:
 
     ld      hl, (xt_leave)     ; Insert a jmp
     push    hl
-    fcall   add_cell    
+    fcall   code_comma    
 
     ld      hl, (_DP)       ; Remember address location
     leave_push
 
     ld      hl, 0
     push    hl
-    fcall   add_cell
+    fcall   code_comma
 
     fret
 
@@ -658,7 +448,7 @@ code_unloop:
 
     ld      hl, (xt_unloop) ; 
     push    hl
-    fcall   add_cell    
+    fcall   code_comma    
 
     fret
 
@@ -678,89 +468,3 @@ code_unloop_runtime:
     jp      (hl)
 
 
-code_ctrl_push:
-;
-;   Implements >CTRL
-;   ( x -- : C -- x )
-;
-    fenter
-
-    pop hl
-    ctrl_push
-
-    fret
-
-code_ctrl_pop:
-;
-;   Implements CTRL>
-;   ( -- x : C x -- )
-;
-    fenter
-
-    ctrl_pop
-    push hl
-
-    fret
-
-code_cs_roll:
-;    
-;   CS-ROLL c-s-roll 
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Execution:
-;   ( C: origu | destu origu-1 | destu-1 ... orig0 | dest0 -- origu-1 | destu-1 ... orig0 | dest0 origu | destu ) ( S: u -- )
-;
-;   Remove u. 
-;   Rotate u+1 elements on top of the control-flow stack so that 
-;   origu | destu is on top of the control-flow stack. 
-;   An ambiguous condition exists if there are less than u+1 items, 
-;   each of which shall be an orig or dest, on the control-flow stack 
-;   before CS-ROLL is executed.
-;
-;   If the control-flow stack is implemented using the data stack, 
-;   u shall be the topmost item on the data stack. 
-;
-    fenter
-
-    pop     bc
-
-    ;   Check u > 0
-
-    ld      a, b
-    or      c
-    jr      z, _code_cs_roll_end    ; Nothing to do
-
-    ld      hl, bc
-    add     hl, bc      
-    ld      bc, hl  ; bc = u * 2
-
-    ;   u != 0
-
-    ld      hl, (_IX_CONTROL)
-    add     hl, bc      ; hl -> orig-u | dest-u
-
-    ;   Mantain orig-u | dest-u in data stack
-
-    ld      de, (hl)
-    push    de
-
-    ;   Move data block
-
-    ld      de, hl  ; de -> destiny
-    dec     hl      ; hl -> origin 
-    dec     hl
-    lddr            ; move
-
-    ;   Put orig-u | dest-u at top
-
-    pop     de
-    ld      hl, (_IX_CONTROL)
-    ld      (hl), e
-    inc     hl
-    ld      (hl), d
-
-_code_cs_roll_end: 
-
-    fret      

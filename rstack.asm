@@ -187,4 +187,66 @@ code_cs_fetch:
 
     fret
 
+code_cs_roll:
+;    
+;   Implements CS-ROLL 
+;
+;   Interpretation:
+;   Interpretation semantics for this word are undefined.
+;
+;   Execution:
+;   ( C: origu | destu origu-1 | destu-1 ... orig0 | dest0 -- origu-1 | destu-1 ... orig0 | dest0 origu | destu ) ( S: u -- )
+;
+;   Remove u. 
+;   Rotate u+1 elements on top of the control-flow stack so that 
+;   origu | destu is on top of the control-flow stack. 
+;   An ambiguous condition exists if there are less than u+1 items, 
+;   each of which shall be an orig or dest, on the control-flow stack 
+;   before CS-ROLL is executed.
+;
+;   If the control-flow stack is implemented using the data stack, 
+;   u shall be the topmost item on the data stack. 
+;
+    fenter
+
+    pop     bc
+
+    ;   Check u > 0
+
+    ld      a, b
+    or      c
+    jr      z, _code_cs_roll_end    ; Nothing to do
+
+    ld      hl, bc
+    add     hl, bc      
+    ld      bc, hl  ; bc = u * 2
+
+    ;   u != 0
+
+    ld      hl, (_IX_CONTROL)
+    add     hl, bc      ; hl -> orig-u | dest-u
+
+    ;   Mantain orig-u | dest-u in data stack
+
+    ld      de, (hl)
+    push    de
+
+    ;   Move data block
+
+    ld      de, hl  ; de -> destiny
+    dec     hl      ; hl -> origin 
+    dec     hl
+    lddr            ; move
+
+    ;   Put orig-u | dest-u at top
+
+    pop     de
+    ld      hl, (_IX_CONTROL)
+    ld      (hl), e
+    inc     hl
+    ld      (hl), d
+
+_code_cs_roll_end: 
+
+    fret      
 

@@ -39,8 +39,8 @@ code_colon:
     fcall   code_create
     jr      z, _colon_end
     
-    ld  a, TRUE
-    ld  (_STATE), a
+    ld  hl, TRUE
+    ld  (_STATE), hl
 
     ;   Put a marker in the control stack   
     ld      hl, colon_sys
@@ -95,8 +95,8 @@ code_semmicolon:
     jp  nz, _code_mode_error
 
     ;   Back to execution mode
-    ld  a, FALSE
-    ld  (_STATE), a
+    ld  hl, FALSE
+    ld  (_STATE), hl
 
     ;   Check the control stack; must have a colon-sys
     ctrl_pop
@@ -138,7 +138,7 @@ code_semmicolon:
 
     ld  hl, 0
     push hl
-    fcall   add_cell
+    fcall   code_comma
     
     fret
 

@@ -23,12 +23,13 @@ xt_jp:      dw  0           ; Jump
 xt_do:      dw  0           ; DO 
 xt_does:    dw  0           ; DOES
 xt_loop:    dw  0           ; LOOP
+xt_plus_loop: dw 0          ; +LOOP
 xt_unloop:  dw  0           ; UNLOOP
 xt_leave:   dw  0           ; LEAVE
 xt_literal: dw  0           ; LITERAL
-xt_compile_comma:   dw 0    ; COMPILE,
+xt_comma:   dw  0           ; ,
 xt_postpone: dw 0           ; POSTPONE
-xt_nop:     dw  0           ; No Operation
+xt_noop:     dw  0           ; No Operation
 
 
 code_create:
@@ -85,14 +86,14 @@ code_create:
 
     ;   Args for dict_add
     ;   We need cells for address/does> ops
-    ld      de, (xt_nop)
+    ld      de, (xt_noop)
     push    de          ; ( -- name_addr code_addr )
     fcall   code_swap   ; ( -- code_addr name_addr )
     fcall   dict_add
     
     ld      hl, (xt_address)
     push    hl
-    fcall   add_cell    ; 
+    fcall   code_comma    ; 
 
     ;   Make it a colon definition
 
@@ -232,52 +233,6 @@ code_immediate:
 
     fret
 
-save_to_DP:
-;
-;   Copy a counted-string to DP
-;   ( c-string -- )
-;
-    fenter
-
-    pop     hl
-    ld      a, (hl) ; String len
-    ld      d, 0
-    ld      e, a    ; de = len
-
-    ld      de, (_DP)  
-    push    de         ; destination   ( -- name_addr )
-
-    ;   Calculate total len and save it onto the stack
-    inc  de         ; total len
-    push de         ;               ( -- name_addr len )
-
-    ;   Prepare moving the name
-    push hl         ; origin        ( -- name_addr len origin)
-    ld   hl, (_DP)  
-    push hl         ; destination   ( -- name_addr len origin dest )
-    push de         ; length        ( -- name_addr len origin dest len )
-
-    fcall   code_move   ; copy name from input area to heap ( -- name_addr len )
-    fcall   code_allot  ; total len already in stack        ( -- name_addr )
-
-    fret
-
-add_cell:
-;
-;   Add TOS to _DP
-;   ( x -- )
-;
-    fenter
-    
-    pop de
-    ld  hl, (_DP)
-    ld  (hl), e
-    inc hl
-    ld  (hl), d
-    inc hl
-    ld  (_DP), hl
-
-    fret    
 
 dict_add:
     ;
@@ -448,7 +403,7 @@ _dict_search_xt_value:
     ;   Value alredady into the stack
     ;   Return a NOP xt
 
-    ld   hl, (xt_nop)
+    ld   hl, (xt_noop)
     jr  _dict_search_end2
 
 _dict_search_xt_compile:
@@ -462,7 +417,7 @@ _dict_search_xt_compile:
     ;   the caller expect a XT, so we return an
     ;   immediate NOP that not change anything.
 
-    ld  hl, (xt_nop)   
+    ld  hl, (xt_noop)   
     jr  _dict_search_end2
 
 _dict_search_found:
@@ -476,7 +431,10 @@ _dict_search_end2:
 
 _dict_ptr:   dw 0
 
-code_nop:
+code_noop:
+;
+;   Implements NOOP
+;   ( -- )
 ;
 ;   Do nothing, return immediatly
 ;
@@ -528,7 +486,6 @@ code_literal:
 
     fret
 
-
 code_literal_runtime:
 
     fenter
@@ -562,25 +519,6 @@ _code_literal_error:
     push hl
     fcall   print_line
     fcall   code_backslash       ; Forget the remaining words
-    fret
-
-code_compile_comma:
-;
-;   Interprets COMPILE,
-;
-;   Interpretation:
-;   Interpretation semantics for this word are undefined.
-;
-;   Execution:
-;   ( xt -- )
-;
-;   Append the execution semantics of the definition represented by xt
-;   to the execution semantics of the current definition. 
-;
-    fenter
-
-    fcall   add_cell
-
     fret
 
 code_postpone:
@@ -632,7 +570,7 @@ _code_postpone_next:
 
     ;   It's an immediate word
 
-    fcall   add_cell        ; ( -- )
+    fcall   code_comma        ; ( -- )
 
     fret
 
@@ -642,9 +580,9 @@ _code_postpone_save:
     
     fcall   code_literal
 
-    ld      hl, (xt_compile_comma)
+    ld      hl, (xt_comma)
     push    hl
-    fcall   add_cell    ; ( xt -- )
+    fcall   code_comma    ; ( xt -- )
 
     fret    
     
@@ -693,6 +631,29 @@ _code_postpone_error:
 
     jp  _code_mode_error
 
+code_comma:
+;
+;   Implements , 
+;   ( x -- )
+;
+;   Reserve one cell of data space and store x in the cell. 
+;   If the data-space pointer is aligned when , begins execution, 
+;   it will remain aligned when , finishes execution. 
+;   An ambiguous condition exists if the data-space pointer is not 
+;   aligned prior to execution of ,. 
+
+    fenter
+    
+    pop de
+    ld  hl, (_DP)
+    ld  (hl), e
+    inc hl
+    ld  (hl), d
+    inc hl
+    ld  (_DP), hl
+
+    fret    
+
 code_hide:
 ;
 ;   Implement hide
@@ -740,10 +701,6 @@ dict_init:
     ;
     fenter
 
-    mdict_add st_nop,       code_nop
-    fcall code_immediate    
-    mdict_xt xt_nop
-
     mdict_add st_literal,       code_literal_runtime
     mdict_xt xt_literal
 
@@ -759,6 +716,9 @@ dict_init:
     mdict_add st_loop,          code_loop_runtime
     mdict_xt xt_loop
 
+    mdict_add st_plus_loop,     code_plus_loop_runtime
+    mdict_xt xt_plus_loop
+    
     mdict_add st_leave,         code_leave_runtime
     mdict_xt xt_leave
 
@@ -766,6 +726,11 @@ dict_init:
     mdict_xt xt_unloop
 
     ;   Add visible words
+
+    mdict_add st_noop,      code_noop
+    fcall code_immediate    
+    ld  hl, (_DICT)
+    ld  (xt_noop), hl
 
     mdict_add st_jz,        code_jz
     ld  hl, (_DICT)
@@ -775,9 +740,9 @@ dict_init:
     ld  hl, (_DICT)
     ld  (xt_jp), hl
 
-    mdict_add st_compile_comma, code_compile_comma
+    mdict_add st_comma,     code_comma
     ld  hl, (_DICT)
-    ld  (xt_compile_comma), hl
+    ld  (xt_comma), hl
 
     mdict_add st_does,      _does_exec
     ld hl, (_DICT)
@@ -785,18 +750,16 @@ dict_init:
 
 
     mdict_add st_less_number_sign, code_less_number_sign
-    mdict_add st_number_sign, code_number_sign
+    mdict_add st_number_sign,   code_number_sign
     mdict_add st_number_sign_greater, code_number_sign_greater
-    mdict_add st_hold,      code_hold   
+    mdict_add st_hold,          code_hold   
     mdict_add st_number_sign_s, code_number_sign_s
+    mdict_add st_sign,          code_sign
 
-    mdict_add st_test,      code_test
     mdict_add st_scan,      code_scan
     mdict_add st_z80_syscall,   code_z80_syscall
     mdict_add st_heap,      code_heap
     mdict_add st_hide,      code_hide
-    mdict_add st_begin,     code_begin
-    fcall code_immediate
     mdict_add st_key,       code_key
     mdict_add st_key_question, code_key_question
     mdict_add st_accept,    code_accept
@@ -809,7 +772,6 @@ dict_init:
     mdict_add st_str_equals,code_str_equals
     mdict_add st_word,      code_word
     mdict_add st_pad,       code_pad
-    mdict_add st_dot,       code_dot
     mdict_add st_dup,       code_dup
     mdict_add st_plus,      code_plus
     mdict_add st_minus,     code_minus
@@ -852,19 +814,9 @@ dict_init:
     mdict_add st_drop,      code_drop
     mdict_add st_emit,      code_emit
     mdict_add st_pick,      code_pick
-    mdict_add st_if,        code_if
-    fcall code_immediate
-    mdict_add st_else,      code_else
-    fcall code_immediate
-    mdict_add st_then,      code_then
-    fcall code_immediate
     
     mdict_add st_cr,        code_cr
     mdict_add st_invert,    code_invert
-    mdict_add st_until,     code_until
-    fcall code_immediate
-    mdict_add st_again,     code_again
-    fcall code_immediate
 
     mdict_add st_c_fetch,   code_c_fetch
     mdict_add st_c_store,   code_c_store
@@ -887,6 +839,9 @@ dict_init:
     mdict_add st_loop,      code_loop
     fcall code_immediate
 
+    mdict_add st_plus_loop, code_plus_loop
+    fcall code_immediate
+
     mdict_add st_i,         code_i
     mdict_add st_s_quote,   code_s_quote
     fcall code_immediate
@@ -898,7 +853,6 @@ dict_init:
     mdict_add st_two_slash, code_two_slash
     mdict_add st_m_star,    code_m_star
     mdict_add st_u_m_star,  code_u_m_star
-    mdict_add st_itoa,      itoa
     mdict_add st_xor,       code_xor
     mdict_add st_source,    code_source
     mdict_add st_unloop,    code_unloop
@@ -907,9 +861,9 @@ dict_init:
     mdict_add st_dict,      code_dict
     mdict_add st_move,      code_move
     mdict_add st_ioctl,     code_ioctl
-    mdict_add st_ioctl_set_xy, code_ioctl_set_xy
-    mdict_add st_ctrl_pop,  code_ctrl_pop
-    mdict_add st_ctrl_push, code_ctrl_push
+    mdict_add st_at_xy,     code_at_xy
+    mdict_add st_page,      code_page
+    mdict_add st_colors,    code_colors
     mdict_add st_c_quote,   code_c_quote
     fcall code_immediate
     mdict_add st_find,      code_find
@@ -919,7 +873,6 @@ dict_init:
     mdict_add st_t_open,    code_t_open
     mdict_add st_rigth_arrow, code_right_arrow
     mdict_add st_t_close,   code_t_close
-    mdict_add st_included,  code_included
 
     mdict_add st_less_than, code_less_than
     mdict_add st_greater_than, code_greater_than
@@ -940,8 +893,8 @@ st_number_sign: counted_string "#"
 st_number_sign_greater: counted_string "#>"
 st_hold:        counted_string "hold"
 st_number_sign_s: counted_string "#s"
+st_sign:        counted_string "sign"
 
-st_test:        counted_string "test"
 st_scan:        counted_string "scan"
 st_z80_syscall: counted_string "z80-syscall"
 st_heap:        counted_string "heap"
@@ -949,12 +902,10 @@ st_hide:        counted_string "hide"
 st_ud_slash_mod: counted_string "ud/mod"
 st_key:         counted_string "key"
 st_key_question: counted_string "key?"
-st_while:       counted_string "while"
-st_repeat:      counted_string "repeat"
 st_accept:      counted_string "accept"
-st_compile_comma: counted_string "compile,"
+st_comma:       counted_string ","
 st_address:     counted_string "address"
-st_nop:         counted_string ""
+st_noop:        counted_string "noop"
 st_pad:         counted_string "pad"
 st_count:       counted_string "count"
 st_type:        counted_string "type"
@@ -967,7 +918,6 @@ st_str_equals:  counted_string "str="
 st_dup:         counted_string "dup"
 st_and:         counted_string "and"
 st_or:          counted_string "or"
-st_dot:         counted_string "."
 st_star:        counted_string "*"
 st_m_star:      counted_string "m*"
 st_minus:       counted_string "-"
@@ -1004,18 +954,12 @@ st_false:       counted_string "false"
 st_drop:        counted_string "drop"
 st_emit:        counted_string "emit"
 st_pick:        counted_string "pick"
-st_if:          counted_string "if"
-st_else:        counted_string "else"
 st_jump:        counted_string "jmp"
-st_then:        counted_string "then"
 st_rshift:      counted_string "rshift"
 st_lshift:      counted_string "lshift"
 st_cr:          counted_string "cr"
 st_invert:      counted_string "invert"
-st_begin:       counted_string "begin"
-st_until:       counted_string "until"
 st_jz:          counted_string "jz"
-st_again:       counted_string "again"
 st_c_fetch:     counted_string "c@"
 st_c_store:     counted_string "c!"
 st_depth:       counted_string "depth"
@@ -1028,11 +972,11 @@ st_does:        counted_string "does>"
 st_state:       counted_string "state"
 st_do:          counted_string "do"
 st_loop:        counted_string "loop"
+st_plus_loop:   counted_string "+loop"
 st_i:           counted_string "i"
 st_leave:       counted_string "leave"
 st_two_slash:   counted_string "2/"
 st_u_m_star:    counted_string "um*"
-st_itoa:        counted_string "itoa"
 st_xor:         counted_string "xor"
 st_source:      counted_string "source"
 st_unloop:      counted_string "unloop"
@@ -1041,7 +985,9 @@ st_execute:     counted_string "execute"
 st_dict:        counted_string "dict"
 st_move:        counted_string "move"
 st_ioctl:       counted_string "ioctl"
-st_ioctl_set_xy: counted_string "ioctl_set_xy"
+st_at_xy:       counted_string "at-xy"
+st_page:        counted_string "page"
+st_colors:      counted_string "colors"
 st_ctrl_push:   counted_string ">ctrl"
 st_ctrl_pop:    counted_string "ctrl>"
 st_c_quote:     counted_string "c\""
@@ -1053,5 +999,4 @@ st_cs_roll:     counted_string "cs-roll"
 st_t_open:      counted_string "T{"
 st_rigth_arrow: counted_string "->"
 st_t_close:     counted_string "}T"
-st_included:    counted_string "included"
 

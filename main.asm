@@ -16,7 +16,7 @@ init:
     ld      de, 0
     ld      (hl), de
 
-    fcall   clear_screen
+    fcall   code_page
     
     ld      HL, _BOOT_MSG
     push    HL
@@ -143,7 +143,7 @@ _repl_word_found:
     ;   Mode compilation, not immediate
     ;   Add the xt to the last word in dictionary
 
-    fcall   add_cell
+    fcall   code_comma
 
     jr      _repl_end
 
@@ -324,6 +324,7 @@ code_abort:
         ld      SP, _DATA_STACK
         jr      code_quit
 
+     
 code_quit:
 ;
 ;   Implements QUIT
@@ -447,19 +448,19 @@ code_c_quote:
 
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for string address
+    fcall   code_comma        ; add a load for string address
 
     ld      hl, (_DP)
     ld      de, 6
     add     hl, de
     push    hl
-    fcall   add_cell        ; string address to load
+    fcall   code_comma        ; string address to load
 
     ;   Add a jmp over the string
 
     ld      hl, (xt_jp)
     push    hl
-    fcall   add_cell        ; jmp
+    fcall   code_comma        ; jmp
 
     ld      hl, (_DP)
     pop     bc
@@ -471,7 +472,7 @@ code_c_quote:
 
     push    hl
     fcall   code_aligned    ;
-    fcall   add_cell        ; address
+    fcall   code_comma        ; address
     
     ;   Move the text
     pop     bc              ; length
@@ -531,28 +532,28 @@ _code_s_quote_comp:
     ;   The final string address
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for address
+    fcall   code_comma        ; add a load for address
 
     ld      hl, (_DP)
     ld      de, 10
     add     hl, de
     push    hl
-    fcall   add_cell        ; address to load
+    fcall   code_comma        ; address to load
 
     ld      hl, (xt_literal)
     push    hl
-    fcall   add_cell        ; add a load for length
+    fcall   code_comma        ; add a load for length
 
     pop     hl
     push    hl
     push    hl
-    fcall   add_cell        ; length to load
+    fcall   code_comma        ; length to load
 
     ;   Add a jmp over the string
 
     ld      hl, (xt_jp)
     push    hl
-    fcall   add_cell        ; jmp
+    fcall   code_comma        ; jmp
 
     ld      hl, (_DP)
 
@@ -563,7 +564,7 @@ _code_s_quote_comp:
     inc     hl              ; One cell for the address
 
     push    hl
-    fcall   add_cell        ; address
+    fcall   code_comma        ; address
 
     ;   Move the text
     pop     bc              ; length
@@ -653,32 +654,7 @@ print_error_word_not_found:
     
     fret
 
-code_dot:
-;
-;   Implements .
-;   ( n -- )
-;
-;   Display n in free field format
-;
-    fenter
-
-    ld  bc, (_BASE)
-    ld  a, c
-    cp  16
-    jr  z, _code_dot_hex
-    fcall itoa
-    jr  _code_dot_print
-
-_code_dot_hex:
-    fcall htoa
-
-_code_dot_print:
-    fcall code_count
-    fcall code_type
-    fcall code_space
-    
-    fret 
-    
+   
 code_type:
 ;
 ;   Implements TYPE
@@ -942,7 +918,7 @@ _code_mode_error:
 code_ioctl:
 ;
 ;   Implements IOCTL
-;   ( device_number command_number param -- )
+;   ( device_number command_number param -- flag )
 ;
 ;    
     fenter
@@ -953,36 +929,74 @@ code_ioctl:
     ld  h, l
     IOCTL
 
+    ld  b, 0
+    ld  c, a
+    push bc
+
     fret
 
-code_ioctl_set_xy:
+code_at_xy:
 ;
-;   Implements IOCTL_SET_XY
-;   ( x y -- )
+;   Implements AT-XY
+;   ( u1 u2 -- )
+;
+;   Perform implementation-dependent steps so that the next character 
+;   displayed will appear in column u1, row u2 of the user output device, 
+;   the upper left corner of which is column zero, row zero. 
+;
+;   An ambiguous condition exists if the operation cannot be performed on 
+;   the user output device with the specified parameters. 
 ;
     fenter
 
-    pop     bc
-    ld  e, c
-    pop     bc
+    pop de      ; u2
+    pop bc      ; u1
     ld  d, c
 
-    fcall   code_ioctl
+    ld  c, CMD_SET_CURSOR_XY
+    ld  h, DEV_STDOUT
+    
+    IOCTL
 
     fret
 
-clear_screen:
-
+code_page:
+;
+;   Implements PAGE 
+;   ( -- )
+;
+;   Move to another page for output. 
+;   Actual function depends on the output device. On a terminal, PAGE 
+;   clears the screen and resets the cursor position to the upper left corner. 
+;   On a printer, PAGE performs a form feed. 
+;
     fenter
 
-    ld hl, 0
-    push hl
-    ld hl, 6
-    push hl
-    ld hl, 0
-    push hl
+    ld  h, DEV_STDOUT
+    ld  c, CMD_CLEAR_SCREEN
 
-    fcall code_ioctl
+    IOCTL
+ 
+    fret
+
+code_colors:
+;
+;   Implements COLORS
+;   ( n1 n2 -- )
+;
+;   Set terminal background/foreground colors, where n1 is background color
+;   and n2 is foreground.
+;
+    fenter
+
+    pop de
+    pop hl
+    ld  d, l
+    
+    ld  h, DEV_STDOUT
+    ld  c, CMD_SET_COLORS
+
+    IOCTL
 
     fret
 
@@ -1032,11 +1046,4 @@ _repl_failed_next:
     ld      (_STATE), a
 
     fret
-
-code_test:
-
-    ld  bc, 42
-    push bc
-    
-    jp  (hl)
 

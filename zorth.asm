@@ -6,6 +6,7 @@
 lstoff
 include "zos_sys.asm"
 include "zos_keyboard.asm"
+include "zos_video.asm"
 include "macros.asm"
 lston
 
@@ -20,9 +21,6 @@ include "string.asm"
 include "control.asm"
 include "alu.asm"
 include "colon.asm"
-include "itoa.asm"
-include "itoa_16.asm"
-include "file.asm"
 include "tester.asm"
 include "format.asm"
 include "arithmetic/arith.asm"
