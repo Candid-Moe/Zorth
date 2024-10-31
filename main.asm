@@ -918,7 +918,7 @@ _code_mode_error:
 code_ioctl:
 ;
 ;   Implements IOCTL
-;   ( device_number command_number param -- )
+;   ( device_number command_number param -- flag )
 ;
 ;    
     fenter
@@ -928,6 +928,10 @@ code_ioctl:
     pop hl
     ld  h, l
     IOCTL
+
+    ld  b, 0
+    ld  c, a
+    push bc
 
     fret
 
@@ -995,6 +999,7 @@ code_colors:
     IOCTL
 
     fret
+
 error_word_not_found:    
 
     fenter
@@ -1041,11 +1046,4 @@ _repl_failed_next:
     ld      (_STATE), a
 
     fret
-
-code_test:
-
-    ld  bc, 42
-    push bc
-    
-    jp  (hl)
 

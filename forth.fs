@@ -1,7 +1,6 @@
 \
 \	Forth
 \
-\ : compile, , ;
 
 : bl #32 ;               \ ( -- 0x20 )
 : char+ 1 + ;            \ ( c-addr1 -- c-addr2 ) 
@@ -13,7 +12,7 @@
 
 : cell+ 2 + ;
 : cells 2 * ;            \ ( n1 -- n2 )
-: compile, , ; 
+: compile, , ; immediate
 
 .( Loading dictionary ) cr
 
@@ -156,7 +155,6 @@ $f constant TEXT-COLOR-WHITE
 .( . )  
 
 : c,        here c! 1 allot ; immediate
-: compile,  , ; immediate
 : buffer:   create allot ;
 : variable  align here 0 , constant ;
 : parse-name bl word count ;
@@ -193,6 +191,12 @@ $f constant TEXT-COLOR-WHITE
 
 .( . ) 
 
+: forget ( "<spaces>name" -- ) 
+    bl word find
+    if     @ dict !
+    else   ." Not found." cr
+    then
+    ; immediate
 : marker dict @ create , does> @ dict ! ; 
 : value constant ;
 : to ' >body ! ; 
@@ -224,9 +228,9 @@ $f constant TEXT-COLOR-WHITE
   >r postpone loop  r> execute
 ; immediate
 
-\ : +loop ( do-sys -- )
-\   >r postpone +loop r> execute
-\ ; immediate
+: +loop ( do-sys -- )
+  >r postpone +loop r> execute
+; immediate
 
 : .s ." < " depth . ." > " depth 0 ?do i pick . loop ;
 : spaces ( n -- ) 0 ?do space loop ;
@@ -329,6 +333,7 @@ synonym s= str=
     then
 ;
 
+.( . )
 : resize ( a-addr1 u -- a-addr2 ior ) \ Not implemented
     drop false
     ;
@@ -354,6 +359,7 @@ synonym s= str=
         drop 
     repeat ;
 
+.( . )
 : words
     dict @ 
     begin
@@ -417,6 +423,8 @@ $a line-terminator !
 
 : flush-file ( fileid -- ior ) ;
 
+.( . )
+
 : file-seek ( ud seek fileid -- ud-offset ior )
     8 lshift 6 + swap            ( -- ud file-op seek )
     >r rot rot r> 
@@ -461,6 +469,8 @@ $a line-terminator !
     nip nip nip
     ;
 
+.( . )
+
 : create-file ( c-addr u fam -- fileid ior )
     o-create or
     open-file
@@ -496,7 +506,7 @@ $a line-terminator !
     2>r dup 2r> dup >r  ( -- c-addr c-addr u1 fileid : R -- fileid)
     read-file           ( -- c-addr u2 ior )
     if ." read failed" rdrop drop 0 0 -1 exit then
-    ?dup 0= if rdrop ." eof " 0 0 -1 exit then
+    ?dup 0= if rdrop 0 0 -1 exit then
 
     swap over           ( -- u2 c-addr u2 )
     0x0a scan nip       ( -- u2 u3 )
@@ -549,7 +559,7 @@ $a line-terminator !
         else
             if                  ( a-addr u flag -- a-addr u )
                 over >r
-                2dup type
+\                2dup type
                 evaluate        ( -- )
                 r>              ( -- a-addr )
                 0                   
@@ -579,6 +589,7 @@ $a line-terminator !
 
 cr
 .( Finished ) cr
+
 unused u. .(  bytes free) cr    
-: x do i . key emit 2 +loop ;
+
 
