@@ -8,7 +8,7 @@ Currently execute most of the CORE words, plus some extensions:
 0= 0> 0S 1+ 1- 1S 2! 2* 2/ 2@ 2drop 2dup 2hex 2over 2>r 2r> 2r@ 2swap 4hex
 abort abort" abs accept action-of again ahead align aligned allocate allot
 and asciiz at-xy base begin bin bl blank >body buffer: bye c! c" c, c@ case
-case-of case-sys cell+ cells [char] char char+ chars check-compile-mode clearstack
+case-of case-sys cell+ cells [char] char char+ chars clearstack
 close-file cmove colon-sys colors compile, constant count cr create create-file
 >cs cs> cs@ cs-roll decimal defer defer! defer@ delete-file depth dict ?do do does>
 do-sys drop dump ?dup dup else emit endcase endof erase evaluate execute exit

@@ -75,7 +75,7 @@ $f constant TEXT-COLOR-WHITE
 : tuck  swap over ;         \ ( x1 x2 -- x2 x1 x2 )
 : nip   swap drop ;         \ ( x1 x2 -- x2 )
 : rot   >r swap r> swap ;   \ ( x1 x2 x3 -- x2 x3 x1 ) 
-: 2swap >r rot r> rot ;     \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
+: 2swap rot >r rot r> ;     \ ( x1 x2 x3 x4 -- x3 x4 x1 x2 ) 
 : 2dup  over over ;
 : 2drop drop drop ;
 : 2r@   r> r> 2dup >r >r swap ;   \ ( -- x1 x2 ) ( R: x1 x2 -- x1 x2 ) 
@@ -554,12 +554,11 @@ $a line-terminator !
     begin
         dup 253 r@ read-line ( -- a-addr u flag ior )
         ?dup if
-            2drop drop
+            2drop 2drop
             1                   ( -- a-addr 1 )
         else
             if                  ( a-addr u flag -- a-addr u )
                 over >r
-\                2dup type
                 evaluate        ( -- )
                 r>              ( -- a-addr )
                 0                   
@@ -569,17 +568,18 @@ $a line-terminator !
             then
         then
     until        
-    free drop 
-    r> close-file drop
+    free drop rdrop
     ;
 
 : included 
     ( i * x c-addr u -- j * x )
-    r/o open-file
+    r/o open-file ( -- fileid ior )
     ?dup if 
         ." Error opening file " 2hex drop cr
     else
+        dup >r
         include-file
+        r> close-file drop
     then
     ;
 

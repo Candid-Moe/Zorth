@@ -212,7 +212,15 @@ _test_print_cycle:
     ld      (stack_pointer), hl
 
     push    de
-;    fcall   code_dot
+
+;   fcall   code_dot reeplaced by "s>d <# #s #>"
+    fcall   code_s_to_d
+    fcall   code_less_number_sign
+    fcall   code_number_sign_s
+    fcall   code_number_sign_greater
+    fcall   code_type
+    fcall   code_space
+
     jr      _test_print_cycle
     
 _test_print_end:
