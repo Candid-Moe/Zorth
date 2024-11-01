@@ -110,7 +110,7 @@ code_t_close:
     set_carry_0
     sbc hl, de
 
-    jr  z, _compare_stacks
+    jr      z, _compare_stacks
 
     ld      hl, err_depth_differ
     push    hl

@@ -286,9 +286,9 @@ code_s_m_slash_rem:
 
     fenter
 
-    pop hl
+    pop hl              ; n1 divisor
 
-    bit 0, h            ; Expand hl sign into de
+    bit 7, h            ; Expand hl sign into de
     jr  z, _zero_op
     ld  de, $FFFF
     jmp _code_s_m_slash_rem2
@@ -297,8 +297,8 @@ _zero_op:
     ld  de, 0       ; divisor
 
 _code_s_m_slash_rem2:
-    exx
 
+    exx
     pop de          ; dividend
     pop hl
     exx
@@ -349,7 +349,7 @@ code_ud_slash_mod:
 
     pop hl
 
-    bit 0, h            ; Expand hl sign into de
+    bit 7, h            ; Expand hl sign into de
     jr  z, _code_ud_slash_mod_op
     ld  de, $FFFF
     jmp _code_ud_slash_mod2
