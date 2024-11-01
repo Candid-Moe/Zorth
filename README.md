@@ -3,9 +3,31 @@ Zorth is a free Forth interpreter written from scratch for the Zeal 8-bit OS.
 
 Currently execute most of the CORE words, plus some extensions:
 
-```see words clearstack dump s= synonym :noname 4hex 2hex holds endcase endof of case repeat while .s /string clear is to value marker within action-of defer! defer@ defer ['] ' ." >body roll recurse exit .r unused u. spaces [ ] lit, lit include parse-name variable buffer: compile, erase fill c, fm/mod um/mod */ */mod / mod /mod 2* min max abs +! 2over 2! 2@ 2r@ 2r> 2>r 2drop 2dup 2swap rot nip tuck over ?dup 0> 0< 0<> 0= <> hex decimal 1- 1+ MID-UINT+1 MID-UINT MIN-INT MAX-INT MAX-UINT MSB <TRUE> <FALSE> 1S 0S case-of case-sys leave-sys do-sys colon-sys value constant ahead , cells cell+ chars .( ( [char] char char+ bl u> u< = > < included }T -> T{ cs-roll s>d source-id find c" >ctrl ctrl> ioctl_set_xy ioctl move dict execute j unloop source xor itoa um* m* 2/ ud/mod leave s" i loop do state does> does> parse quit abort postpone depth c! c@ again until invert cr then else if pick emit drop true false or and base evaluate bye \ literal @ ! ; : create allot here aligned align cmove cs@ cs> >cs rdrop r@ r> >r immediate sm/rem swap lshift rshift * - + dup . pad word str= negate space refill >in type count accept key? key begin hide #s hold #> # <# compile, jmp jz```
+```! # #> ' ( * */ + +! , - -> . ." .( / : ; < <# <> = > @ [ ['] \ ] 0< 0<>
+0= 0> 0S 1+ 1- 1S 2! 2* 2/ 2@ 2drop 2dup 2hex 2over 2>r 2r> 2r@ 2swap 4hex
+abort abort" abs accept action-of again ahead align aligned allocate allot
+and asciiz at-xy base begin bin bl blank >body buffer: bye c! c" c, c@ case
+case-of case-sys cell+ cells [char] char char+ chars check-compile-mode clearstack
+close-file cmove colon-sys colors compile, constant count cr create create-file
+>cs cs> cs@ cs-roll decimal defer defer! defer@ delete-file depth dict ?do do does>
+do-sys drop dump ?dup dup else emit endcase endof erase evaluate execute exit
+false <FALSE> FILENAME-LEN-MAX file-position file-seek file-size fill find flush-file
+fm/mod free heap here hex hide hold holds i if immediate >in in-buf include included
+include-file invert ioctl is j jmp jz key key? leave leave-sys line-terminator literal
++loop loop lshift m* marker max MAX-INT MAX-UINT MID-UINT MID-UINT+1 min MIN-INT
+*/mod /mod mod move MSB namez negate nip :noname noop o-create of open-file or
+over pad page parse parse-name pick postpone quit .r >r r> r@ rdrop read-file
+read-line recurse refill repeat reposition-file resize r/o roll -rot rot rshift
+r/w #s .s s" s= same-page scan s>d see SEEK-CUR SEEK-END SEEK-SET sign sm/rem
+source source-id space spaces state str= /string swap synonym }T T{ TEXT-COLOR-BLACK
+TEXT-COLOR-BLUE TEXT-COLOR-BROWN TEXT-COLOR-CYAN TEXT-COLOR-DARK-BLUE TEXT-COLOR-DARK-CYAN
+TEXT-COLOR-DARK-GRAY TEXT-COLOR-DARK-GREEN TEXT-COLOR-DARK-MAGENTA TEXT-COLOR-DARK-RED
+TEXT-COLOR-GREEN TEXT-COLOR-LIGHT-GRAY TEXT-COLOR-MAGENTA TEXT-COLOR-RED TEXT-COLOR-WHITE
+TEXT-COLOR-YELLOW then then, to true <TRUE> tuck type u. u< u> ud/mod um* um/mod unloop
+until unused value value variable while within w/o word words write-file write-line xor
+z80-syscall```
 
-Zorth follows the ![Forth Standard](https://forth-standard.org/standard/core) specifications and takes ![gForth](https://gforth.org/) as a reference. You can use both as documentation.
+Zorth follows the [Forth Standard](https://forth-standard.org/standard/core) specifications and takes [gForth](https://gforth.org/) as a reference. You can use both as documentation.
 
 This repository contains:
 
@@ -64,11 +86,11 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 **jmp** ( -- ) Jump to the address in the next cell.
 
-**>cs** ( x -- : C -- x ) Push TOS to the control stack
+**>cs** ( x -- ; C: -- x ) Push TOS to the control stack
 
-**cs>** ( -- x : C x -- ) Pops x from control stack and pushes it into the data stack.
+**cs>** ( -- x ; C: x -- ) Pops x from control stack and pushes it into the data stack.
 
-**cs@** ( -- x : C x -- x ) Fetch x from control stack and pushes into the data stack.
+**cs@** ( -- x ; C: x -- x ) Fetch x from control stack and pushes into the data stack.
 
 **noop** ( -- ) No operation
 
