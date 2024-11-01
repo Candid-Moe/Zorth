@@ -3,7 +3,8 @@ Zorth is a free Forth interpreter written from scratch for the Zeal 8-bit OS.
 
 Currently execute most of the CORE words, plus some extensions:
 
-```! # #> ' ( * */ + +! , - -> . ." .( / : ; < <# <> = > @ [ ['] \ ] 0< 0<>
+```
+! # #> ' ( * */ + +! , - -> . ." .( / : ; < <# <> = > @ [ ['] \ ] 0< 0<>
 0= 0> 0S 1+ 1- 1S 2! 2* 2/ 2@ 2drop 2dup 2hex 2over 2>r 2r> 2r@ 2swap 4hex
 abort abort" abs accept action-of again ahead align aligned allocate allot
 and asciiz at-xy base begin bin bl blank >body buffer: bye c! c" c, c@ case
@@ -25,7 +26,8 @@ TEXT-COLOR-DARK-GRAY TEXT-COLOR-DARK-GREEN TEXT-COLOR-DARK-MAGENTA TEXT-COLOR-DA
 TEXT-COLOR-GREEN TEXT-COLOR-LIGHT-GRAY TEXT-COLOR-MAGENTA TEXT-COLOR-RED TEXT-COLOR-WHITE
 TEXT-COLOR-YELLOW then then, to true <TRUE> tuck type u. u< u> ud/mod um* um/mod unloop
 until unused value value variable while within w/o word words write-file write-line xor
-z80-syscall```
+z80-syscall
+```
 
 Zorth follows the [Forth Standard](https://forth-standard.org/standard/core) specifications and takes [gForth](https://gforth.org/) as a reference. You can use both as documentation.
 
