@@ -96,6 +96,8 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 **noop** ( -- ) No operation
 
+**ud/mod** ( ud1 u2 – urem udquot  ) gforth-0.2
+
 **unused** ( -- x ) RAM free space (in bytes)
 
 **-rot** ( w1 w2 w3 – w3 w1 w2 ) \ gforth
