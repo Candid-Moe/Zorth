@@ -17,7 +17,7 @@
 .( Loading dictionary ) cr
 
 : constant create , does> @ ;
-: value constant ;
+: value create , does> @  ;
 
 ( SYS constants )
 1 constant colon-sys
@@ -198,8 +198,15 @@ $f constant TEXT-COLOR-WHITE
     then
     ; immediate
 : marker dict @ create , does> @ dict ! ; 
-: value constant ;
-: to ' >body ! ; 
+: to
+    ' >body 
+    state @ if
+        literal postpone !
+    else 
+        ! 
+    then
+    ; immediate
+
 : is
    state @ if
      postpone ['] postpone defer!
@@ -387,6 +394,7 @@ synonym s= str=
         type cr
         2 +
     loop    
+    drop
 ;
 
 : same-page ( u -- )    \ Garanties that next u size bytes allocted from same page

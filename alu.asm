@@ -348,14 +348,11 @@ code_ud_slash_mod:
     fenter
 
     pop hl
+    ld  de, 0           ; divisor
 
-    bit 7, h            ; Expand hl sign into de
-    jr  z, _code_ud_slash_mod_op
-    ld  de, $FFFF
-    jmp _code_ud_slash_mod2
-
-_code_ud_slash_mod_op:
-    ld  de, 0       ; divisor
+;    bit 7, h            ; Expand hl sign into de
+;    jr  z, _code_ud_slash_mod2
+;    ld  de, $FFFF
 
 _code_ud_slash_mod2:
 
