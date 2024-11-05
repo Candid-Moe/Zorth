@@ -599,5 +599,11 @@ cr
 .( Finished ) cr
 
 unused u. .(  bytes free) cr    
-
+8 buffer: sys-date
+: date ( -- )
+    22 sys-date 0 0  ( HL DE BC A )
+    z80-syscall
+    ." Return code " . cr
+    ." Date " sys-date 8 dump cr
+    ;
 
