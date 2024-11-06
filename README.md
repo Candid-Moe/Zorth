@@ -72,8 +72,6 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 
 **4hex**  ( x -- ) Displays x as four hex digit.
 
-**clear** ( -- )  Clears the screen.
-
 **clearstack** ( i * x -- ) Clears the data stack
 
 **dict**  ( -- addr ) Address of dictionary pointer (to last entry).
@@ -103,5 +101,17 @@ Compile with `z80asm -Iinclude -s -l -m -g -b zorth.asm`
 **-rot** ( w1 w2 w3 – w3 w1 w2 ) \ gforth
 
 **same-page** ( x -- ) guarantees that the next n bytes will be on the same page in memory
+
+**set-rtc** ( sec minute hour day month year -- ior ) Set the Real Time Clock
+
+**time&date** ( -- sec minute hour day month year ) Get time/date from Real Time Clock
+
+**sleep** ( u -- ) Slee n milliseconds.
+
+**sys-error** ( u -- ) Print the text for a system error code 
+
+**int2bcd** ( u -- u ) Convert integer to BCD
+
+**bcd2int** ( u -- u ) Convert a BCD byte to an integer
 
 Check the assembler files in *include/* sudirectory for system/hardware parameters-
