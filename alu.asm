@@ -682,6 +682,23 @@ code_z80_syscall:
     
     fret
 
+code_int2bcd:
+;
+;   Converts TOS to BCD 
+;   ( u -- x )
+;
+    pop bc
+    ld  a, c
+    daa
+    ld  c, a
+    ld  a, b
+    daa
+    ld  b, a
+
+    push bc
+
+    jp  (hl)
+
 multiply_by_10:
 ;   ( n -- n * 10 )
 ;
@@ -736,3 +753,5 @@ _is_digit_fail:
 _is_digit_success:
     ld a, 1
     ret
+
+

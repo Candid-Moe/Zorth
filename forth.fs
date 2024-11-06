@@ -357,7 +357,7 @@ synonym s= str=
     ;
 
 : dump ( addr u -- )                \   Dump memory
-    0 ?do space dup c@ 2hex 1 + loop drop ;
+   over 4hex ." : " 0 ?do space dup c@ 2hex 1 + loop drop ;
 
 : clearstack ( n ... -- )           \   Delete all items in data stack
     begin 
@@ -405,6 +405,97 @@ synonym s= str=
         here - allot
     then
 ;
+
+: bcd2int   ( bcd-byte -- u ) \ Convert a BCD byte to integer
+    dup 
+    $00f0 and 4 rshift 10 * swap
+    $000F and +
+    ;
+
+: int2bcd   ( u -- bcd-byte )
+    #10 /mod swap >r
+    #10 /mod swap 4 lshift r> or  
+    swap
+    #10 /mod swap >r
+    #10 /mod swap 4 lshift r> or  
+    swap
+    drop
+    ;
+
+9 same-page
+8 buffer: sys-date
+
+: set-rtc ( +n1 +n2 +n3 +n4 +n5 +n6 -- ior )
+    int2bcd sys-date c!             \ Century              
+            sys-date 1 + c!         \ Decade
+    int2bcd drop sys-date 2 + c!    \ Month
+    int2bcd drop sys-date 3 + c!    \ Day
+    1            sys-date 4 + c!    \ week day
+    int2bcd drop sys-date 5 + c!    \ Hour
+    int2bcd drop sys-date 6 + c!    \ Minutes
+    int2bcd drop sys-date 7 + c!    \ Seconds
+    ." sys-date " sys-date 8 dump cr
+    21 sys-date 0 0
+    hex
+    ." set-rtc " .s cr
+    z80-syscall
+    ."         " .s cr
+    nip nip nip
+    decimal
+    ;
+    
+: time&date ( -- +n1 +n2 +n3 +n4 +n5 +n6 ) 
+    22 sys-date 0 0  ( HL DE BC A )
+    z80-syscall      ( hl' de' bc' a' )
+    2drop 2drop
+    sys-date 7 + @ bcd2int    \ seconds 
+    sys-date 6 + @ bcd2int    \ minutes
+    sys-date 5 + @ bcd2int    \ hour
+    sys-date 3 + @ bcd2int    \ day
+    sys-date 2 + @ bcd2int    \ month
+    sys-date 1 + @ bcd2int    \ decade
+    sys-date     @ bcd2int 100 * +
+    ;
+
+: sleep ( u -- ior ) \ Sleep miliseconds
+    18 swap 0 0 .s cr
+    z80-syscall .s cr
+    nip nip nip
+    ;
+
+: sys-error
+    ( n -- )    \ Print system error message text
+    case 
+        0 of ." ERR_SUCCESS" endof
+        1 of ." ERR_FAILURE" endof
+        2 of ." ERR_NOT_IMPLEMENTED" endof
+        3 of ." ERR_NOT_SUPPORTED" endof
+        4 of ." ERR_NO_SUCH_ENTRY" endof
+        5 of ." ERR_INVALID_SYSCALL" endof
+        6 of ." ERR_INVALID_PARAMETER" endof
+        7 of ." ERR_INVALID_VIRT_PAGE" endof
+        8 of ." ERR_INVALID_PHYS_ADDRESS" endof
+        9 of ." ERR_INVALID_OFFSET" endof
+        10 of ." ERR_INVALID_NAME" endof
+        11 of ." ERR_INVALID_PATH" endof
+        12 of ." ERR_INVALID_FILESYSTEM" endof
+        13 of ." ERR_INVALID_FILEDEV" endof
+        14 of ." ERR_PATH_TOO_LONG" endof
+        15 of ." ERR_ALREADY_EXIST" endof
+        16 of ." ERR_ALREADY_OPENED" endof
+        17 of ." ERR_ALREADY_MOUNTED" endof
+        18 of ." ERR_READ_ONLY" endof
+        19 of ." ERR_BAD_MODE" endof
+        20 of ." ERR_CANNOT_REGISTER_MORE" endof
+        21 of ." ERR_NO_MORE_ENTRIES" endof
+        22 of ." ERR_NO_MORE_MEMORY" endof
+        23 of ." ERR_NOT_A_DIR" endof
+        24 of ." ERR_NOT_A_FILE" endof
+        25 of ." ERR_ENTRY_CORRUPTED" endof
+        26 of ." ERR_DIR_NOT_EMPTY" endof
+        ." UNKOWN ERROR"
+    endcase
+    ;     
 
 .( . )
 \ The values for these constant are dictated by Zeal-8 OS
@@ -599,11 +690,12 @@ cr
 .( Finished ) cr
 
 unused u. .(  bytes free) cr    
-8 buffer: sys-date
-: date ( -- )
-    22 sys-date 0 0  ( HL DE BC A )
-    z80-syscall
-    ." Return code " . cr
-    ." Date " sys-date 8 dump cr
-    ;
+: test
+    decimal clearstack
+    10 20 21 4 11 2024 set-rtc 
+    ." time&date "
+    time&date 
+    .s cr
+    ;    
+    
 
